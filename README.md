@@ -42,7 +42,9 @@ To use these widgets on your Corsair setup, you will need:
 - A **Corsair Xeneon Edge** display.
 - The **[Corsair iCUE](https://www.corsair.com/icue)** software installed and up to date.
 
-### 🚀 iFrame
+### 🚀 Method 1 — Direct iFrame (Recommended)
+
+> ✅ **Easiest method.** Requires an internet connection for the widget to load.
 
 1. Open **iCUE** and go to your screen/dashboard configuration.
 2. In the **Widgets** list (left column), click on the **`</> iFrame`** icon.
@@ -66,7 +68,9 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
 - Un écran **Corsair Xeneon Edge**.
 - Le logiciel **[Corsair iCUE](https://www.corsair.com/icue)** installé et à jour sur votre machine.
 
-### 🚀 iFrame Direct
+### 🚀 Méthode 1 — iFrame Direct (Recommandée)
+
+> ✅ **La méthode la plus simple.** Nécessite une connexion internet pour charger le widget.
 
 1. Ouvrez **iCUE** et allez dans la configuration de votre écran.
 2. Dans la liste des **Widgets** (colonne gauche), cliquez sur l'icône **`</> iFrame`**.
@@ -81,66 +85,19 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
 
 ---
 
-## 🎵 Spotify Visualizer — Setup Guide
+### 🛠️ Méthode 2 — Copier-coller le code HTML
 
-> ⚠️ **Internet connection required.** The widget communicates with the Spotify API and the LRCLIB lyrics service.
->
-> 🔒 **Privacy first.** Your Client ID and Refresh Token are stored only in your browser's `localStorage`. Nothing is sent to any third-party server.
+> ✅ **Fonctionne hors-ligne.** Aucune connexion internet nécessaire.
 
-### 🇬🇧 English
+1. Ouvrez **iCUE** et allez dans la configuration de votre écran.
+2. Dans la liste des **Widgets** (colonne gauche), cliquez sur l'icône **`</> iFrame`**.
+3. Choisissez la taille souhaitée : **`M`**, **`L`**, ou **`XL`**.
+4. Ouvrez un des fichiers HTML de ce dépôt (par exemple `productivity/pomodoro/pomodoro.html`) dans un éditeur de texte (Bloc-notes, VS Code, etc.).
+5. **Sélectionnez tout** (`Ctrl+A`) et **copiez** (`Ctrl+C`) l'intégralité du code.
+6. Dans iCUE, **collez** ce code dans la zone de texte **code HTML** sous les réglages "iFrame".
 
-#### Step 1 — Create a Spotify App
-
-1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in.
-2. Click **Create App**.
-3. Fill in any **App name** and **App description** (e.g. "iCUE Widget").
-4. In the **Redirect URIs** field, add exactly:
-   ```
-   https://stealthylabshq.github.io/iframe-edge/productivity/spotify-visualizer/auth/callback.html
-   ```
-5. Under **Which API/SDKs are you planning to use?**, select **Web API**.
-6. Click **Save**.
-7. Click **Settings** on your new app page and copy your **Client ID**.
-
-#### Step 2 — Configure the Widget
-
-1. Open iCUE → add the **Spotify Visualizer** widget (URL or copy-paste method).
-2. Click **⚙️** (settings icon) in the top-right corner of the widget.
-3. Paste your **Client ID** into the *Spotify Client ID* field.
-4. Click **🔑 Authorize & get Refresh Token** — a browser tab will open.
-5. Log in to Spotify and grant the requested permissions.
-6. The callback page will display your **Refresh Token** — click **Copy**.
-7. Go back to the widget settings, paste the token into *Refresh Token*, and click **Save**.
-
-> 🎉 The widget will immediately start showing the currently playing track!
+> **🎉 Et voilà !** Le widget apparaîtra instantanément sur votre écran sans connexion internet.
 
 ---
 
-### 🇫🇷 Français
-
-#### Étape 1 — Créer une application Spotify
-
-1. Rendez-vous sur le [Tableau de bord Spotify Developer](https://developer.spotify.com/dashboard) et connectez-vous.
-2. Cliquez sur **Create App**.
-3. Remplissez un **nom d'application** et une **description** quelconques (ex. : "iCUE Widget").
-4. Dans le champ **Redirect URIs**, ajoutez exactement :
-   ```
-   https://stealthylabshq.github.io/iframe-edge/productivity/spotify-visualizer/auth/callback.html
-   ```
-5. Sous **Which API/SDKs are you planning to use?**, cochez **Web API**.
-6. Cliquez sur **Save**.
-7. Sur la page de votre application, cliquez sur **Settings** et copiez votre **Client ID**.
-
-#### Étape 2 — Configurer le widget
-
-1. Ouvrez iCUE → ajoutez le widget **Spotify Visualizer** (par URL ou copier-coller).
-2. Cliquez sur **⚙️** (icône paramètres) en haut à droite du widget.
-3. Collez votre **Client ID** dans le champ *Spotify Client ID*.
-4. Cliquez sur **🔑 Autoriser & obtenir le Refresh Token** — un onglet s'ouvre.
-5. Connectez-vous à Spotify et accordez les permissions demandées.
-6. La page callback affiche votre **Refresh Token** — cliquez sur **Copier**.
-7. Retournez dans les paramètres du widget, collez le token dans *Refresh Token* puis cliquez sur **Enregistrer**.
-
-> 🎉 Le widget affiche immédiatement la musique en cours de lecture !
-
----
+*Developed with ❤️ for the community. / Développé avec ❤️ pour la communauté.*
