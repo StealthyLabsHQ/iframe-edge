@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <script src="../theme-loader.js"></script>
+  <meta charset="UTF-8" />
+
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests" />
+  <title>Pomodoro</title>
+  <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="widget" id="widget">
+    <div class="mod-header">
+      <div class="mod-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      </div>
+      <span class="mod-title" id="t-title">Pomodoro</span>
+      <div class="lang-toggle" id="themeToggle" style="margin-left: auto">
+        🌙
+      </div>
+      <div class="lang-toggle" id="langToggle">EN</div>
+    </div>
+    <div class="timer-body">
+      <div class="phase-badge focus" id="phaseBadge">
+        <span class="badge-dot"></span><span id="phaseLabel">Focus</span>
+      </div>
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 100 100">
+          <defs>
+            <filter id="timerGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <circle class="ring-track" cx="50" cy="50" r="42" />
+          <circle class="ring-progress" id="ringProgress" cx="50" cy="50" r="42" stroke-dasharray="263.89"
+            stroke-dashoffset="0" />
+        </svg>
+        <div class="ring-center">
+          <div class="timer-digits" id="timerDigits">25:00</div>
+          <div class="timer-sublabel" id="timerSub">focus</div>
+        </div>
+      </div>
+      <div class="session-dots" id="sessionDots">
+        <div class="s-dot" data-idx="0"></div>
+        <div class="s-dot" data-idx="1"></div>
+        <div class="s-dot" data-idx="2"></div>
+        <div class="s-dot" data-idx="3"></div>
+      </div>
+      <div class="timer-controls">
+        <button class="btn btn-ghost" id="resetBtn" aria-label="Reset">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <polyline points="1 4 1 10 7 10" />
+            <path d="M3.51 15a9 9 0 1 0 .49-3.86" />
+          </svg></button><button class="btn btn-timer" id="startBtn" aria-label="Start">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" id="startIcon">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg><span id="startLabel">Start</span></button><button class="btn btn-ghost" id="skipBtn"
+          aria-label="Skip phase">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <polygon points="5 4 15 12 5 20 5 4" />
+            <line x1="19" y1="5" x2="19" y2="19" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

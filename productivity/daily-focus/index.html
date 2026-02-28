@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <script src="../theme-loader.js"></script>
+  <meta charset="UTF-8" />
+
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests" />
+  <title>Daily Focus</title>
+  <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="widget">
+    <div class="mod-header">
+      <div class="mod-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+      </div>
+      <span class="mod-title" id="t-title">Daily Focus</span>
+      <div class="lang-toggle" id="themeToggle" style="margin-left: auto">
+        🌙
+      </div>
+      <div class="lang-toggle" id="langToggle">EN</div>
+    </div>
+    <div class="focus-body">
+      <textarea class="focus-input" id="focusInput" placeholder="ONE GOAL TODAY" spellcheck="false"></textarea>
+      <span class="save-badge" id="saveBadge">
+        <svg width="11" height="11" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        <span id="t-saved">Saved</span>
+      </span>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

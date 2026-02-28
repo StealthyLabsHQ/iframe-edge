@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://accounts.spotify.com; object-src 'none'; base-uri 'none'; form-action 'none';" />
+    <title>Spotify Auth - Token</title>
+    <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="./css/auth.css" />
+</head>
+
+<body>
+    <div class="card wide">
+        <div class="step-icon loading" id="icon">⏳</div>
+        <h1 id="title">Exchanging token…</h1>
+        <p id="subtitle">Please wait while we authenticate with Spotify.</p>
+
+        <div id="tokenSection" style="display:none;" class="token-section">
+            <div class="token-label">Your Refresh Token</div>
+            <div class="token-box" id="tokenBox">
+                <span id="tokenText"></span>
+                <button class="copy-btn" id="copyBtn">Copy</button>
+            </div>
+
+            <div class="steps">
+                <p>Next steps:</p>
+                <ol>
+                    <li>Click <strong>Copy</strong> above to copy the token.</li>
+                    <li>Go back to your <strong>Spotify Visualizer</strong> widget in iCUE.</li>
+                    <li>Open <strong>⚙️ Settings</strong> and paste the token in the <strong>Refresh Token</strong>
+                        field.</li>
+                    <li>Click <strong>Save</strong> — the widget will start playing!</li>
+                </ol>
+            </div>
+
+            <div class="alert">
+                ⚠️ Keep this token private. Anyone with it can control your Spotify playback.
+                If compromised, revoke it at <a href="https://www.spotify.com/account/apps/" target="_blank"
+                    rel="noopener noreferrer" style="color: inherit;">spotify.com/account/apps</a>.
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/callback.js"></script>
+</body>
+
+</html>
