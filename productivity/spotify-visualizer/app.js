@@ -64,6 +64,9 @@
             toastSaved: "✓ Paramètres enregistrés",
             toastError: "Erreur de connexion Spotify",
             toastReauth: "⚠️ Token expiré — ré-autorisez dans les paramètres",
+            sessionTitle: "Session expirée",
+            sessionSub: "Votre autorisation Spotify a été révoquée ou est expirée. Reconnectez-vous pour continuer.",
+            reconnect: "Se reconnecter",
         },
         en: {
             title: "Spotify",
@@ -85,6 +88,9 @@
             toastSaved: "✓ Settings saved",
             toastError: "Spotify connection error",
             toastReauth: "⚠️ Token expired — re-authorize in settings",
+            sessionTitle: "Session expired",
+            sessionSub: "Your Spotify authorization was revoked or expired. Reconnect to continue.",
+            reconnect: "Reconnect",
         },
     };
 
@@ -238,12 +244,22 @@
             });
             const data = await resp.json();
             if (!resp.ok) {
-                if (data.error === "invalid_grant") showToast(t("toastReauth"), 6000);
+                if (resp.status === 400 && data.error === "invalid_grant") {
+                    // Token revoked/expired — clear it and show persistent reconnect banner
+                    stopPolling();
+                    localStorage.removeItem(LS.RTOKEN);
+                    state.accessToken = null;
+                    state.tokenExpiry = 0;
+                    showOverlay("🔒", t("sessionTitle"), t("sessionSub"), t("reconnect"), () => {
+                        hideOverlay();
+                        openSettings();
+                    });
+                }
                 return false;
             }
             state.accessToken = data.access_token;
             state.tokenExpiry = Date.now() + (data.expires_in - 30) * 1000;
-            // Spotify sometimes returns a new refresh_token
+            // Spotify sometimes returns a new refresh_token — persist it immediately
             if (data.refresh_token) localStorage.setItem(LS.RTOKEN, data.refresh_token);
             return true;
         } catch (_) {
@@ -265,10 +281,17 @@
         if (!token) return null;
 
         try {
-            const resp = await fetch(API_BASE + "/me/player/currently-playing?additional_types=track", {
+            // /me/player returns shuffle_state + repeat_state; 204 = no active device
+            const resp = await fetch(API_BASE + "/me/player?additional_types=track", {
                 headers: { Authorization: "Bearer " + token },
             });
             if (resp.status === 204) return { is_playing: false };
+            if (resp.status === 401) {
+                // Access token rejected mid-session — force a refresh next call
+                state.accessToken = null;
+                state.tokenExpiry = 0;
+                return null;
+            }
             if (!resp.ok) return null;
             return await resp.json();
         } catch (_) {
@@ -598,9 +621,9 @@
 
             updateAlbumArt(artUrl);
 
-            // Fetch lyrics for new track (XL layout)
-            const isXL = state.sizeClass === 'sz-xl';
-            if (isXL) {
+            // Fetch lyrics for new track (L and XL layouts)
+            const needsLyrics = (state.sizeClass === 'sz-xl' || state.sizeClass === 'sz-l');
+            if (needsLyrics) {
                 state.lyricsData = [];
                 state.lyricsTrackId = trackId;
                 renderLyrics([]);
@@ -640,7 +663,9 @@
         if (state.sizeClass) document.documentElement.classList.remove(state.sizeClass);
         document.documentElement.classList.add(sz);
         state.sizeClass = sz;
-        if (sz === 'sz-xl' && state.trackId && state.lyricsData.length === 0) {
+        // Fetch lyrics when entering a lyrics-capable layout
+        const needsLyrics = (sz === 'sz-xl' || sz === 'sz-l');
+        if (needsLyrics && state.trackId && state.lyricsData.length === 0) {
             const tn = $("trackName").textContent;
             const ar = $("trackArtist").textContent;
             const al = $("trackAlbum").textContent;

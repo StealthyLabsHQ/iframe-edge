@@ -369,6 +369,7 @@ body {
     flex-direction: column;
     min-width: 0;
     overflow: hidden;
+    position: relative;
 }
 
 .lyrics-header {
@@ -403,6 +404,11 @@ body {
     border-radius: 4px;
 }
 
+html.sz-l .lyric-line,
+html.sz-xl .lyric-line {
+    font-size: 14px;
+}
+
 :root[data-theme="light"] .lyric-line {
     color: rgba(0, 0, 0, 0.35);
 }
@@ -410,6 +416,11 @@ body {
 .lyric-line.near {
     color: rgba(255, 255, 255, 0.62);
     font-size: 13px;
+}
+
+html.sz-l .lyric-line.near,
+html.sz-xl .lyric-line.near {
+    font-size: 16px;
 }
 
 :root[data-theme="light"] .lyric-line.near {
@@ -421,6 +432,11 @@ body {
     font-weight: 700;
     color: var(--text-1);
     text-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
+}
+
+html.sz-l .lyric-line.active,
+html.sz-xl .lyric-line.active {
+    font-size: 20px;
 }
 
 .no-lyrics {
@@ -800,16 +816,18 @@ html.sz-m .hdr {
     border-radius: 18px 18px 0 0;
 }
 
-/* ── L : Row layout, all track info ── */
+/* ── L : Two columns, layout similar to XL ── */
 html.sz-l #content {
-    flex-direction: column;
+    flex-direction: row;
     align-items: stretch;
     justify-content: flex-start;
     padding: 0 12px 12px;
 }
 
 html.sz-l .col-left {
-    width: 100%;
+    width: 250px;
+    min-width: 220px;
+    flex-shrink: 0;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
@@ -860,7 +878,13 @@ html.sz-l .controls {
 }
 
 html.sz-l .col-right {
-    display: none;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    width: 0;
+    border-left: 1px solid var(--border);
+    padding-left: 10px;
+    margin-left: 8px;
 }
 
 /* ── XL : Two full columns ── */
@@ -933,13 +957,22 @@ html.sz-xl .col-right {
 /* ── Lyrics scroll controls ── */
 .lyrics-ctrl-bar {
     display: none;
+    position: absolute;
+    right: 8px;
+    bottom: 20px;
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    padding: 2px 0;
+    padding: 8px 6px;
     flex-shrink: 0;
+    background: var(--glass-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    z-index: 10;
 }
 
+html.sz-l .lyrics-ctrl-bar,
 html.sz-xl .lyrics-ctrl-bar {
     display: flex;
 }
