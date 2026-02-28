@@ -68,5 +68,3 @@ Suivez ces étapes simples pour afficher les widgets sur votre écran :
 > **🎉 Et voilà !** Le widget apparaîtra instantanément sur votre écran ! Répétez l'opération pour chaque widget que vous souhaitez utiliser.
 
 ---
-
-*Developed with ❤️ for the community. / Développé avec ❤️ pour la communauté.*
