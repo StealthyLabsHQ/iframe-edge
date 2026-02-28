@@ -413,10 +413,11 @@
         }
         const lines = $("lyricsScroll").querySelectorAll(".lyric-line");
         lines.forEach((el, i) => {
+            const dist = Math.abs(i - active);
             el.classList.toggle("active", i === active);
-            el.classList.toggle("near", Math.abs(i - active) === 1);
+            el.classList.toggle("near", dist > 0 && dist <= 2);
         });
-        // Scroll active line into view (center)
+        // Smooth scroll active line to center of the scroll container
         if (lines[active]) {
             lines[active].scrollIntoView({ block: "center", behavior: "smooth" });
         }

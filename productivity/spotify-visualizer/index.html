@@ -364,7 +364,7 @@
             font-weight: 600;
             letter-spacing: 2px;
             text-transform: uppercase;
-            color: var(--text-3);
+            color: var(--text-2);
             margin-bottom: 10px;
             flex-shrink: 0;
         }
@@ -376,28 +376,39 @@
             scrollbar-width: thin;
             scrollbar-color: var(--overlay-8) transparent;
             scroll-behavior: smooth;
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+            padding: 40px 8px;
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
         }
 
         .lyric-line {
-            font-size: 13px;
-            line-height: 1.7;
-            padding: 2px 0;
-            color: var(--text-3);
-            transition: color 0.3s ease, font-size 0.3s ease, font-weight 0.3s ease;
+            font-size: 12px;
+            line-height: 1.8;
+            padding: 1px 4px;
+            color: rgba(255, 255, 255, 0.38);
+            transition: color 0.35s ease, font-size 0.3s ease, font-weight 0.3s ease, opacity 0.35s ease;
             cursor: default;
+            border-radius: 4px;
+        }
+
+        :root[data-theme="light"] .lyric-line {
+            color: rgba(0, 0, 0, 0.35);
+        }
+
+        .lyric-line.near {
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 13px;
+        }
+
+        :root[data-theme="light"] .lyric-line.near {
+            color: rgba(0, 0, 0, 0.55);
         }
 
         .lyric-line.active {
             font-size: 15px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-1);
-        }
-
-        .lyric-line.near {
-            color: var(--text-2);
-            font-size: 14px;
+            text-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
         }
 
         .no-lyrics {
@@ -407,7 +418,7 @@
             justify-content: center;
             height: 100%;
             gap: 8px;
-            color: var(--text-3);
+            color: var(--text-2);
             font-size: 11px;
             text-align: center;
         }
@@ -612,19 +623,45 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* ── Responsive container queries ──────────────────────── */
-        /* M  < 400px: only album art */
-        /* L  400-799px: art + info + controls */
-        /* XL ≥ 800px: art + info + controls + lyrics */
+        /* ════════════════════════════════════════════════════════
+           RESPONSIVE LAYOUT
+           M  (<400px) : album art only, centered
+           L  (400-799): album + info + progress + controls
+           XL (≥800px) : left column + lyrics right column
+        ════════════════════════════════════════════════════════ */
 
-        /* Default (M): center everything, big album */
-        .col-left {
-            width: 100%;
+        /* ── M (default — all hidden except album) ─────────────── */
+        #content {
+            flex-direction: column;
             align-items: center;
             justify-content: center;
         }
 
-        .track-info,
+        .col-left {
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* The inner row (album + info) — M: just album centered */
+        .col-left-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            width: 100%;
+        }
+
+        .album-wrap {
+            width: clamp(90px, 55vmin, 160px);
+            height: clamp(90px, 55vmin, 160px);
+            flex-shrink: 0;
+        }
+
+        /* Hide info/controls at M */
+        #trackInfo,
         .progress-wrap,
         .controls {
             display: none;
@@ -634,54 +671,53 @@
             display: none;
         }
 
-        .album-wrap {
-            width: min(75vw, 75vh, 180px);
-            height: min(75vw, 75vh, 180px);
-        }
-
-        /* L: show info + controls */
+        /* ── L (400px – 799px) ─────────────────────────────────── */
         @media (min-width: 400px) {
             #content {
                 flex-direction: column;
-                align-items: center;
+                align-items: stretch;
+                justify-content: flex-start;
             }
 
             .col-left {
                 width: 100%;
+                height: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                justify-content: flex-start;
+                gap: 10px;
+            }
+
+            /* Row: album thumbnail + track info */
+            .col-left-inner {
                 flex-direction: row;
                 align-items: center;
-                gap: 14px;
+                gap: 12px;
+                width: 100%;
             }
 
             .album-wrap {
-                width: 80px;
-                height: 80px;
+                width: 76px;
+                height: 76px;
                 flex-shrink: 0;
             }
 
-            .track-info,
-            .progress-wrap,
-            .controls {
+            /* Show info */
+            #trackInfo {
                 display: flex;
-            }
-
-            .track-info {
                 flex-direction: column;
                 flex: 1;
                 min-width: 0;
             }
 
-            .col-left {
-                flex-direction: column;
-                align-items: stretch;
+            /* Show progress + controls */
+            .progress-wrap,
+            .controls {
+                display: flex;
             }
 
-            /* Re-layout for L: row of album+info, then progress, then controls */
-            .col-left-inner {
-                display: flex;
-                gap: 14px;
-                align-items: center;
-                width: 100%;
+            .controls {
+                justify-content: center;
             }
 
             .col-right {
@@ -689,25 +725,60 @@
             }
         }
 
-        /* XL: show lyrics column */
+        /* ── XL (≥800px) : side-by-side columns ───────────────── */
         @media (min-width: 800px) {
             #content {
                 flex-direction: row;
-            }
-
-            .col-left {
-                width: 280px;
                 align-items: stretch;
                 justify-content: flex-start;
             }
 
-            .album-wrap {
-                width: 100% !important;
-                height: 240px !important;
+            /* Left column: fixed width, stacked vertically */
+            .col-left {
+                width: 220px;
+                min-width: 220px;
+                flex-direction: column;
+                align-items: stretch;
+                justify-content: flex-start;
+                gap: 10px;
+                flex-shrink: 0;
             }
 
+            /* At XL: album on top full-width, then info below */
+            .col-left-inner {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .album-wrap {
+                width: 100%;
+                height: 190px;
+                flex-shrink: 0;
+            }
+
+            #trackInfo {
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+            }
+
+            .progress-wrap,
+            .controls {
+                display: flex;
+            }
+
+            .controls {
+                justify-content: center;
+            }
+
+            /* Right column: lyrics, fills remaining space */
             .col-right {
                 display: flex;
+                flex: 1;
+                min-width: 0;
+                border-left: 1px solid var(--border);
+                padding-left: 14px;
             }
         }
     </style>
