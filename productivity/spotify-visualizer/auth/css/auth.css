@@ -1,0 +1,268 @@
+/* ── Shared Auth Pages: login.html + callback.html ────────── */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    min-height: 100vh;
+    background: #0a0a0a;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+/* ── Card ─────────────────────────────────────────────────── */
+.card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 40px 36px;
+    max-width: 500px;
+    width: 100%;
+    backdrop-filter: blur(20px);
+    text-align: center;
+}
+
+/* login.html centers, callback.html left-aligns */
+.card.wide {
+    max-width: 500px;
+    text-align: left;
+}
+
+/* ── Logo / Icon ──────────────────────────────────────────── */
+.logo,
+.step-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin-bottom: 20px;
+}
+
+.logo {
+    background: linear-gradient(135deg, #1DB954, #1aa34a);
+    margin: 0 auto 20px;
+}
+
+.step-icon.loading {
+    background: rgba(255, 255, 255, 0.08);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.step-icon.success {
+    background: rgba(29, 185, 84, 0.15);
+}
+
+.step-icon.error {
+    background: rgba(255, 80, 80, 0.12);
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* ── Typography ───────────────────────────────────────────── */
+h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+
+/* ── Button ───────────────────────────────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 24px;
+    background: #1DB954;
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.2s ease, transform 0.1s ease;
+    letter-spacing: 0.3px;
+}
+
+.btn:hover {
+    filter: brightness(1.1);
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+/* ── Error box (login) ────────────────────────────────────── */
+.error {
+    background: rgba(255, 80, 80, 0.12);
+    border: 1px solid rgba(255, 80, 80, 0.25);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #ff6b6b;
+    margin-top: 16px;
+    text-align: left;
+}
+
+/* ── Scope list (login) ───────────────────────────────────── */
+.scope-list {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.scope-list p {
+    margin-bottom: 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.scope-list ul {
+    list-style: none;
+    margin-top: 8px;
+}
+
+.scope-list li {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+    padding: 2px 0;
+}
+
+.scope-list li::before {
+    content: "✓ ";
+    color: #1DB954;
+}
+
+/* ── Token section (callback) ─────────────────────────────── */
+.token-section {
+    margin-top: 28px;
+}
+
+.token-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 8px;
+}
+
+.token-box {
+    position: relative;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 14px 50px 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #1DB954;
+    word-break: break-all;
+    line-height: 1.7;
+    min-height: 60px;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.copy-btn:hover {
+    background: rgba(29, 185, 84, 0.15);
+    color: #1DB954;
+    border-color: rgba(29, 185, 84, 0.3);
+}
+
+.copy-btn.copied {
+    background: rgba(29, 185, 84, 0.2);
+    color: #1DB954;
+}
+
+/* ── Steps (callback) ─────────────────────────────────────── */
+.steps {
+    margin-top: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    padding: 16px 18px;
+}
+
+.steps p {
+    margin-bottom: 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.steps ol {
+    margin-top: 10px;
+    padding-left: 18px;
+}
+
+.steps li {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 3px 0;
+    line-height: 1.5;
+}
+
+.steps li strong {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── Alert (callback) ─────────────────────────────────────── */
+.alert {
+    margin-top: 16px;
+    background: rgba(255, 180, 0, 0.08);
+    border: 1px solid rgba(255, 180, 0, 0.2);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 12px;
+    color: rgba(255, 200, 0, 0.8);
+    line-height: 1.5;
+}

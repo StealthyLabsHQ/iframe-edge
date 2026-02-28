@@ -29,8 +29,11 @@
         lastPollTime: 0,
         pollTimer: null,
         progressTimer: null,
-        lyricsData: [],       // [{time: ms, text: string}]
+        lyricsData: [],       // [{timeMs, text}]
         lyricsTrackId: null,
+        autoScroll: true,          // auto-follow active lyric line
+        autoScrollResumeTimer: null,
+        sizeClass: '',             // 'sz-m' | 'sz-l' | 'sz-xl'
         theme: localStorage.getItem(LS.THEME) || "dark",
         lang: localStorage.getItem(LS.LANG) || "fr",
     };
@@ -417,10 +420,50 @@
             el.classList.toggle("active", i === active);
             el.classList.toggle("near", dist > 0 && dist <= 2);
         });
-        // Smooth scroll active line to center of the scroll container
-        if (lines[active]) {
+        // Auto-scroll: follow active line only if auto-scroll is on
+        if (state.autoScroll && lines[active]) {
             lines[active].scrollIntoView({ block: "center", behavior: "smooth" });
         }
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────────
+     *  LYRICS SCROLL CONTROLS
+     * ────────────────────────────────────────────────────────────────────────*/
+    function setAutoScroll(on) {
+        state.autoScroll = on;
+        const btn = $("lyricsAutoBtn");
+        if (btn) btn.classList.toggle("active", on);
+        if (on) highlightLyricLine(); // snap back to current line
+    }
+
+    function pauseAutoScrollTemporarily() {
+        if (!state.autoScroll) return;
+        setAutoScroll(false);
+        clearTimeout(state.autoScrollResumeTimer);
+        state.autoScrollResumeTimer = setTimeout(() => setAutoScroll(true), 4000);
+    }
+
+    // Auto-scroll toggle button
+    const autoBtn = $("lyricsAutoBtn");
+    if (autoBtn) {
+        autoBtn.addEventListener("click", () => {
+            clearTimeout(state.autoScrollResumeTimer);
+            setAutoScroll(!state.autoScroll);
+        });
+    }
+
+    // Scroll arrows — scroll by ~3 lines
+    const scrollUp = $("lyricsScrollUp");
+    const scrollDown = $("lyricsScrollDown");
+    const SCROLL_AMOUNT = 60; // px per arrow click
+    if (scrollUp) scrollUp.addEventListener("click", () => { pauseAutoScrollTemporarily(); $("lyricsScroll").scrollBy({ top: -SCROLL_AMOUNT, behavior: "smooth" }); });
+    if (scrollDown) scrollDown.addEventListener("click", () => { pauseAutoScrollTemporarily(); $("lyricsScroll").scrollBy({ top: SCROLL_AMOUNT, behavior: "smooth" }); });
+
+    // Pause auto-scroll when user manually touches/wheels lyrics
+    const lyricsEl = $("lyricsScroll");
+    if (lyricsEl) {
+        lyricsEl.addEventListener("wheel", () => pauseAutoScrollTemporarily(), { passive: true });
+        lyricsEl.addEventListener("touchstart", () => pauseAutoScrollTemporarily(), { passive: true });
     }
 
     /* ─────────────────────────────────────────────────────────────────────────
@@ -548,24 +591,47 @@
     }
 
     /* ─────────────────────────────────────────────────────────────────────────
-     *  RESPONSIVE: re-fetch lyrics when resizing into XL
+     *  RESPONSIVE SIZE DETECTION via ResizeObserver on the widget element
+     *  sz-m  : < 700 px  → full-bleed album art
+     *  sz-l  : 700–1399  → row: album + track info + controls
+     *  sz-xl : ≥ 1400 px → left panel + full lyrics column
      * ────────────────────────────────────────────────────────────────────────*/
-    let lastWidth = window.innerWidth;
-    window.addEventListener("resize", () => {
-        const w = window.innerWidth;
-        if (w >= 800 && lastWidth < 800 && state.trackId) {
-            // Entered XL — load lyrics
-            const trackName = $("trackName").textContent;
-            const artistName = $("trackArtist").textContent;
-            const albumName = $("trackAlbum").textContent;
-            fetchLyrics(artistName, trackName, albumName, state.durationMs / 1000).then(lines => {
+    function applySize(sz) {
+        if (state.sizeClass === sz) return;
+        if (state.sizeClass) document.documentElement.classList.remove(state.sizeClass);
+        document.documentElement.classList.add(sz);
+        state.sizeClass = sz;
+        if (sz === 'sz-xl' && state.trackId && state.lyricsData.length === 0) {
+            const tn = $("trackName").textContent;
+            const ar = $("trackArtist").textContent;
+            const al = $("trackAlbum").textContent;
+            fetchLyrics(ar, tn, al, state.durationMs / 1000).then(lines => {
                 state.lyricsData = lines;
                 renderLyrics(lines);
                 highlightLyricLine();
             });
         }
-        lastWidth = w;
-    });
+    }
+
+    if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(entries => {
+            const w = entries[0].contentRect.width;
+            if (w < 700) applySize('sz-m');
+            else if (w < 1400) applySize('sz-l');
+            else applySize('sz-xl');
+        });
+        ro.observe($('widget'));
+    } else {
+        const fb = () => {
+            const w = $('widget').offsetWidth || window.innerWidth;
+            if (w < 700) applySize('sz-m');
+            else if (w < 1400) applySize('sz-l');
+            else applySize('sz-xl');
+        };
+        window.addEventListener('resize', fb);
+        fb();
+    }
+
 
     /* ─────────────────────────────────────────────────────────────────────────
      *  INIT
