@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script id="theme-loader">
+      (function () {
+        var t = localStorage.getItem("pa_theme") || "dark";
+        document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Habits</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      button,
+      input {
+        font-family: inherit;
+        border: none;
+        background: none;
+        outline: none;
+      }
+
+      :root,
+      :root[data-theme="dark"] {
+        --bg: #000000;
+        --surface: #121212;
+        --border: var(--overlay-8);
+        --border-h: rgba(255, 255, 255, 0.15);
+        --text-1: #ffffff;
+        --text-2: #a0a0a0;
+        --text-3: #666666;
+        --accent: #55efc4;
+        /* mint green */
+        --tr: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+        --overlay-2: rgba(255, 255, 255, 0.025);
+        --overlay-3: rgba(255, 255, 255, 0.035);
+        --overlay-5: rgba(255, 255, 255, 0.05);
+        --overlay-8: rgba(255, 255, 255, 0.08);
+        --overlay-10: rgba(255, 255, 255, 0.1);
+        --toast-bg: #2c2c2c;
+        --grid-overlay: rgba(0, 0, 0, 0.04);
+      }
+
+      :root[data-theme="light"] {
+        --bg: #f5f5f7;
+        --surface: #ffffff;
+        --border: rgba(0, 0, 0, 0.08);
+        --border-h: rgba(0, 0, 0, 0.15);
+        --text-1: #1a1a1a;
+        --text-2: #666666;
+        --text-3: #999999;
+
+        --overlay-2: rgba(0, 0, 0, 0.025);
+        --overlay-3: rgba(0, 0, 0, 0.035);
+        --overlay-5: rgba(0, 0, 0, 0.05);
+        --overlay-8: rgba(0, 0, 0, 0.08);
+        --overlay-10: rgba(0, 0, 0, 0.1);
+        --toast-bg: #ffffff;
+        --grid-overlay: rgba(0, 0, 0, 0.02);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text-1);
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent 0px,
+          transparent 3px,
+          var(--grid-overlay) 3px,
+          var(--grid-overlay) 4px
+        );
+        pointer-events: none;
+        z-index: 9999;
+      }
+
+      .widget {
+        width: 100%;
+        height: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px 22px 18px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .mod-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+      }
+
+      .mod-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(85, 239, 196, 0.12);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .mod-title {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--text-2);
+      }
+
+      .lang-toggle {
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--text-2);
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: var(--overlay-5);
+        border: 1px solid var(--border);
+        transition: all var(--tr);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      .lang-toggle:hover {
+        background: var(--overlay-10);
+        color: var(--text-1);
+        border-color: var(--border-h);
+      }
+
+      .habit-list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow-y: auto;
+      }
+
+      .habit-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 16px;
+        background: var(--overlay-2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        transition: all var(--tr);
+      }
+
+      .habit-item:focus-within {
+        border-color: rgba(85, 239, 196, 0.4);
+        background: var(--overlay-5);
+      }
+
+      .habit-item.checked {
+        opacity: 0.6;
+      }
+
+      .habit-item.checked:focus-within {
+        opacity: 1;
+      }
+
+      .h-checkbox {
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--border-h);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        color: transparent;
+      }
+
+      .h-checkbox:hover {
+        border-color: var(--text-3);
+      }
+
+      .habit-item.checked .h-checkbox {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #121212;
+      }
+
+      .h-input {
+        flex: 1;
+        font-size: 15px;
+        color: var(--text-1);
+        font-weight: 500;
+        transition: all var(--tr);
+      }
+
+      .h-input::placeholder {
+        color: var(--text-3);
+        font-style: italic;
+      }
+
+      .habit-item.checked .h-input {
+        text-decoration: line-through;
+        color: var(--text-2);
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%) translateY(12px);
+        background: var(--toast-bg);
+        border: 1px solid var(--border-h);
+        border-radius: 12px;
+        padding: 9px 18px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-1);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 1000;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+
+      .toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="widget">
+      <div class="mod-header">
+        <div class="mod-icon">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path
+              d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+            ></path>
+          </svg>
+        </div>
+        <span class="mod-title" id="t-title">Habits</span>
+        <div class="lang-toggle" id="themeToggle" style="margin-left: auto">
+          🌙
+        </div>
+        <div class="lang-toggle" id="langToggle">EN</div>
+      </div>
+
+      <div class="habit-list" id="habitList">
+        <!-- Generates 4 items -->
+      </div>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script>
+      (() => {
+        "use strict";
+        const $ = (id) => document.getElementById(id);
+
+        function showToast(msg, duration = 3000) {
+          const el = $("toast");
+          el.textContent = msg;
+          el.classList.add("visible");
+          clearTimeout(el._t);
+          el._t = setTimeout(() => el.classList.remove("visible"), duration);
+        }
+
+        function today() {
+          return new Date().toISOString().split("T")[0];
+        }
+
+        const THEME_KEY = "pa_theme";
+        let currentTheme = localStorage.getItem(THEME_KEY) || "dark";
+
+        function updateThemeUI() {
+          $("themeToggle").textContent = currentTheme === "dark" ? "🌙" : "☀️";
+          document.documentElement.setAttribute("data-theme", currentTheme);
+        }
+
+        $("themeToggle").addEventListener("click", () => {
+          currentTheme = currentTheme === "dark" ? "light" : "dark";
+          localStorage.setItem(THEME_KEY, currentTheme);
+          updateThemeUI();
+        });
+
+        const LANG_KEY = "pa_lang";
+        let currentLang = localStorage.getItem(LANG_KEY) || "fr";
+
+        const i18n = {
+          fr: {
+            title: "Habitudes",
+            placeholders: [
+              "Ex: Lire 10 pages...",
+              "Ex: Sport 30mn...",
+              "Ex: Méditation...",
+              "Ex: Vitamines...",
+            ],
+            toastReset: "🌅 Nouveau jour ! Habitudes réinitialisées.",
+            toastAllDone: "🎉 Toutes les habitudes sont complétées !",
+          },
+          en: {
+            title: "Habit Tracker",
+            placeholders: [
+              "e.g., Read 10 pages...",
+              "e.g., Workout 30m...",
+              "e.g., Meditate...",
+              "e.g., Take vitamins...",
+            ],
+            toastReset: "🌅 New day! Habits reset.",
+            toastAllDone: "🎉 All habits complete!",
+          },
+        };
+
+        function t(key) {
+          return i18n[currentLang][key];
+        }
+
+        function updateLangUI() {
+          $("langToggle").textContent = currentLang.toUpperCase();
+          $("t-title").textContent = t("title");
+
+          const inputs = document.querySelectorAll(".h-input");
+          const placeholders = t("placeholders");
+          inputs.forEach((inp, idx) => {
+            inp.placeholder = placeholders[idx] || "";
+          });
+        }
+
+        $("langToggle").addEventListener("click", () => {
+          currentLang = currentLang === "fr" ? "en" : "fr";
+          localStorage.setItem(LANG_KEY, currentLang);
+          updateLangUI();
+        });
+
+        window.addEventListener("storage", (e) => {
+          if (e.key === THEME_KEY) {
+            currentTheme = e.newValue;
+            updateThemeUI();
+          }
+          if (e.key === LANG_KEY) {
+            currentLang = e.newValue;
+            updateLangUI();
+          }
+        });
+
+        const HABITS_KEY = "pa_habitsData";
+        const HABITS_DATE_KEY = "pa_habitsDate";
+
+        let habits = [];
+
+        function loadHabits() {
+          try {
+            habits = JSON.parse(localStorage.getItem(HABITS_KEY)) || [
+              { text: "", done: false },
+              { text: "", done: false },
+              { text: "", done: false },
+              { text: "", done: false },
+            ];
+          } catch (e) {
+            habits = [
+              { text: "", done: false },
+              { text: "", done: false },
+              { text: "", done: false },
+              { text: "", done: false },
+            ];
+          }
+
+          const savedDate = localStorage.getItem(HABITS_DATE_KEY);
+          if (savedDate && savedDate !== today()) {
+            habits.forEach((h) => (h.done = false));
+            localStorage.setItem(HABITS_DATE_KEY, today());
+            saveHabits();
+            showToast(t("toastReset"));
+          } else if (!savedDate) {
+            localStorage.setItem(HABITS_DATE_KEY, today());
+          }
+        }
+
+        function saveHabits() {
+          localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
+        }
+
+        function renderHabits() {
+          const list = $("habitList");
+          list.innerHTML = "";
+          const placeholders = t("placeholders");
+
+          habits.forEach((h, i) => {
+            const item = document.createElement("div");
+            item.className = "habit-item" + (h.done ? " checked" : "");
+
+            const btn = document.createElement("div");
+            btn.className = "h-checkbox";
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+            const inp = document.createElement("input");
+            inp.type = "text";
+            inp.className = "h-input";
+            inp.value = h.text;
+            inp.placeholder = placeholders[i] || "";
+
+            inp.addEventListener("input", (e) => {
+              habits[i].text = e.target.value;
+              saveHabits();
+            });
+
+            btn.addEventListener("click", () => {
+              habits[i].done = !habits[i].done;
+              saveHabits();
+              renderHabits();
+
+              // check if all done
+              if (habits[i].done) {
+                const allDone = habits
+                  .filter((h) => h.text.trim().length > 0)
+                  .every((h) => h.done);
+                const hasText = habits.some((h) => h.text.trim().length > 0);
+                if (allDone && hasText) {
+                  showToast(t("toastAllDone"));
+                }
+              }
+            });
+
+            item.appendChild(btn);
+            item.appendChild(inp);
+            list.appendChild(item);
+          });
+        }
+
+        setInterval(() => {
+          const saved = localStorage.getItem(HABITS_DATE_KEY);
+          if (saved && saved !== today()) {
+            loadHabits();
+            renderHabits();
+          }
+        }, 60_000);
+
+        // Init
+        loadHabits();
+        updateThemeUI();
+        renderHabits(); // rendering uses translation for placeholders
+        updateLangUI(); // calls update text again
+      })();
+    </script>
+  </body>
+</html>

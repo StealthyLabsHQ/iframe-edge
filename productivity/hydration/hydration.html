@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script id="theme-loader">
+      (function () {
+        var t = localStorage.getItem("pa_theme") || "dark";
+        document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      button {
+        cursor: pointer;
+        font-family: inherit;
+        border: none;
+        background: none;
+      }
+
+      :root,
+      :root[data-theme="dark"] {
+        --bg: #000000;
+        --surface: #121212;
+        --border: var(--overlay-8);
+        --border-h: rgba(255, 255, 255, 0.15);
+        --text-1: #ffffff;
+        --text-2: #a0a0a0;
+        --text-3: #666666;
+        --accent: #4ecdc4;
+        --tr: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+        --overlay-2: var(--overlay-2);
+        --overlay-3: var(--overlay-3);
+        --overlay-5: var(--overlay-5);
+        --overlay-8: var(--overlay-8);
+        --overlay-10: var(--overlay-10);
+        --toast-bg: #2c2c2c;
+        --grid-overlay: var(--grid-overlay);
+      }
+
+      :root[data-theme="light"] {
+        --bg: #f5f5f7;
+        --surface: #ffffff;
+        --border: rgba(0, 0, 0, 0.08);
+        --border-h: rgba(0, 0, 0, 0.15);
+        --text-1: #1a1a1a;
+        --text-2: #666666;
+        --text-3: #999999;
+        --overlay-2: rgba(0, 0, 0, 0.025);
+        --overlay-3: rgba(0, 0, 0, 0.035);
+        --overlay-5: rgba(0, 0, 0, 0.05);
+        --overlay-8: rgba(0, 0, 0, 0.08);
+        --overlay-10: rgba(0, 0, 0, 0.1);
+        --toast-bg: #ffffff;
+        --grid-overlay: rgba(0, 0, 0, 0.02);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text-1);
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent 0px,
+          transparent 3px,
+          var(--grid-overlay) 3px,
+          var(--grid-overlay) 4px
+        );
+        pointer-events: none;
+        z-index: 9999;
+      }
+
+      .widget {
+        width: 100%;
+        height: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px 22px 18px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .widget::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--accent);
+        opacity: 0;
+        transition: opacity var(--tr);
+      }
+
+      .widget:hover::before {
+        opacity: 1;
+      }
+
+      .mod-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        flex-shrink: 0;
+      }
+
+      .mod-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(78, 205, 196, 0.12);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .mod-title {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--text-2);
+      }
+
+      .water-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 0;
+      }
+
+      .water-count-row {
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .water-number {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 60px;
+        font-weight: 700;
+        color: var(--accent);
+        line-height: 1;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .water-number.bump {
+        transform: scale(1.15);
+      }
+
+      .water-meta {
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        color: var(--text-3);
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+
+      .glass-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 7px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .glass-cell {
+        border-radius: 10px;
+        background: rgba(78, 205, 196, 0.05);
+        border: 1px solid rgba(78, 205, 196, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .glass-cell.filled {
+        background: rgba(78, 205, 196, 0.15);
+        border-color: rgba(78, 205, 196, 0.4);
+        box-shadow: inset 0 -2px 0 rgba(78, 205, 196, 0.2);
+      }
+
+      .glass-cell.filled::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 55%;
+        background: linear-gradient(
+          to top,
+          rgba(78, 205, 196, 0.25),
+          transparent
+        );
+        animation: waterRise 0.45s ease forwards;
+      }
+
+      @keyframes waterRise {
+        from {
+          height: 0;
+          opacity: 0;
+        }
+
+        to {
+          height: 55%;
+          opacity: 1;
+        }
+      }
+
+      .water-status {
+        font-size: 12px;
+        color: var(--text-3);
+        text-align: center;
+        flex-shrink: 0;
+        transition: color 0.3s ease;
+      }
+
+      .water-status.complete {
+        color: var(--accent);
+        font-weight: 500;
+      }
+
+      .water-controls {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 44px;
+        min-width: 44px;
+        padding: 0 18px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: all var(--tr);
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+      }
+
+      .btn::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--overlay-8);
+        opacity: 0;
+        border-radius: inherit;
+        transition: opacity 0.1s ease;
+      }
+
+      .btn:active {
+        transform: scale(0.95);
+      }
+
+      .btn:active::after {
+        opacity: 1;
+      }
+
+      .btn-ghost {
+        background: var(--overlay-5);
+        color: var(--text-2);
+        border: 1px solid var(--border);
+      }
+
+      .btn-ghost:hover {
+        background: rgba(255, 255, 255, 0.09);
+        color: var(--text-1);
+        border-color: var(--border-h);
+      }
+
+      .btn-water {
+        flex: 1;
+        background: rgba(78, 205, 196, 0.12);
+        color: var(--accent);
+        border: 1px solid rgba(78, 205, 196, 0.2);
+      }
+
+      .btn-water:hover {
+        background: rgba(78, 205, 196, 0.2);
+        border-color: rgba(78, 205, 196, 0.35);
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%) translateY(12px);
+        background: var(--toast-bg);
+        border: 1px solid var(--border-h);
+        border-radius: 12px;
+        padding: 9px 18px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-1);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 1000;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+
+      .toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .lang-toggle {
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--text-2);
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: var(--overlay-5);
+        border: 1px solid var(--border);
+        transition: all var(--tr);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      .lang-toggle:hover {
+        background: var(--overlay-10);
+        color: var(--text-1);
+        border-color: var(--border-h);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="widget">
+      <div class="mod-header">
+        <div class="mod-icon">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+          </svg>
+        </div>
+        <span class="mod-title" id="t-title">Hydration</span>
+        <div class="lang-toggle" id="themeToggle" style="margin-left: auto">
+          🌙
+        </div>
+        <div class="lang-toggle" id="langToggle">EN</div>
+      </div>
+      <div class="water-body">
+        <div class="water-count-row">
+          <div class="water-number" id="waterNum">0</div>
+          <div class="water-meta" id="t-meta">/ 8 glasses · 2 L</div>
+        </div>
+        <div class="glass-grid" id="glassGrid"></div>
+        <div class="water-status" id="waterStatus">Start hydrating!</div>
+        <div class="water-controls">
+          <button
+            class="btn btn-ghost"
+            id="waterMinus"
+            aria-label="Remove a glass"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg></button
+          ><button
+            class="btn btn-water"
+            id="waterPlus"
+            aria-label="Add a glass"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            >
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+            </svg>
+            <span id="t-add">+1 glass</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script>
+      (() => {
+        "use strict";
+        const $ = (id) => document.getElementById(id);
+        function showToast(msg, duration = 3000) {
+          const el = $("toast");
+          el.textContent = msg;
+          el.classList.add("visible");
+          clearTimeout(el._t);
+          el._t = setTimeout(() => el.classList.remove("visible"), duration);
+        }
+        function today() {
+          return new Date().toISOString().split("T")[0];
+        }
+
+        const THEME_KEY = "pa_theme";
+        let currentTheme = localStorage.getItem(THEME_KEY) || "dark";
+
+        function updateThemeUI() {
+          $("themeToggle").textContent = currentTheme === "dark" ? "🌙" : "☀️";
+          document.documentElement.setAttribute("data-theme", currentTheme);
+        }
+
+        $("themeToggle").addEventListener("click", () => {
+          currentTheme = currentTheme === "dark" ? "light" : "dark";
+          localStorage.setItem(THEME_KEY, currentTheme);
+          updateThemeUI();
+        });
+
+        window.addEventListener("storage", (e) => {
+          if (e.key === THEME_KEY) {
+            currentTheme = e.newValue;
+            updateThemeUI();
+          }
+        });
+
+        updateThemeUI();
+
+        const LANG_KEY = "pa_lang";
+        let currentLang = localStorage.getItem(LANG_KEY) || "fr";
+
+        const i18n = {
+          fr: {
+            title: "Hydratation",
+            meta: "/ 8 verres · 2 L",
+            start: "Commencez à vous hydrater !",
+            left: (n) =>
+              `Plus que ${n} verre${n > 1 ? "s" : ""} pour l'objectif`,
+            goal: "🎉 Objectif journalier atteint !",
+            addBtn: "+1 verre",
+            toastGoal: "💧 Bravo ! Objectif hydratation atteint !",
+            toastAlready: "✅ Objectif déjà atteint pour aujourd'hui !",
+            toastReset: "🌅 Nouveau jour ! Compteur d'eau réinitialisé.",
+          },
+          en: {
+            title: "Hydration",
+            meta: "/ 8 glasses · 2 L",
+            start: "Start hydrating!",
+            left: (n) => `${n} glass${n > 1 ? "es" : ""} left for your goal`,
+            goal: "🎉 Daily goal reached!",
+            addBtn: "+1 glass",
+            toastGoal: "💧 Great job! Hydration goal reached!",
+            toastAlready: "✅ Goal already reached for today!",
+            toastReset: "🌅 New day! Water counter reset.",
+          },
+        };
+
+        function t(key, arg) {
+          const val = i18n[currentLang][key];
+          return typeof val === "function" ? val(arg) : val;
+        }
+
+        function updateLangUI() {
+          $("langToggle").textContent = currentLang.toUpperCase();
+          $("t-title").textContent = t("title");
+          $("t-meta").textContent = t("meta");
+          $("t-add").textContent = t("addBtn");
+          renderWater();
+        }
+
+        $("langToggle").addEventListener("click", () => {
+          currentLang = currentLang === "fr" ? "en" : "fr";
+          localStorage.setItem(LANG_KEY, currentLang);
+          updateLangUI();
+        });
+
+        window.addEventListener("storage", (e) => {
+          if (e.key === LANG_KEY) {
+            currentLang = e.newValue;
+            updateLangUI();
+          }
+        });
+
+        const WATER_KEY = "pa_waterCount";
+        const WATER_DATE_KEY = "pa_waterDate";
+        const WATER_GOAL = 8;
+        function loadWater() {
+          const savedDate = localStorage.getItem(WATER_DATE_KEY);
+          if (savedDate !== today()) {
+            localStorage.setItem(WATER_DATE_KEY, today());
+            localStorage.setItem(WATER_KEY, "0");
+            return 0;
+          }
+          return parseInt(localStorage.getItem(WATER_KEY) || "0", 10);
+        }
+        function saveWater(count) {
+          localStorage.setItem(WATER_KEY, String(count));
+          localStorage.setItem(WATER_DATE_KEY, today());
+        }
+        let waterCount = loadWater();
+        function buildGlassGrid() {
+          const grid = $("glassGrid");
+          grid.innerHTML = "";
+          for (let i = 0; i < WATER_GOAL; i++) {
+            const cell = document.createElement("div");
+            cell.className = "glass-cell" + (i < waterCount ? " filled" : "");
+            cell.textContent = i < waterCount ? "💧" : "○";
+            cell.style.fontSize = i < waterCount ? "18px" : "16px";
+            cell.style.color = i < waterCount ? "" : "var(--text-3)";
+            grid.appendChild(cell);
+          }
+        }
+        function renderWater() {
+          const numEl = $("waterNum");
+          numEl.textContent = waterCount;
+          numEl.classList.add("bump");
+          setTimeout(() => numEl.classList.remove("bump"), 300);
+          buildGlassGrid();
+          const status = $("waterStatus");
+          const remaining = WATER_GOAL - waterCount;
+          if (waterCount === 0) {
+            status.textContent = t("start");
+            status.className = "water-status";
+          } else if (remaining > 0) {
+            status.textContent = t("left", remaining);
+            status.className = "water-status";
+          } else {
+            status.textContent = t("goal");
+            status.className = "water-status complete";
+          }
+        }
+        $("waterPlus").addEventListener("click", () => {
+          if (waterCount < WATER_GOAL) {
+            waterCount++;
+            saveWater(waterCount);
+            renderWater();
+            if (waterCount === WATER_GOAL) showToast(t("toastGoal"));
+          } else {
+            showToast(t("toastAlready"));
+          }
+        });
+        $("waterMinus").addEventListener("click", () => {
+          if (waterCount > 0) {
+            waterCount--;
+            saveWater(waterCount);
+            renderWater();
+          }
+        });
+        setInterval(() => {
+          const saved = localStorage.getItem(WATER_DATE_KEY);
+          if (saved && saved !== today()) {
+            waterCount = 0;
+            saveWater(0);
+            renderWater();
+            showToast(t("toastReset"));
+          }
+        }, 60_000);
+        updateLangUI();
+      })();
+    </script>
+  </body>
+</html>

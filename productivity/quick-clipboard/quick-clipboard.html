@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <script id="theme-loader">
+        (function () {
+            var t = localStorage.getItem("pa_theme") || "dark";
+            document.documentElement.setAttribute("data-theme", t);
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quick Clipboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            background: none;
+            outline: none;
+        }
+
+        :root,
+        :root[data-theme="dark"] {
+            --bg: #000000;
+            --surface: #121212;
+            --border: var(--overlay-8);
+            --border-h: rgba(255, 255, 255, 0.15);
+            --text-1: #ffffff;
+            --text-2: #a0a0a0;
+            --text-3: #666666;
+            --accent: #fab1a0;
+            /* soft peach */
+            --tr: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+            --overlay-2: rgba(255, 255, 255, 0.025);
+            --overlay-3: rgba(255, 255, 255, 0.035);
+            --overlay-5: rgba(255, 255, 255, 0.05);
+            --overlay-8: rgba(255, 255, 255, 0.08);
+            --overlay-10: rgba(255, 255, 255, 0.1);
+            --toast-bg: #2c2c2c;
+            --grid-overlay: rgba(0, 0, 0, 0.04);
+        }
+
+        :root[data-theme="light"] {
+            --bg: #f5f5f7;
+            --surface: #ffffff;
+            --border: rgba(0, 0, 0, 0.08);
+            --border-h: rgba(0, 0, 0, 0.15);
+            --text-1: #1a1a1a;
+            --text-2: #666666;
+            --text-3: #999999;
+
+            --overlay-2: rgba(0, 0, 0, 0.025);
+            --overlay-3: rgba(0, 0, 0, 0.035);
+            --overlay-5: rgba(0, 0, 0, 0.05);
+            --overlay-8: rgba(0, 0, 0, 0.08);
+            --overlay-10: rgba(0, 0, 0, 0.1);
+            --toast-bg: #ffffff;
+            --grid-overlay: rgba(0, 0, 0, 0.02);
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--bg);
+            color: var(--text-1);
+            font-family: "Inter", sans-serif;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg,
+                    transparent 0px,
+                    transparent 3px,
+                    var(--grid-overlay) 3px,
+                    var(--grid-overlay) 4px);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .widget {
+            width: 100%;
+            height: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px 22px 18px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mod-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+
+        .mod-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: rgba(250, 177, 160, 0.12);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .mod-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--text-2);
+        }
+
+        .lang-toggle {
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--text-2);
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: var(--overlay-5);
+            border: 1px solid var(--border);
+            transition: all var(--tr);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        .lang-toggle:hover {
+            background: var(--overlay-10);
+            color: var(--text-1);
+            border-color: var(--border-h);
+        }
+
+        .clip-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .clip-textarea {
+            flex: 1;
+            background: var(--overlay-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: var(--accent);
+            font-family: "JetBrains Mono", monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            transition: all var(--tr);
+            min-height: 0;
+        }
+
+        .clip-textarea:focus {
+            border-color: rgba(250, 177, 160, 0.4);
+            background: var(--overlay-5);
+        }
+
+        .clip-textarea::placeholder {
+            color: var(--text-3);
+            font-family: "Inter", sans-serif;
+        }
+
+        .clip-footer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .btn-copy {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px;
+            padding: 0 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: rgba(250, 177, 160, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(250, 177, 160, 0.2);
+            transition: all var(--tr);
+            flex: 1;
+        }
+
+        .btn-copy:hover {
+            background: rgba(250, 177, 160, 0.2);
+            border-color: rgba(250, 177, 160, 0.4);
+        }
+
+        .btn-copy:active {
+            transform: scale(0.96);
+        }
+
+        .btn-clear {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--overlay-5);
+            color: var(--text-2);
+            border: 1px solid var(--border);
+            transition: all var(--tr);
+        }
+
+        .btn-clear:hover {
+            background: var(--overlay-10);
+            color: var(--text-1);
+            border-color: var(--border-h);
+        }
+
+        .btn-clear:active {
+            transform: scale(0.96);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%) translateY(12px);
+            background: var(--toast-bg);
+            border: 1px solid var(--border-h);
+            border-radius: 12px;
+            padding: 9px 18px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-1);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="widget">
+        <div class="mod-header">
+            <div class="mod-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+            </div>
+            <span class="mod-title" id="t-title">Clipboard</span>
+            <div class="lang-toggle" id="themeToggle" style="margin-left: auto">
+                🌙
+            </div>
+            <div class="lang-toggle" id="langToggle">EN</div>
+        </div>
+
+        <div class="clip-body">
+            <textarea class="clip-textarea" id="clipArea"
+                placeholder="Paste links, scripts, or text here for quick access across your screen..."
+                spellcheck="false"></textarea>
+            <div class="clip-footer">
+                <button class="btn-copy" id="copyBtn">
+                    <svg style="margin-right: 6px" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                    </svg>
+                    <span id="t-copy">Copy to Clipboard</span>
+                </button>
+                <button class="btn-clear" id="clearBtn" aria-label="Clear">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script>
+        (() => {
+            "use strict";
+            const $ = (id) => document.getElementById(id);
+
+            function showToast(msg, duration = 3000) {
+                const el = $("toast");
+                el.textContent = msg;
+                el.classList.add("visible");
+                clearTimeout(el._t);
+                el._t = setTimeout(() => el.classList.remove("visible"), duration);
+            }
+
+            const THEME_KEY = "pa_theme";
+            let currentTheme = localStorage.getItem(THEME_KEY) || "dark";
+
+            function updateThemeUI() {
+                $("themeToggle").textContent = currentTheme === "dark" ? "🌙" : "☀️";
+                document.documentElement.setAttribute("data-theme", currentTheme);
+            }
+
+            $("themeToggle").addEventListener("click", () => {
+                currentTheme = currentTheme === "dark" ? "light" : "dark";
+                localStorage.setItem(THEME_KEY, currentTheme);
+                updateThemeUI();
+            });
+
+            const LANG_KEY = "pa_lang";
+            let currentLang = localStorage.getItem(LANG_KEY) || "fr";
+
+            const i18n = {
+                fr: {
+                    title: "Presse-papiers",
+                    placeholder:
+                        "Collez vos liens, scripts ou commandes ici pour un accès rapide...",
+                    btnCopy: "Copier le texte",
+                    toastCopied: "✅ Copié dans le presse-papiers !",
+                    toastEmpty: "⚠️ Rien à copier.",
+                    toastCleared: "🗑️ Presse-papiers vidé.",
+                },
+                en: {
+                    title: "Clipboard",
+                    placeholder:
+                        "Paste links, scripts, or text here for quick access...",
+                    btnCopy: "Copy text",
+                    toastCopied: "✅ Copied to clipboard!",
+                    toastEmpty: "⚠️ Nothing to copy.",
+                    toastCleared: "🗑️ Clipboard cleared.",
+                },
+            };
+
+            function t(key) {
+                return i18n[currentLang][key];
+            }
+
+            function updateLangUI() {
+                $("langToggle").textContent = currentLang.toUpperCase();
+                $("t-title").textContent = t("title");
+                $("clipArea").placeholder = t("placeholder");
+                $("t-copy").textContent = t("btnCopy");
+            }
+
+            $("langToggle").addEventListener("click", () => {
+                currentLang = currentLang === "fr" ? "en" : "fr";
+                localStorage.setItem(LANG_KEY, currentLang);
+                updateLangUI();
+            });
+
+            window.addEventListener("storage", (e) => {
+                if (e.key === THEME_KEY) {
+                    currentTheme = e.newValue;
+                    updateThemeUI();
+                }
+                if (e.key === LANG_KEY) {
+                    currentLang = e.newValue;
+                    updateLangUI();
+                }
+            });
+
+            const CLIP_KEY = "pa_quickClipboard";
+            let saveTimer = null;
+            const clipArea = $("clipArea");
+
+            clipArea.value = localStorage.getItem(CLIP_KEY) || "";
+
+            clipArea.addEventListener("input", () => {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(() => {
+                    localStorage.setItem(CLIP_KEY, clipArea.value);
+                }, 300);
+            });
+
+            $("copyBtn").addEventListener("click", () => {
+                const text = clipArea.value;
+                if (!text.trim()) {
+                    showToast(t("toastEmpty"));
+                    return;
+                }
+
+                // Create a temporary off-screen textarea, write text, copy, remove.
+                // This bypasses navigator.clipboard restrictions in the iCUE iframe.
+                const tmp = document.createElement("textarea");
+                tmp.value = text;
+                tmp.style.position = "fixed";
+                tmp.style.top = "-9999px";
+                tmp.style.left = "-9999px";
+                tmp.setAttribute("readonly", "");
+                document.body.appendChild(tmp);
+                tmp.focus();
+                tmp.select();
+                tmp.setSelectionRange(0, 99999);
+                try {
+                    const ok = document.execCommand("copy");
+                    showToast(ok ? t("toastCopied") : "❌ Copie échouée.");
+                } catch (e) {
+                    showToast("❌ Copie échouée.");
+                }
+                document.body.removeChild(tmp);
+            });
+
+            $("clearBtn").addEventListener("click", () => {
+                clipArea.value = "";
+                localStorage.removeItem(CLIP_KEY);
+                showToast(t("toastCleared"));
+            });
+
+            // Initialize Loop
+            updateThemeUI();
+            updateLangUI();
+        })();
+    </script>
+</body>
+
+</html>

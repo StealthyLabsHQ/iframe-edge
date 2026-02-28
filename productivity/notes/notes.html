@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script id="theme-loader">
+      (function () {
+        var t = localStorage.getItem("pa_theme") || "dark";
+        document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quick Notes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      button {
+        cursor: pointer;
+        font-family: inherit;
+        border: none;
+        background: none;
+      }
+
+      textarea {
+        font-family: inherit;
+      }
+
+      :root,
+      :root[data-theme="dark"] {
+        --bg: #000000;
+        --surface: #121212;
+        --border: var(--overlay-8);
+        --border-h: rgba(255, 255, 255, 0.15);
+        --text-1: #ffffff;
+        --text-2: #a0a0a0;
+        --text-3: #666666;
+        --accent: #ffd93d;
+        --tr: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+        --overlay-2: var(--overlay-2);
+        --overlay-3: var(--overlay-3);
+        --overlay-5: var(--overlay-5);
+        --overlay-8: var(--overlay-8);
+        --overlay-10: var(--overlay-10);
+        --toast-bg: #2c2c2c;
+        --grid-overlay: var(--grid-overlay);
+      }
+
+      :root[data-theme="light"] {
+        --bg: #f5f5f7;
+        --surface: #ffffff;
+        --border: rgba(0, 0, 0, 0.08);
+        --border-h: rgba(0, 0, 0, 0.15);
+        --text-1: #1a1a1a;
+        --text-2: #666666;
+        --text-3: #999999;
+        --overlay-2: rgba(0, 0, 0, 0.025);
+        --overlay-3: rgba(0, 0, 0, 0.035);
+        --overlay-5: rgba(0, 0, 0, 0.05);
+        --overlay-8: rgba(0, 0, 0, 0.08);
+        --overlay-10: rgba(0, 0, 0, 0.1);
+        --toast-bg: #ffffff;
+        --grid-overlay: rgba(0, 0, 0, 0.02);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text-1);
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent 0px,
+          transparent 3px,
+          var(--grid-overlay) 3px,
+          var(--grid-overlay) 4px
+        );
+        pointer-events: none;
+        z-index: 9999;
+      }
+
+      .widget {
+        width: 100%;
+        height: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px 22px 18px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .widget::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--accent);
+        opacity: 0;
+        transition: opacity var(--tr);
+      }
+
+      .widget:focus-within::before {
+        opacity: 1;
+      }
+
+      .mod-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        flex-shrink: 0;
+      }
+
+      .mod-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(255, 217, 61, 0.12);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .mod-title {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--text-2);
+      }
+
+      .notes-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 0;
+      }
+
+      .notes-textarea {
+        flex: 1;
+        background: var(--overlay-2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 20px;
+        color: var(--text-1);
+        font-size: 16px;
+        line-height: 1.6;
+        resize: none;
+        outline: none;
+        transition:
+          border-color var(--tr),
+          background var(--tr);
+        min-height: 0;
+      }
+
+      .notes-textarea:focus {
+        border-color: rgba(255, 217, 61, 0.28);
+        background: var(--overlay-3);
+      }
+
+      .notes-textarea::placeholder {
+        color: var(--text-3);
+      }
+
+      .notes-footer {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      .char-counter {
+        font-size: 11px;
+        color: var(--text-3);
+        flex: 1;
+      }
+
+      .save-badge {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--accent);
+        letter-spacing: 0.5px;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+      }
+
+      .save-badge.show {
+        opacity: 1;
+      }
+
+      .btn-clear {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        min-height: 44px;
+        padding: 0 14px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background: rgba(255, 217, 61, 0.1);
+        color: var(--accent);
+        border: 1px solid rgba(255, 217, 61, 0.18);
+        transition: all var(--tr);
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+      }
+
+      .btn-clear:hover {
+        background: rgba(255, 217, 61, 0.18);
+        border-color: rgba(255, 217, 61, 0.3);
+      }
+
+      .btn-clear:active {
+        transform: scale(0.95);
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%) translateY(12px);
+        background: var(--toast-bg);
+        border: 1px solid var(--border-h);
+        border-radius: 12px;
+        padding: 9px 18px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-1);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 1000;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+
+      .toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .lang-toggle {
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--text-2);
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: var(--overlay-5);
+        border: 1px solid var(--border);
+        transition: all var(--tr);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      .lang-toggle:hover {
+        background: var(--overlay-10);
+        color: var(--text-1);
+        border-color: var(--border-h);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="widget">
+      <div class="mod-header">
+        <div class="mod-icon">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+        </div>
+        <span class="mod-title" id="t-title">Quick Notes</span>
+        <div class="lang-toggle" id="themeToggle" style="margin-left: auto">
+          🌙
+        </div>
+        <div class="lang-toggle" id="langToggle">EN</div>
+      </div>
+      <div class="notes-body">
+        <textarea
+          class="notes-textarea"
+          id="notesArea"
+          placeholder="Your ideas, tasks, thoughts... Auto-saving."
+          spellcheck="false"
+        ></textarea>
+        <div class="notes-footer">
+          <span class="char-counter" id="charCount">0 characters</span
+          ><span class="save-badge" id="saveBadge"
+            ><svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            <span id="t-saved">Saved</span> </span
+          ><button class="btn-clear" id="clearBtn">
+            <span id="t-clear">Clear</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script>
+      (() => {
+        "use strict";
+        const $ = (id) => document.getElementById(id);
+        function showToast(msg, duration = 3000) {
+          const el = $("toast");
+          el.textContent = msg;
+          el.classList.add("visible");
+          clearTimeout(el._t);
+          el._t = setTimeout(() => el.classList.remove("visible"), duration);
+        }
+
+        const THEME_KEY = "pa_theme";
+        let currentTheme = localStorage.getItem(THEME_KEY) || "dark";
+
+        function updateThemeUI() {
+          $("themeToggle").textContent = currentTheme === "dark" ? "🌙" : "☀️";
+          document.documentElement.setAttribute("data-theme", currentTheme);
+        }
+
+        $("themeToggle").addEventListener("click", () => {
+          currentTheme = currentTheme === "dark" ? "light" : "dark";
+          localStorage.setItem(THEME_KEY, currentTheme);
+          updateThemeUI();
+        });
+
+        window.addEventListener("storage", (e) => {
+          if (e.key === THEME_KEY) {
+            currentTheme = e.newValue;
+            updateThemeUI();
+          }
+        });
+
+        updateThemeUI();
+
+        const LANG_KEY = "pa_lang";
+        let currentLang = localStorage.getItem(LANG_KEY) || "fr";
+
+        const i18n = {
+          fr: {
+            title: "Notes Rapides",
+            placeholder:
+              "Vos idées, tâches, pensées... Sauvegarde automatique.",
+            char: (n) => `${n} caractère${n !== 1 ? "s" : ""}`,
+            saved: "Sauvegardé",
+            clearBtn: "Effacer",
+            confirm: "Effacer toutes les notes ?",
+            toastClear: "🗑️ Notes effacées.",
+          },
+          en: {
+            title: "Quick Notes",
+            placeholder: "Your ideas, tasks, thoughts... Auto-saving.",
+            char: (n) => `${n} character${n !== 1 ? "s" : ""}`,
+            saved: "Saved",
+            clearBtn: "Clear",
+            confirm: "Clear all notes?",
+            toastClear: "🗑️ Notes cleared.",
+          },
+        };
+
+        function t(key, arg) {
+          const val = i18n[currentLang][key];
+          return typeof val === "function" ? val(arg) : val;
+        }
+
+        function updateLangUI() {
+          $("langToggle").textContent = currentLang.toUpperCase();
+          $("t-title").textContent = t("title");
+          $("notesArea").placeholder = t("placeholder");
+          $("t-saved").textContent = t("saved");
+          $("t-clear").textContent = t("clearBtn");
+          updateCharCount();
+        }
+
+        $("langToggle").addEventListener("click", () => {
+          currentLang = currentLang === "fr" ? "en" : "fr";
+          localStorage.setItem(LANG_KEY, currentLang);
+          updateLangUI();
+        });
+
+        window.addEventListener("storage", (e) => {
+          if (e.key === LANG_KEY) {
+            currentLang = e.newValue;
+            updateLangUI();
+          }
+        });
+
+        const NOTES_KEY = "pa_quickNotes";
+        let saveTimer = null;
+        const notesArea = $("notesArea");
+        const charCount = $("charCount");
+        const saveBadge = $("saveBadge");
+        function loadNotes() {
+          notesArea.value = localStorage.getItem(NOTES_KEY) || "";
+          updateCharCount();
+        }
+        function updateCharCount() {
+          const n = notesArea.value.length;
+          charCount.textContent = t("char", n);
+        }
+        function flashSaved() {
+          saveBadge.classList.add("show");
+          clearTimeout(saveBadge._t);
+          saveBadge._t = setTimeout(
+            () => saveBadge.classList.remove("show"),
+            2200,
+          );
+        }
+        notesArea.addEventListener("input", () => {
+          updateCharCount();
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(() => {
+            localStorage.setItem(NOTES_KEY, notesArea.value);
+            flashSaved();
+          }, 500);
+        });
+        $("clearBtn").addEventListener("click", () => {
+          if (!notesArea.value) return;
+          if (window.confirm(t("confirm"))) {
+            notesArea.value = "";
+            localStorage.removeItem(NOTES_KEY);
+            updateCharCount();
+            showToast(t("toastClear"));
+          }
+        });
+        loadNotes();
+        updateLangUI();
+      })();
+    </script>
+  </body>
+</html>

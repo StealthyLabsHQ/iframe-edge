@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script id="theme-loader">
+      (function () {
+        var t = localStorage.getItem("pa_theme") || "dark";
+        document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Posture & Blink</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      button {
+        cursor: pointer;
+        font-family: inherit;
+        border: none;
+        background: none;
+        outline: none;
+      }
+
+      :root,
+      :root[data-theme="dark"] {
+        --bg: #000000;
+        --surface: #121212;
+        --border: var(--overlay-8);
+        --border-h: rgba(255, 255, 255, 0.15);
+        --text-1: #ffffff;
+        --text-2: #a0a0a0;
+        --text-3: #666666;
+        --accent: #fd79a8;
+        /* soft pink */
+        --tr: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+        --overlay-2: rgba(255, 255, 255, 0.025);
+        --overlay-3: rgba(255, 255, 255, 0.035);
+        --overlay-5: rgba(255, 255, 255, 0.05);
+        --overlay-8: rgba(255, 255, 255, 0.08);
+        --overlay-10: rgba(255, 255, 255, 0.1);
+        --toast-bg: #2c2c2c;
+        --grid-overlay: rgba(0, 0, 0, 0.04);
+      }
+
+      :root[data-theme="light"] {
+        --bg: #f5f5f7;
+        --surface: #ffffff;
+        --border: rgba(0, 0, 0, 0.08);
+        --border-h: rgba(0, 0, 0, 0.15);
+        --text-1: #1a1a1a;
+        --text-2: #666666;
+        --text-3: #999999;
+
+        --overlay-2: rgba(0, 0, 0, 0.025);
+        --overlay-3: rgba(0, 0, 0, 0.035);
+        --overlay-5: rgba(0, 0, 0, 0.05);
+        --overlay-8: rgba(0, 0, 0, 0.08);
+        --overlay-10: rgba(0, 0, 0, 0.1);
+        --toast-bg: #ffffff;
+        --grid-overlay: rgba(0, 0, 0, 0.02);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text-1);
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent 0px,
+          transparent 3px,
+          var(--grid-overlay) 3px,
+          var(--grid-overlay) 4px
+        );
+        pointer-events: none;
+        z-index: 9999;
+      }
+
+      .widget {
+        width: 100%;
+        height: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px 22px 18px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        transition: all var(--tr);
+      }
+
+      .widget.alert-mode {
+        border-color: var(--accent);
+        box-shadow: inset 0 0 40px rgba(253, 121, 168, 0.15);
+        animation: subtlePulse 2s infinite alternate;
+      }
+
+      @keyframes subtlePulse {
+        0% {
+          box-shadow: inset 0 0 20px rgba(253, 121, 168, 0.1);
+        }
+
+        100% {
+          box-shadow: inset 0 0 60px rgba(253, 121, 168, 0.25);
+        }
+      }
+
+      .mod-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+      }
+
+      .mod-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(253, 121, 168, 0.12);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .mod-title {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--text-2);
+      }
+
+      .lang-toggle {
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--text-2);
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: var(--overlay-5);
+        border: 1px solid var(--border);
+        transition: all var(--tr);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      .lang-toggle:hover {
+        background: var(--overlay-10);
+        color: var(--text-1);
+        border-color: var(--border-h);
+      }
+
+      .reminder-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+      }
+
+      .time-display {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 56px;
+        font-weight: 700;
+        color: var(--text-1);
+        line-height: 1;
+        letter-spacing: -2px;
+        transition: color var(--tr);
+      }
+
+      .alert-mode .time-display {
+        color: var(--accent);
+      }
+
+      .message-area {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-3);
+        text-align: center;
+        line-height: 1.4;
+        max-width: 80%;
+      }
+
+      .alert-mode .message-area {
+        color: var(--text-1);
+      }
+
+      .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 24px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background: var(--overlay-5);
+        color: var(--text-2);
+        border: 1px solid var(--border);
+        transition: all var(--tr);
+        user-select: none;
+      }
+
+      .action-btn:hover {
+        background: var(--overlay-10);
+        color: var(--text-1);
+        border-color: var(--border-h);
+      }
+
+      .action-btn:active {
+        transform: scale(0.96);
+      }
+
+      .alert-mode .action-btn {
+        background: var(--accent);
+        color: #000;
+        border-color: var(--accent);
+      }
+
+      .alert-mode .action-btn:hover {
+        filter: brightness(1.1);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="widget" id="widget">
+      <div class="mod-header">
+        <div class="mod-icon">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+        </div>
+        <span class="mod-title" id="t-title">Care</span>
+        <div class="lang-toggle" id="themeToggle" style="margin-left: auto">
+          🌙
+        </div>
+        <div class="lang-toggle" id="langToggle">EN</div>
+      </div>
+
+      <div class="reminder-body">
+        <div class="time-display" id="timeDisplay">20:00</div>
+        <div class="message-area" id="msgArea">Working...</div>
+        <button class="action-btn" id="actionBtn">Reset</button>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        "use strict";
+        const $ = (id) => document.getElementById(id);
+
+        const THEME_KEY = "pa_theme";
+        let currentTheme = localStorage.getItem(THEME_KEY) || "dark";
+
+        function updateThemeUI() {
+          $("themeToggle").textContent = currentTheme === "dark" ? "🌙" : "☀️";
+          document.documentElement.setAttribute("data-theme", currentTheme);
+        }
+
+        $("themeToggle").addEventListener("click", () => {
+          currentTheme = currentTheme === "dark" ? "light" : "dark";
+          localStorage.setItem(THEME_KEY, currentTheme);
+          updateThemeUI();
+        });
+
+        const LANG_KEY = "pa_lang";
+        let currentLang = localStorage.getItem(LANG_KEY) || "fr";
+
+        const i18n = {
+          fr: {
+            title: "Santé",
+            working: "Concentre-toi. Prochain rappel dans 20m.",
+            alertTime: "Il est temps !",
+            alertMsg:
+              "Tiens-toi droit. Regarde au loin (6m) pendant 20s. Cligne des yeux.",
+            btnReset: "Réinitialiser",
+            btnDone: "Fait ! Reprendre",
+          },
+          en: {
+            title: "Care",
+            working: "Focusing. Next friendly reminder in 20m.",
+            alertTime: "Time's up!",
+            alertMsg:
+              "Sit up straight. Look 20ft away for 20s. Blink your eyes.",
+            btnReset: "Reset",
+            btnDone: "Done! Resume",
+          },
+        };
+
+        function t(key) {
+          return i18n[currentLang][key];
+        }
+
+        const INTERVAL_S = 20 * 60; // 20 minutes
+        let timeLeft = INTERVAL_S;
+        let isAlert = false;
+        let timer = null;
+
+        function updateLangUI() {
+          $("langToggle").textContent = currentLang.toUpperCase();
+          $("t-title").textContent = t("title");
+
+          if (isAlert) {
+            $("msgArea").textContent = t("alertMsg");
+            $("actionBtn").textContent = t("btnDone");
+          } else {
+            $("msgArea").textContent = t("working");
+            $("actionBtn").textContent = t("btnReset");
+          }
+        }
+
+        function formatTime(s) {
+          if (isAlert) return "00:00";
+          return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+        }
+
+        function renderTimer() {
+          $("timeDisplay").textContent = formatTime(timeLeft);
+        }
+
+        function triggerAlert() {
+          isAlert = true;
+          $("widget").classList.add("alert-mode");
+          updateLangUI();
+        }
+
+        function resetTimer() {
+          isAlert = false;
+          timeLeft = INTERVAL_S;
+          $("widget").classList.remove("alert-mode");
+          updateLangUI();
+          renderTimer();
+        }
+
+        $("actionBtn").addEventListener("click", () => {
+          resetTimer();
+        });
+
+        $("langToggle").addEventListener("click", () => {
+          currentLang = currentLang === "fr" ? "en" : "fr";
+          localStorage.setItem(LANG_KEY, currentLang);
+          updateLangUI();
+        });
+
+        window.addEventListener("storage", (e) => {
+          if (e.key === THEME_KEY) {
+            currentTheme = e.newValue;
+            updateThemeUI();
+          }
+          if (e.key === LANG_KEY) {
+            currentLang = e.newValue;
+            updateLangUI();
+          }
+        });
+
+        // Initialize Loop
+        timer = setInterval(() => {
+          if (!isAlert) {
+            timeLeft--;
+            renderTimer();
+            if (timeLeft <= 0) {
+              triggerAlert();
+            }
+          }
+        }, 1000);
+
+        updateThemeUI();
+        updateLangUI();
+        renderTimer();
+      })();
+    </script>
+  </body>
+</html>

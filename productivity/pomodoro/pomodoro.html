@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script id="theme-loader">
+      (function () {
+        var t = localStorage.getItem("pa_theme") || "dark";
+        document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pomodoro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      button {
+        cursor: pointer;
+        font-family: inherit;
+        border: none;
+        background: none;
+      }
+
+      :root,
+      :root[data-theme="dark"] {
+        --bg: #000000;
+        --surface: #121212;
+        --border: var(--overlay-8);
+        --border-h: rgba(255, 255, 255, 0.15);
+        --text-1: #ffffff;
+        --text-2: #a0a0a0;
+        --text-3: #666666;
+        --accent: #ff6b6b;
+        --accent-g: rgba(255, 107, 107, 0.25);
+        --accent-b: rgba(78, 205, 196, 1);
+        /* break accent */
+        --tr: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+        --overlay-2: var(--overlay-2);
+        --overlay-3: var(--overlay-3);
+        --overlay-5: var(--overlay-5);
+        --overlay-8: var(--overlay-8);
+        --overlay-10: var(--overlay-10);
+        --toast-bg: #2c2c2c;
+        --grid-overlay: var(--grid-overlay);
+      }
+
+      :root[data-theme="light"] {
+        --bg: #f5f5f7;
+        --surface: #ffffff;
+        --border: rgba(0, 0, 0, 0.08);
+        --border-h: rgba(0, 0, 0, 0.15);
+        --text-1: #1a1a1a;
+        --text-2: #666666;
+        --text-3: #999999;
+        --overlay-2: rgba(0, 0, 0, 0.025);
+        --overlay-3: rgba(0, 0, 0, 0.035);
+        --overlay-5: rgba(0, 0, 0, 0.05);
+        --overlay-8: rgba(0, 0, 0, 0.08);
+        --overlay-10: rgba(0, 0, 0, 0.1);
+        --toast-bg: #ffffff;
+        --grid-overlay: rgba(0, 0, 0, 0.02);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text-1);
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent 0px,
+          transparent 3px,
+          var(--grid-overlay) 3px,
+          var(--grid-overlay) 4px
+        );
+        pointer-events: none;
+        z-index: 9999;
+      }
+
+      body.is-running {
+        box-shadow: inset 0 0 60px rgba(255, 107, 107, 0.04);
+      }
+
+      .widget {
+        width: 100%;
+        height: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 14px 22px 12px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        transition:
+          border-color var(--tr),
+          box-shadow var(--tr);
+      }
+
+      .widget::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--accent);
+        opacity: 0;
+        transition: opacity var(--tr);
+      }
+
+      .widget.is-running {
+        border-color: rgba(255, 107, 107, 0.2);
+        box-shadow:
+          0 0 40px rgba(255, 107, 107, 0.06),
+          inset 0 0 60px rgba(255, 107, 107, 0.02);
+      }
+
+      .widget.is-running::before {
+        opacity: 1;
+      }
+
+      .mod-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        flex-shrink: 0;
+      }
+
+      .mod-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(255, 107, 107, 0.12);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .mod-title {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--text-2);
+      }
+
+      .timer-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .phase-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border: 1px solid;
+        transition: all 0.4s ease;
+      }
+
+      .phase-badge.focus {
+        background: rgba(255, 107, 107, 0.1);
+        color: var(--accent);
+        border-color: rgba(255, 107, 107, 0.2);
+      }
+
+      .phase-badge.pause {
+        background: rgba(78, 205, 196, 0.1);
+        color: #4ecdc4;
+        border-color: rgba(78, 205, 196, 0.2);
+      }
+
+      .badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        animation: pulseDot 2s ease-in-out infinite;
+      }
+
+      .phase-badge.focus .badge-dot {
+        background: var(--accent);
+      }
+
+      .phase-badge.pause .badge-dot {
+        background: #4ecdc4;
+      }
+
+      @keyframes pulseDot {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        50% {
+          opacity: 0.5;
+          transform: scale(0.7);
+        }
+      }
+
+      .ring-wrap {
+        position: relative;
+        width: 220px;
+        height: 220px;
+        flex-shrink: 0;
+      }
+
+      .ring-svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+      }
+
+      .ring-track {
+        fill: none;
+        stroke: var(--overlay-5);
+        stroke-width: 7;
+      }
+
+      .ring-progress {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 7;
+        stroke-linecap: round;
+        stroke-dasharray: 263.89;
+        stroke-dashoffset: 0;
+        filter: url(#timerGlow);
+        transition:
+          stroke-dashoffset 1s linear,
+          stroke 0.5s ease;
+      }
+
+      .ring-progress.is-break {
+        stroke: #4ecdc4;
+      }
+
+      .ring-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .timer-digits {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 46px;
+        font-weight: 700;
+        color: var(--text-1);
+        letter-spacing: -3px;
+        line-height: 1;
+        margin-bottom: 2px;
+      }
+
+      .timer-sublabel {
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--text-3);
+        margin-top: 5px;
+      }
+
+      .session-dots {
+        display: flex;
+        gap: 8px;
+      }
+
+      .s-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--overlay-10);
+        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .s-dot.done {
+        background: var(--accent);
+        box-shadow: 0 0 8px rgba(255, 107, 107, 0.6);
+      }
+
+      .timer-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 44px;
+        min-width: 44px;
+        padding: 0 18px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: all var(--tr);
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+      }
+
+      .btn::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--overlay-8);
+        opacity: 0;
+        border-radius: inherit;
+        transition: opacity 0.1s ease;
+      }
+
+      .btn:active {
+        transform: scale(0.95);
+      }
+
+      .btn:active::after {
+        opacity: 1;
+      }
+
+      .btn-ghost {
+        background: var(--overlay-5);
+        color: var(--text-2);
+        border: 1px solid var(--border);
+      }
+
+      .btn-ghost:hover {
+        background: rgba(255, 255, 255, 0.09);
+        color: var(--text-1);
+        border-color: var(--border-h);
+      }
+
+      .btn-timer {
+        background: var(--accent);
+        color: #1a1a1a;
+        font-weight: 700;
+        min-width: 120px;
+      }
+
+      .btn-timer:hover {
+        filter: brightness(1.08);
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%) translateY(12px);
+        background: var(--toast-bg);
+        border: 1px solid var(--border-h);
+        border-radius: 12px;
+        padding: 9px 18px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-1);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 1000;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+
+      .toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .lang-toggle {
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--text-2);
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: var(--overlay-5);
+        border: 1px solid var(--border);
+        transition: all var(--tr);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+      }
+
+      .lang-toggle:hover {
+        background: var(--overlay-10);
+        color: var(--text-1);
+        border-color: var(--border-h);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="widget" id="widget">
+      <div class="mod-header">
+        <div class="mod-icon">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        </div>
+        <span class="mod-title" id="t-title">Pomodoro</span>
+        <div class="lang-toggle" id="themeToggle" style="margin-left: auto">
+          🌙
+        </div>
+        <div class="lang-toggle" id="langToggle">EN</div>
+      </div>
+      <div class="timer-body">
+        <div class="phase-badge focus" id="phaseBadge">
+          <span class="badge-dot"></span><span id="phaseLabel">Focus</span>
+        </div>
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 100 100">
+            <defs>
+              <filter
+                id="timerGlow"
+                x="-50%"
+                y="-50%"
+                width="200%"
+                height="200%"
+              >
+                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <circle class="ring-track" cx="50" cy="50" r="42" />
+            <circle
+              class="ring-progress"
+              id="ringProgress"
+              cx="50"
+              cy="50"
+              r="42"
+              stroke-dasharray="263.89"
+              stroke-dashoffset="0"
+            />
+          </svg>
+          <div class="ring-center">
+            <div class="timer-digits" id="timerDigits">25:00</div>
+            <div class="timer-sublabel" id="timerSub">focus</div>
+          </div>
+        </div>
+        <div class="session-dots" id="sessionDots">
+          <div class="s-dot" data-idx="0"></div>
+          <div class="s-dot" data-idx="1"></div>
+          <div class="s-dot" data-idx="2"></div>
+          <div class="s-dot" data-idx="3"></div>
+        </div>
+        <div class="timer-controls">
+          <button class="btn btn-ghost" id="resetBtn" aria-label="Reset">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            >
+              <polyline points="1 4 1 10 7 10" />
+              <path d="M3.51 15a9 9 0 1 0 .49-3.86" />
+            </svg></button
+          ><button class="btn btn-timer" id="startBtn" aria-label="Start">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              id="startIcon"
+            >
+              <polygon points="5 3 19 12 5 21 5 3" /></svg
+            ><span id="startLabel">Start</span></button
+          ><button class="btn btn-ghost" id="skipBtn" aria-label="Skip phase">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            >
+              <polygon points="5 4 15 12 5 20 5 4" />
+              <line x1="19" y1="5" x2="19" y2="19" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script>
+      (() => {
+        "use strict";
+        const $ = (id) => document.getElementById(id);
+        function showToast(msg, duration = 3000) {
+          const el = $("toast");
+          el.textContent = msg;
+          el.classList.add("visible");
+          clearTimeout(el._t);
+          el._t = setTimeout(() => el.classList.remove("visible"), duration);
+        }
+
+        const THEME_KEY = "pa_theme";
+        let currentTheme = localStorage.getItem(THEME_KEY) || "dark";
+
+        function updateThemeUI() {
+          $("themeToggle").textContent = currentTheme === "dark" ? "🌙" : "☀️";
+          document.documentElement.setAttribute("data-theme", currentTheme);
+        }
+
+        $("themeToggle").addEventListener("click", () => {
+          currentTheme = currentTheme === "dark" ? "light" : "dark";
+          localStorage.setItem(THEME_KEY, currentTheme);
+          updateThemeUI();
+        });
+
+        window.addEventListener("storage", (e) => {
+          if (e.key === THEME_KEY) {
+            currentTheme = e.newValue;
+            updateThemeUI();
+          }
+        });
+
+        updateThemeUI();
+
+        const LANG_KEY = "pa_lang";
+        let currentLang = localStorage.getItem(LANG_KEY) || "fr";
+
+        const i18n = {
+          fr: {
+            focus: "Focus",
+            pause: "Pause",
+            focusSub: "focus",
+            pauseSub: "pause",
+            btnStart: "Start",
+            btnResume: "Reprendre",
+            btnPause: "Pause",
+            toastFocusEnd: "🍅 Focus terminé ! Pause 5 min.",
+            toastCycleEnd: "🎉 Cycle complet ! 4 pomodoros terminés.",
+            toastNextFocus: "💪 C'est reparti ! Nouveau focus.",
+            ariaReset: "Réinitialiser",
+            ariaStart: "Démarrer",
+            ariaSkip: "Passer la phase",
+          },
+          en: {
+            focus: "Focus",
+            pause: "Break",
+            focusSub: "focus",
+            pauseSub: "break",
+            btnStart: "Start",
+            btnResume: "Resume",
+            btnPause: "Pause",
+            toastFocusEnd: "🍅 Focus complete! 5 min break.",
+            toastCycleEnd: "🎉 Cycle complete! 4 pomodoros finished.",
+            toastNextFocus: "💪 Here we go again! New focus.",
+            ariaReset: "Reset",
+            ariaStart: "Start",
+            ariaSkip: "Skip phase",
+          },
+        };
+
+        function t(key) {
+          return i18n[currentLang][key];
+        }
+
+        function updateLangUI() {
+          $("langToggle").textContent = currentLang.toUpperCase();
+          $("t-title").textContent = "POMODORO";
+          $("resetBtn").setAttribute("aria-label", t("ariaReset"));
+          $("startBtn").setAttribute("aria-label", t("ariaStart"));
+          $("skipBtn").setAttribute("aria-label", t("ariaSkip"));
+          renderPhase(); // re-render running texts
+        }
+
+        $("langToggle").addEventListener("click", () => {
+          currentLang = currentLang === "fr" ? "en" : "fr";
+          localStorage.setItem(LANG_KEY, currentLang);
+          updateLangUI();
+        });
+
+        window.addEventListener("storage", (e) => {
+          if (e.key === LANG_KEY) {
+            currentLang = e.newValue;
+            updateLangUI();
+          }
+        });
+
+        const FOCUS_S = 25 * 60;
+        const BREAK_S = 5 * 60;
+        const CIRC = 2 * Math.PI * 42; /* 263.89 */
+        const ICON_PLAY = "M5 3 19 12 5 21 5 3";
+        const ICON_PAUSE = "M6 4h4v16H6zM14 4h4v16h-4z";
+        let timer = {
+          interval: null,
+          timeLeft: FOCUS_S,
+          totalTime: FOCUS_S,
+          running: false,
+          isBreak: false,
+          sessions: 0,
+        };
+        const widget = $("widget");
+        const phaseBadge = $("phaseBadge");
+        const phaseLabel = $("phaseLabel");
+        const ringProgress = $("ringProgress");
+        const timerDigits = $("timerDigits");
+        const timerSub = $("timerSub");
+        const startLabel = $("startLabel");
+        const startIcon = $("startIcon");
+
+        function formatTime(s) {
+          return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+        }
+        function renderTimer() {
+          timerDigits.textContent = formatTime(timer.timeLeft);
+          const offset = CIRC * (1 - timer.timeLeft / timer.totalTime);
+          ringProgress.style.strokeDashoffset = offset;
+        }
+        function renderPhase() {
+          if (timer.isBreak) {
+            phaseBadge.className = "phase-badge pause";
+            phaseLabel.textContent = t("pause");
+            ringProgress.classList.add("is-break");
+            timerSub.textContent = t("pauseSub");
+          } else {
+            phaseBadge.className = "phase-badge focus";
+            phaseLabel.textContent = t("focus");
+            ringProgress.classList.remove("is-break");
+            timerSub.textContent = t("focusSub");
+          }
+        }
+        function renderSessionDots() {
+          document.querySelectorAll(".s-dot").forEach((dot, i) => {
+            dot.classList.toggle("done", i < timer.sessions);
+          });
+        }
+        function setRunningUI(running) {
+          if (running) {
+            startLabel.textContent = t("btnPause");
+            startIcon.setAttribute("d", ICON_PAUSE);
+            widget.classList.add("is-running");
+            document.body.classList.add("is-running");
+          } else {
+            startLabel.textContent =
+              timer.timeLeft < timer.totalTime ? t("btnResume") : t("btnStart");
+            startIcon.setAttribute("d", ICON_PLAY);
+            widget.classList.remove("is-running");
+            document.body.classList.remove("is-running");
+          }
+        }
+        function handlePhaseEnd() {
+          clearInterval(timer.interval);
+          timer.interval = null;
+          timer.running = false;
+          if (!timer.isBreak) {
+            timer.sessions = Math.min(timer.sessions + 1, 4);
+            renderSessionDots();
+            timer.isBreak = true;
+            timer.totalTime = BREAK_S;
+            timer.timeLeft = BREAK_S;
+            renderPhase();
+            showToast(t("toastFocusEnd"));
+          } else {
+            timer.isBreak = false;
+            timer.totalTime = FOCUS_S;
+            timer.timeLeft = FOCUS_S;
+            if (timer.sessions >= 4) {
+              timer.sessions = 0;
+              renderSessionDots();
+              showToast(t("toastCycleEnd"));
+            } else {
+              showToast(t("toastNextFocus"));
+            }
+            renderPhase();
+          }
+          renderTimer();
+          setRunningUI(false);
+        }
+        function toggleTimer() {
+          if (timer.running) {
+            clearInterval(timer.interval);
+            timer.interval = null;
+            timer.running = false;
+            setRunningUI(false);
+          } else {
+            timer.running = true;
+            setRunningUI(true);
+            timer.interval = setInterval(() => {
+              timer.timeLeft--;
+              renderTimer();
+              if (timer.timeLeft <= 0) handlePhaseEnd();
+            }, 1000);
+          }
+        }
+        function resetTimer() {
+          clearInterval(timer.interval);
+          timer.interval = null;
+          timer.running = false;
+          timer.isBreak = false;
+          timer.timeLeft = FOCUS_S;
+          timer.totalTime = FOCUS_S;
+          renderPhase();
+          renderTimer();
+          setRunningUI(false);
+        }
+        function skipPhase() {
+          clearInterval(timer.interval);
+          timer.interval = null;
+          timer.running = false;
+          timer.timeLeft = 0;
+          handlePhaseEnd();
+        }
+        $("startBtn").addEventListener("click", toggleTimer);
+        $("resetBtn").addEventListener("click", resetTimer);
+        $("skipBtn").addEventListener("click", skipPhase);
+
+        renderTimer();
+        renderPhase();
+        renderSessionDots();
+      })();
+    </script>
+  </body>
+</html>
