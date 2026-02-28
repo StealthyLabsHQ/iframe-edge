@@ -42,9 +42,7 @@ To use these widgets on your Corsair setup, you will need:
 - A **Corsair Xeneon Edge** display.
 - The **[Corsair iCUE](https://www.corsair.com/icue)** software installed and up to date.
 
-### 🚀 Method 1 — Direct iFrame (Recommended)
-
-> ✅ **Easiest method.** Requires an internet connection for the widget to load.
+### 🚀 iFrame
 
 1. Open **iCUE** and go to your screen/dashboard configuration.
 2. In the **Widgets** list (left column), click on the **`</> iFrame`** icon.
@@ -68,9 +66,7 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
 - Un écran **Corsair Xeneon Edge**.
 - Le logiciel **[Corsair iCUE](https://www.corsair.com/icue)** installé et à jour sur votre machine.
 
-### 🚀 Méthode 1 — iFrame Direct (Recommandée)
-
-> ✅ **La méthode la plus simple.** Nécessite une connexion internet pour charger le widget.
+### 🚀 iFrame Direct
 
 1. Ouvrez **iCUE** et allez dans la configuration de votre écran.
 2. Dans la liste des **Widgets** (colonne gauche), cliquez sur l'icône **`</> iFrame`**.
@@ -82,22 +78,6 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
    ```
 
 > **🎉 Et voilà !** Le widget se chargera directement depuis GitHub Pages.
-
----
-
-### 🛠️ Méthode 2 — Copier-coller le code HTML
-
-> ✅ **Fonctionne hors-ligne.** Aucune connexion internet nécessaire.
-
-1. Ouvrez **iCUE** et allez dans la configuration de votre écran.
-2. Dans la liste des **Widgets** (colonne gauche), cliquez sur l'icône **`</> iFrame`**.
-3. Choisissez la taille souhaitée : **`M`**, **`L`**, ou **`XL`**.
-4. Ouvrez un des fichiers HTML de ce dépôt (par exemple `productivity/pomodoro/pomodoro.html`) dans un éditeur de texte (Bloc-notes, VS Code, etc.).
-5. **Sélectionnez tout** (`Ctrl+A`) et **copiez** (`Ctrl+C`) l'intégralité du code.
-6. Dans iCUE, **collez** ce code dans la zone de texte **code HTML** sous les réglages "iFrame".
-
-> **🎉 Et voilà !** Le widget apparaîtra instantanément sur votre écran sans connexion internet.
-
 ---
 
 *Developed with ❤️ for the community. / Développé avec ❤️ pour la communauté.*
