@@ -12,6 +12,22 @@
 - **No external dependencies:** Pure HTML, CSS, and vanilla JavaScript bundled in single files.
 - **Fully Responsive:** Automatically scales to fit any container size (`M`, `L`, `XL`).
 - **Plug & Play:** Just copy the code and paste it.
+- **Dark OLED / Light Mode** with a toggle on each widget.
+- **EN / FR** bilingual support on all widgets.
+
+---
+
+## 🗂️ Available Widgets
+
+| Widget | GitHub Pages URL |
+|---|---|
+| 💧 Hydration | `https://stealthylabshq.github.io/iframe-edge/productivity/hydration/` |
+| 🍅 Pomodoro | `https://stealthylabshq.github.io/iframe-edge/productivity/pomodoro/` |
+| 📝 Quick Notes | `https://stealthylabshq.github.io/iframe-edge/productivity/notes/` |
+| 🎯 Daily Focus | `https://stealthylabshq.github.io/iframe-edge/productivity/daily-focus/` |
+| ✅ Habit Tracker | `https://stealthylabshq.github.io/iframe-edge/productivity/habit-tracker/` |
+| 🧘 Posture & Blink | `https://stealthylabshq.github.io/iframe-edge/productivity/posture-reminder/` |
+| 📋 Quick Clipboard | `https://stealthylabshq.github.io/iframe-edge/productivity/quick-clipboard/` |
 
 ---
 
@@ -24,21 +40,35 @@ To use these widgets on your Corsair setup, you will need:
 - A **Corsair Xeneon Edge** display.
 - The **[Corsair iCUE](https://www.corsair.com/icue)** software installed and up to date.
 
-### 🚀 Installation & Usage
+### 🚀 Method 1 — Direct iFrame (Recommended)
 
-Follow these simple steps to display the widgets on your screen:
+> ✅ **Easiest method.** Requires an internet connection for the widget to load.
 
-1. Open the **iCUE** software.
-2. Go to the **dashboard/screen configuration** section (where you manage your integrated Stream Deck).
-3. In the **Widgets** list (left column), look for and click on the **`</> iFrame`** icon.
-4. A new iFrame box will be added to your interface.
-5. In the settings of this iFrame:
-   - Choose your desired size: **`M`**, **`L`**, or **`XL`**. *(Our widgets are 100% responsive and will adapt automatically!)*
-6. Open one of the files from this repository (for example `productivity/pomodoro/pomodoro.html`) using any text editor (Notepad, VS Code, etc.).
-7. **Copy all the HTML code** from the file.
-8. In iCUE, **paste** this code into the designated text area under the "iFrame" settings.
+1. Open **iCUE** and go to your screen/dashboard configuration.
+2. In the **Widgets** list (left column), click on the **`</> iFrame`** icon.
+3. Choose your desired size: **`M`**, **`L`**, or **`XL`**.
+4. In the iFrame settings, look for the **HTML code** text area.
+5. Choose a URL from the table above and wrap it in an `<iframe>` tag like this, then **paste it** into the text area:
+   ```html
+   <iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>
+   ```
 
-> **🎉 That's it!** The widget will instantly appear on your screen! Repeat this process for any other widget you wish to use.
+> **🎉 Done!** The widget will load live from GitHub Pages.
+
+---
+
+### 🛠️ Method 2 — Copy & Paste the HTML code
+
+> ✅ **Works offline.** No internet connection needed once pasted.
+
+1. Open **iCUE** and go to your screen/dashboard configuration.
+2. In the **Widgets** list (left column), click on the **`</> iFrame`** icon.
+3. Choose your desired size: **`M`**, **`L`**, or **`XL`**.
+4. Open one of the HTML files from this repository (e.g. `productivity/pomodoro/pomodoro.html`) in any text editor (Notepad, VS Code, etc.).
+5. **Select all** (`Ctrl+A`) and **copy** (`Ctrl+C`) the entire code.
+6. In iCUE, **paste** this code into the **HTML code** text area in the iFrame settings.
+
+> **🎉 Done!** The widget will appear on your screen instantly without any internet connection.
 
 ---
 
@@ -51,20 +81,36 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
 - Un écran **Corsair Xeneon Edge**.
 - Le logiciel **[Corsair iCUE](https://www.corsair.com/icue)** installé et à jour sur votre machine.
 
-### 🚀 Installation & Utilisation
+### 🚀 Méthode 1 — iFrame Direct (Recommandée)
 
-Suivez ces étapes simples pour afficher les widgets sur votre écran :
+> ✅ **La méthode la plus simple.** Nécessite une connexion internet pour charger le widget.
 
-1. Ouvrez le logiciel **iCUE**.
-2. Allez dans la section de **configuration de votre écran** (le menu où vous gérez votre tableau de bord / Stream Deck intégré).
-3. Dans la liste des **Widgets** (colonne de gauche), cherchez et cliquez sur l'icône **`</> iFrame`**.
-4. Un nouvel encart iFrame va s'ajouter à votre interface personnalisable.
-5. Dans les paramètres de cet iFrame :
-   - Choisissez la taille souhaitée : **`M`**, **`L`**, ou **`XL`**. *(Nos widgets sont 100% responsives et s'adapteront automatiquement !)*
-6. Ouvrez un des fichiers de ce dépôt (par exemple `productivity/pomodoro/pomodoro.html`) avec un éditeur de texte (Bloc-notes, VS Code, etc.).
-7. **Copiez l'intégralité du code HTML** contenu dans le fichier.
-8. Dans iCUE, **collez** ce code dans la zone de texte réservée sous les réglages "iFrame".
+1. Ouvrez **iCUE** et allez dans la configuration de votre écran.
+2. Dans la liste des **Widgets** (colonne gauche), cliquez sur l'icône **`</> iFrame`**.
+3. Choisissez la taille souhaitée : **`M`**, **`L`**, ou **`XL`**.
+4. Dans les réglages de l'iFrame, cherchez le champ de texte principal **code HTML**.
+5. Prenez l'URL de votre choix dans le tableau ci-dessus et insérez-la dans une balise `<iframe>` comme ceci, puis **collez** le tout dans la zone HTML de iCUE :
+   ```html
+   <iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>
+   ```
 
-> **🎉 Et voilà !** Le widget apparaîtra instantanément sur votre écran ! Répétez l'opération pour chaque widget que vous souhaitez utiliser.
+> **🎉 Et voilà !** Le widget se chargera directement depuis GitHub Pages.
 
 ---
+
+### 🛠️ Méthode 2 — Copier-coller le code HTML
+
+> ✅ **Fonctionne hors-ligne.** Aucune connexion internet nécessaire.
+
+1. Ouvrez **iCUE** et allez dans la configuration de votre écran.
+2. Dans la liste des **Widgets** (colonne gauche), cliquez sur l'icône **`</> iFrame`**.
+3. Choisissez la taille souhaitée : **`M`**, **`L`**, ou **`XL`**.
+4. Ouvrez un des fichiers HTML de ce dépôt (par exemple `productivity/pomodoro/pomodoro.html`) dans un éditeur de texte (Bloc-notes, VS Code, etc.).
+5. **Sélectionnez tout** (`Ctrl+A`) et **copiez** (`Ctrl+C`) l'intégralité du code.
+6. Dans iCUE, **collez** ce code dans la zone de texte **code HTML** sous les réglages "iFrame".
+
+> **🎉 Et voilà !** Le widget apparaîtra instantanément sur votre écran sans connexion internet.
+
+---
+
+*Developed with ❤️ for the community. / Développé avec ❤️ pour la communauté.*
