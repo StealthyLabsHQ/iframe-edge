@@ -28,7 +28,7 @@
 | ✅ Habit Tracker | `https://stealthylabshq.github.io/iframe-edge/productivity/habit-tracker/` |
 | 🧘 Posture & Blink | `https://stealthylabshq.github.io/iframe-edge/productivity/posture-reminder/` |
 | 📋 Quick Clipboard | `https://stealthylabshq.github.io/iframe-edge/productivity/quick-clipboard/` |
-| 🎵 Spotify Visualizer | `https://stealthylabshq.github.io/iframe-edge/productivity/spotify-visualizer/` |
+| 🎵 Spotify Visualizer | `https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/` |
 
 
 ---
@@ -65,7 +65,7 @@ To use these widgets on your Corsair setup, you will need:
 2. Click on **Create app**.
 3. Fill in the app name and description.
 4. For the **Redirect URL**, add exactly: 
-   `https://stealthylabshq.github.io/iframe-edge/productivity/spotify-visualizer/auth/callback.html`
+   `https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/auth/callback.html`
 5. Make sure to check the **Web API** box.
 6. Save and go to your app settings to find your **Client ID**.
 
@@ -93,7 +93,7 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
 4. Dans les réglages de l'iFrame, cherchez le champ de texte principal **code HTML**.
 5. Prenez l'URL de votre choix dans le tableau ci-dessus et insérez-la dans une balise `<iframe>` comme ceci, puis **collez** le tout dans la zone HTML de iCUE :
    ```html
-   <iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>
+   <iframe src="https://stealthylabshq.github.io/productivity/hydration/"></iframe>
    ```
 
 > **🎉 Et voilà !** Le widget se chargera directement depuis GitHub Pages.
@@ -108,7 +108,7 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
 2. Cliquez sur **Create app** (Créer une application).
 3. Remplissez le nom et la description de l'application.
 4. Ajouter en tant que **Redirect URL** exactement : 
-   `https://stealthylabshq.github.io/iframe-edge/productivity/spotify-visualizer/auth/callback.html`
+   `https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/auth/callback.html`
 5. Et cochez la case **Web API**.
 6. Enregistrez et récupérez votre **Client ID**.
 
