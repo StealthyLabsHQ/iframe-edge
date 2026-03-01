@@ -304,10 +304,8 @@
         const field = $("iCueUrl");
         if (cid && rtkn) {
             field.value = buildIframeTag();
-            field.style.display = "block";
         } else {
             field.value = "";
-            field.style.display = "none";
         }
     }
 
@@ -346,10 +344,6 @@
         startPolling();
         showToast(t("toastSaved"));
     });
-
-    // Click or focus on URL field → select all for easy copy
-    $("iCueUrl").addEventListener("click", () => $("iCueUrl").select());
-    $("iCueUrl").addEventListener("focus", () => $("iCueUrl").select());
 
     $("copyUrlBtn").addEventListener("click", () => {
         const url = buildIframeTag();
