@@ -522,7 +522,13 @@
             const nl = document.createElement("div");
             nl.className = "no-lyrics";
             nl.id = "noLyrics";
-            nl.innerHTML = `<div class="icon">🎵</div><div>${t("noLyrics")}</div>`;
+            const icon = document.createElement("div");
+            icon.className = "icon";
+            icon.textContent = "🎵";
+            const msg = document.createElement("div");
+            msg.textContent = t("noLyrics");
+            nl.appendChild(icon);
+            nl.appendChild(msg);
             scroll.appendChild(nl);
             return;
         }
@@ -605,7 +611,7 @@
         const noArt = $("noArt");
         const bgImg = $("bgImg");
 
-        if (url) {
+        if (url && url.startsWith("https://")) {
             img.onload = () => {
                 img.style.display = "";
                 noArt.style.display = "none";
