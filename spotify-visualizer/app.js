@@ -4,7 +4,7 @@
     /* ─────────────────────────────────────────────────────────────────────────
      *  CONSTANTS & STATE
      * ────────────────────────────────────────────────────────────────────────*/
-    const LOGIN_URL = "https://stealthylabshq.github.io/iframe-edge/productivity/spotify-visualizer/auth/login.html";
+    const LOGIN_URL = "https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/auth/login.html";
     const TOKEN_URL = "https://accounts.spotify.com/api/token";
     const API_BASE = "https://api.spotify.com/v1";
     const LRCLIB_BASE = "https://lrclib.net/api/get";
