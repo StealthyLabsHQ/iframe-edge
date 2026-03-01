@@ -64,7 +64,7 @@ To use these widgets on your Corsair setup, you will need:
 1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in.
 2. Click on **Create app**.
 3. Fill in the app name and description.
-4. For the **Redirect URI**, add exactly: 
+4. For the **Redirect URL**, add exactly: 
    `https://stealthylabshq.github.io/iframe-edge/productivity/spotify-visualizer/auth/callback.html`
 5. Make sure to check the **Web API** box.
 6. Save and go to your app settings to find your **Client ID**.
@@ -107,7 +107,7 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
 1. Allez sur le site des développeurs Spotify avec [ce lien](https://developer.spotify.com/dashboard) et connectez-vous.
 2. Cliquez sur **Create app** (Créer une application).
 3. Remplissez le nom et la description de l'application.
-4. Ajouter en tant que **Redirect URI** exactement : 
+4. Ajouter en tant que **Redirect URL** exactement : 
    `https://stealthylabshq.github.io/iframe-edge/productivity/spotify-visualizer/auth/callback.html`
 5. Et cochez la case **Web API**.
 6. Enregistrez et récupérez votre **Client ID**.
