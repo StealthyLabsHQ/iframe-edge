@@ -120,6 +120,10 @@
         return window.location.origin + window.location.pathname + HASH_PREFIX + encoded;
     }
 
+    function buildIframeTag() {
+        return `<iframe src="${buildConfigUrl()}"></iframe>`;
+    }
+
     function migrateRefreshTokenStorage() {
         const legacy = localStorage.getItem(LS.RTOKEN);
         if (!legacy) return;
@@ -255,8 +259,6 @@
         el("t-no-song", "noSong");
         el("t-icue-hint", "icueHint");
         el("t-copy-url", "copyUrlBtn");
-        const urlField = $("iCueUrl");
-        if (urlField && !urlField.value) urlField.placeholder = t("icueUrlPh");
 
         const saveBtn = $("saveBtn");
         if (saveBtn) saveBtn.textContent = t("save");
@@ -293,7 +295,14 @@
     function refreshIcueUrlField() {
         const cid  = localStorage.getItem(LS.CID) || "";
         const rtkn = getRefreshToken();
-        $("iCueUrl").value = (cid && rtkn) ? buildConfigUrl() : "";
+        const field = $("iCueUrl");
+        if (cid && rtkn) {
+            field.value = buildIframeTag();
+            field.style.display = "block";
+        } else {
+            field.value = "";
+            field.style.display = "none";
+        }
     }
 
     function closeSettings() {
@@ -331,7 +340,7 @@
         startPolling();
         // Auto-copy the iCUE URL to clipboard so the user just pastes it in iCUE
         if (cid && rtkn) {
-            navigator.clipboard.writeText(buildConfigUrl()).then(() => {
+            navigator.clipboard.writeText(buildIframeTag()).then(() => {
                 showToast(t("toastSavedCopied"), 4500);
             }).catch(() => {
                 showToast(t("toastSaved"));
@@ -346,7 +355,7 @@
     $("iCueUrl").addEventListener("focus",  () => $("iCueUrl").select());
 
     $("copyUrlBtn").addEventListener("click", () => {
-        const url = buildConfigUrl();
+        const url = buildIframeTag();
         navigator.clipboard.writeText(url).then(() => {
             const btn = $("copyUrlBtn");
             btn.classList.add("copied");
