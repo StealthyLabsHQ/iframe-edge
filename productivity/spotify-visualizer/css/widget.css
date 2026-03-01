@@ -861,6 +861,7 @@ html.sz-l .track-album {
 
 html.sz-l .progress-wrap {
     display: flex;
+    flex-direction: column;
 }
 
 html.sz-l .controls {
@@ -948,6 +949,7 @@ html.sz-xl .track-album {
 
 html.sz-xl .progress-wrap {
     display: flex;
+    flex-direction: column;
 }
 
 html.sz-xl .controls {
@@ -1017,4 +1019,37 @@ html.sz-xl .lyrics-ctrl-bar {
 
 .lyrics-ctrl-spacer {
     flex: 1;
+}
+
+/* ── Lyrics loading skeleton ── */
+.lyrics-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    padding: 20px 16px;
+}
+
+.lyrics-loading-bar {
+    height: 9px;
+    border-radius: 5px;
+    background: var(--overlay-8);
+    animation: lyrics-pulse 1.5s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+.lyrics-loading-bar:nth-child(1)  { width: 88%; animation-delay: 0.00s; }
+.lyrics-loading-bar:nth-child(2)  { width: 72%; animation-delay: 0.10s; }
+.lyrics-loading-bar:nth-child(3)  { width: 82%; animation-delay: 0.20s; }
+.lyrics-loading-bar:nth-child(4)  { width: 58%; animation-delay: 0.30s; }
+.lyrics-loading-bar:nth-child(5)  { width: 78%; animation-delay: 0.40s; }
+.lyrics-loading-bar:nth-child(6)  { width: 65%; animation-delay: 0.50s; }
+.lyrics-loading-bar:nth-child(7)  { width: 84%; animation-delay: 0.60s; }
+.lyrics-loading-bar:nth-child(8)  { width: 55%; animation-delay: 0.70s; }
+
+@keyframes lyrics-pulse {
+    0%, 100% { opacity: 0.25; }
+    50%       { opacity: 0.65; }
 }

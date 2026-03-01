@@ -310,13 +310,23 @@
                 method,
                 headers: { Authorization: "Bearer " + token },
             });
-            // Re-poll sooner
+            // Re-poll with two attempts: Spotify can be slow to register track changes
             setTimeout(poll, 600);
+            setTimeout(poll, 2000);
         } catch (_) { }
     }
 
-    $("prevBtn").addEventListener("click", () => spotifyAction("POST", "/me/player/previous"));
-    $("nextBtn").addEventListener("click", () => spotifyAction("POST", "/me/player/next"));
+    // Clear lyrics immediately on skip so old lyrics never linger on the new song
+    function clearLyricsOnSkip() {
+        state.lyricsData = [];
+        // Sentinel value: blocks any in-flight fetch from the previous track from resolving
+        state.lyricsTrackId = null;
+        const needsLyrics = (state.sizeClass === 'sz-xl' || state.sizeClass === 'sz-l');
+        if (needsLyrics) renderLyricsLoading();
+    }
+
+    $("prevBtn").addEventListener("click", () => { clearLyricsOnSkip(); spotifyAction("POST", "/me/player/previous"); });
+    $("nextBtn").addEventListener("click", () => { clearLyricsOnSkip(); spotifyAction("POST", "/me/player/next"); });
     $("playBtn").addEventListener("click", () => {
         if (state.isPlaying) {
             spotifyAction("PUT", "/me/player/pause");
@@ -437,6 +447,19 @@
             })
             .filter(Boolean)
             .sort((a, b) => a.timeMs - b.timeMs);
+    }
+
+    function renderLyricsLoading() {
+        const scroll = $("lyricsScroll");
+        scroll.innerHTML = "";
+        const wrap = document.createElement("div");
+        wrap.className = "lyrics-loading";
+        for (let i = 0; i < 8; i++) {
+            const bar = document.createElement("div");
+            bar.className = "lyrics-loading-bar";
+            wrap.appendChild(bar);
+        }
+        scroll.appendChild(wrap);
     }
 
     function renderLyrics(lines) {
@@ -626,14 +649,18 @@
             if (needsLyrics) {
                 state.lyricsData = [];
                 state.lyricsTrackId = trackId;
-                renderLyrics([]);
+                renderLyricsLoading(); // show skeleton while fetching
                 fetchLyrics(artists, track.name, album.name, (track.duration_ms || 0) / 1000)
                     .then(lines => {
-                        if (state.lyricsTrackId !== trackId) return; // stale
+                        if (state.lyricsTrackId !== trackId) return; // stale — skip if song changed again
                         state.lyricsData = lines;
                         renderLyrics(lines);
                         highlightLyricLine();
                     });
+            } else {
+                // Even in non-lyrics layout, reset state so lyrics are fresh on next resize
+                state.lyricsData = [];
+                state.lyricsTrackId = null;
             }
         } else {
             // Same track — just sync lyrics highlight
