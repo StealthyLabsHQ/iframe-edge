@@ -35,20 +35,20 @@ button {
 }
 
 :root[data-theme="light"] {
-    --bg: #f0f0f2;
+    --bg: #e8e8ea;
     --surface: #ffffff;
-    --border: rgba(0, 0, 0, 0.07);
-    --border-h: rgba(0, 0, 0, 0.14);
-    --text-1: #0e0e0e;
-    --text-2: #555555;
-    --text-3: #999999;
+    --border: rgba(0, 0, 0, 0.14);
+    --border-h: rgba(0, 0, 0, 0.28);
+    --text-1: #0a0a0a;
+    --text-2: #2a2a2a;
+    --text-3: #606060;
     --accent: #1DB954;
-    --accent-dim: rgba(29, 185, 84, 0.15);
-    --glass-bg: rgba(255, 255, 255, 0.6);
-    --glass-b: rgba(0, 0, 0, 0.08);
+    --accent-dim: rgba(29, 185, 84, 0.18);
+    --glass-bg: rgba(255, 255, 255, 0.88);
+    --glass-b: rgba(0, 0, 0, 0.12);
     --toast-bg: #ffffff;
-    --overlay-5: rgba(0, 0, 0, 0.05);
-    --overlay-8: rgba(0, 0, 0, 0.08);
+    --overlay-5: rgba(0, 0, 0, 0.08);
+    --overlay-8: rgba(0, 0, 0, 0.14);
 }
 
 /* ── Base ───────────────────────────────────────────────── */
@@ -90,6 +90,11 @@ body {
     inset: 0;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.7));
     pointer-events: none;
+    transition: background 0.3s ease;
+}
+
+:root[data-theme="light"] #bgBlur::after {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.5));
 }
 
 /* ── Widget card ────────────────────────────────────────── */
@@ -816,25 +821,25 @@ html.sz-l #content {
 }
 
 html.sz-l .col-left {
-    width: 250px;
-    min-width: 220px;
+    width: 340px;
+    min-width: 280px;
     flex-shrink: 0;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    gap: 10px;
+    gap: 12px;
 }
 
 html.sz-l .col-left-inner {
     flex-direction: row;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     flex-shrink: 0;
 }
 
 html.sz-l .album-wrap {
-    width: 70px;
-    height: 70px;
+    width: 104px;
+    height: 104px;
     flex-shrink: 0;
 }
 
@@ -847,16 +852,16 @@ html.sz-l #trackInfo {
 }
 
 html.sz-l .track-name {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
 }
 
 html.sz-l .track-artist {
-    font-size: 11px;
+    font-size: 13px;
 }
 
 html.sz-l .track-album {
-    font-size: 10px;
+    font-size: 11px;
 }
 
 html.sz-l .progress-wrap {
@@ -867,25 +872,25 @@ html.sz-l .progress-wrap {
 html.sz-l .controls {
     display: flex;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 html.sz-l .controls .ctrl-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
 }
 
 html.sz-l .controls .ctrl-btn.play {
-    width: 54px;
-    height: 54px;
-    border-radius: 14px;
+    width: 62px;
+    height: 62px;
+    border-radius: 16px;
 }
 
 html.sz-l .controls .ctrl-btn.ctrl-sm {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
 }
 
 html.sz-l .col-right {
@@ -894,8 +899,8 @@ html.sz-l .col-right {
     min-width: 0;
     width: 0;
     border-left: 1px solid var(--border);
-    padding-left: 10px;
-    margin-left: 8px;
+    padding-left: 14px;
+    margin-left: 10px;
 }
 
 /* ── XL : Two full columns ── */
@@ -903,28 +908,28 @@ html.sz-xl #content {
     flex-direction: row;
     align-items: stretch;
     justify-content: flex-start;
-    padding: 0 12px 12px;
+    padding: 0 14px 14px;
 }
 
 html.sz-xl .col-left {
-    width: 200px;
-    min-width: 200px;
+    width: 270px;
+    min-width: 270px;
     flex-shrink: 0;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    gap: 8px;
+    gap: 10px;
 }
 
 html.sz-xl .col-left-inner {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 10px;
 }
 
 html.sz-xl .album-wrap {
     width: 100%;
-    height: 180px;
+    height: 250px;
     flex-shrink: 0;
 }
 
@@ -935,16 +940,16 @@ html.sz-xl #trackInfo {
 }
 
 html.sz-xl .track-name {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
 }
 
 html.sz-xl .track-artist {
-    font-size: 11px;
+    font-size: 13px;
 }
 
 html.sz-xl .track-album {
-    font-size: 10px;
+    font-size: 11px;
 }
 
 html.sz-xl .progress-wrap {
@@ -955,6 +960,25 @@ html.sz-xl .progress-wrap {
 html.sz-xl .controls {
     display: flex;
     justify-content: center;
+    gap: 10px;
+}
+
+html.sz-xl .controls .ctrl-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+}
+
+html.sz-xl .controls .ctrl-btn.play {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+}
+
+html.sz-xl .controls .ctrl-btn.ctrl-sm {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
 }
 
 html.sz-xl .col-right {
@@ -963,7 +987,8 @@ html.sz-xl .col-right {
     min-width: 0;
     width: 0;
     border-left: 1px solid var(--border);
-    padding-left: 10px;
+    padding-left: 14px;
+    margin-left: 10px;
 }
 
 /* ── Lyrics scroll controls ── */
@@ -1052,4 +1077,107 @@ html.sz-xl .lyrics-ctrl-bar {
 @keyframes lyrics-pulse {
     0%, 100% { opacity: 0.25; }
     50%       { opacity: 0.65; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   LIGHT MODE COMPONENT OVERRIDES
+══════════════════════════════════════════════════════════ */
+
+/* Header buttons */
+:root[data-theme="light"] .icon-btn {
+    background: rgba(0, 0, 0, 0.07);
+    border-color: rgba(0, 0, 0, 0.16);
+    color: #111111;
+}
+:root[data-theme="light"] .icon-btn:hover {
+    background: rgba(0, 0, 0, 0.13);
+    color: #000000;
+    border-color: rgba(0, 0, 0, 0.28);
+}
+
+/* Control buttons (prev/next/play/shuffle/repeat) */
+:root[data-theme="light"] .ctrl-btn {
+    background: rgba(0, 0, 0, 0.07);
+    border-color: rgba(0, 0, 0, 0.16);
+    color: #111111;
+}
+:root[data-theme="light"] .ctrl-btn:hover {
+    background: rgba(0, 0, 0, 0.13);
+    color: #000000;
+    border-color: rgba(0, 0, 0, 0.28);
+}
+
+/* Lyrics sidebar buttons */
+:root[data-theme="light"] .lyrics-ctrl-btn {
+    background: rgba(0, 0, 0, 0.07);
+    border-color: rgba(0, 0, 0, 0.16);
+    color: #111111;
+}
+:root[data-theme="light"] .lyrics-ctrl-btn:hover {
+    background: rgba(0, 0, 0, 0.13);
+    color: #000000;
+    border-color: rgba(0, 0, 0, 0.28);
+}
+
+/* Lyrics lines */
+:root[data-theme="light"] .lyric-line {
+    color: rgba(0, 0, 0, 0.38);
+}
+:root[data-theme="light"] .lyric-line.near {
+    color: rgba(0, 0, 0, 0.65);
+}
+:root[data-theme="light"] .lyric-line.active {
+    color: #080808;
+    text-shadow: 0 0 18px rgba(29, 185, 84, 0.35);
+}
+
+/* Lyrics loading bars */
+:root[data-theme="light"] .lyrics-loading-bar {
+    background: rgba(0, 0, 0, 0.14);
+}
+
+/* No-art placeholder */
+:root[data-theme="light"] .album-wrap .no-art {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* Settings panel */
+:root[data-theme="light"] #settingsPanel {
+    background: rgba(242, 242, 244, 0.97);
+    color: #0a0a0a;
+}
+:root[data-theme="light"] .settings-hdr h2 {
+    color: #0a0a0a;
+}
+:root[data-theme="light"] .field label {
+    color: #2a2a2a;
+}
+:root[data-theme="light"] .field input {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.16);
+    color: #0a0a0a;
+}
+:root[data-theme="light"] .field input::placeholder {
+    color: #888888;
+}
+:root[data-theme="light"] .field-hint {
+    color: #555555;
+}
+:root[data-theme="light"] .divider {
+    background: rgba(0, 0, 0, 0.14);
+}
+
+/* sz-m light mode: swap dark header/controls gradients for light ones */
+html[data-theme="light"].sz-m .hdr {
+    background: linear-gradient(rgba(255, 255, 255, 0.55) 0%, transparent 100%);
+}
+html[data-theme="light"].sz-m .controls {
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.4));
+}
+html[data-theme="light"].sz-m .controls .ctrl-btn {
+    background: rgba(255, 255, 255, 0.65);
+    border-color: rgba(0, 0, 0, 0.18);
+    color: #111111;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
