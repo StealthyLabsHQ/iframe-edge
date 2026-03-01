@@ -1,5 +1,11 @@
 <h1 align="center">🖥️ iframe-edge</h1>
 
+<img width="2560" height="720" alt="{ADD81F34-B6AF-41F5-8927-9F8BCA4BE490}" src="https://github.com/user-attachments/assets/ceccbf30-6d85-4d0e-aecf-327c5137d9c8" />
+<img width="2560" height="720" alt="{A72EA717-C9F2-4B4B-9514-57498A444FDE}" src="https://github.com/user-attachments/assets/cacc99a5-3e7c-4b96-a160-db1d7031cb02" />
+<img width="2560" height="720" alt="{A7221C84-BBC2-4EEC-B00B-86D7A814B4CC}" src="https://github.com/user-attachments/assets/1a1be2d4-1d50-48ba-9d91-31c3a3d91e64" />
+<img width="2560" height="720" alt="{83CBE387-290F-41B3-9F35-F6D5EC5656B7}" src="https://github.com/user-attachments/assets/f0076b26-60ff-4aeb-a98c-9952256329d2" />
+
+
 <p align="center">
   <b>All-in-one HTML/CSS/JS widgets in a single file for Productivity, Streaming, and more.</b></br>
   <i>Specially designed to be 100% responsive for Corsair Xeneon Edge & iCUE.</i>
@@ -23,6 +29,7 @@
 |---|---|
 | 🤖 **AI Assistant** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/ai-assistant/"></iframe>` |
 | 💧 Hydration | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>` |
+| 💰 Budget | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/budget/"></iframe>` |
 | 🍅 Pomodoro | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/pomodoro/"></iframe>` |
 | 📝 Quick Notes | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/notes/"></iframe>` |
 | 🎯 Daily Focus | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/daily-focus/"></iframe>` |
