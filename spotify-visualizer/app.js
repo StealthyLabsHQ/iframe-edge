@@ -16,12 +16,8 @@
         LANG: "pa_lang",
         CID: "pa_spotify_client_id",
         RTOKEN: "pa_spotify_refresh_token",
-        RTOKEN_REMEMBER: "pa_spotify_refresh_token_remember",
     };
     const HASH_PREFIX = "#cfg=";
-    const SS = {
-        RTOKEN: "pa_spotify_refresh_token_session",
-    };
 
     const $ = id => document.getElementById(id);
 
@@ -42,37 +38,38 @@
         autoScroll: true,          // auto-follow active lyric line
         autoScrollResumeTimer: null,
         sizeClass: '',             // 'sz-m' | 'sz-l' | 'sz-xl'
-        theme: localStorage.getItem(LS.THEME) || "dark",
+        theme: localStorage.getItem(LS.THEME) || "dark", // "dark" | "light" | "blur"
         lang: localStorage.getItem(LS.LANG) || "fr",
     };
 
-    function isRefreshTokenPersistent() {
-        return localStorage.getItem(LS.RTOKEN_REMEMBER) === "1";
-    }
-
+    // Token is always persisted in localStorage — never session-only.
     function getRefreshToken() {
-        const sessionToken = sessionStorage.getItem(SS.RTOKEN) || "";
-        if (sessionToken) return sessionToken;
-        if (isRefreshTokenPersistent()) return localStorage.getItem(LS.RTOKEN) || "";
-        // Defensive cleanup in case an old persisted token remains.
-        localStorage.removeItem(LS.RTOKEN);
-        return "";
+        return localStorage.getItem(LS.RTOKEN) || "";
     }
 
-    function setRefreshToken(token, persist) {
+    function setRefreshToken(token) {
         const value = token || "";
         if (!value) {
             clearRefreshToken();
             return;
         }
-        sessionStorage.setItem(SS.RTOKEN, value);
-        if (persist) localStorage.setItem(LS.RTOKEN, value);
-        else localStorage.removeItem(LS.RTOKEN);
+        localStorage.setItem(LS.RTOKEN, value);
     }
 
     function clearRefreshToken() {
-        sessionStorage.removeItem(SS.RTOKEN);
         localStorage.removeItem(LS.RTOKEN);
+    }
+
+    // Migration: if token was stored under old session/remember system, pull it into localStorage.
+    function migrateRefreshTokenStorage() {
+        // Old session key → move to localStorage if nothing there yet
+        const sessionToken = sessionStorage.getItem("pa_spotify_refresh_token_session") || "";
+        if (sessionToken && !getRefreshToken()) {
+            localStorage.setItem(LS.RTOKEN, sessionToken);
+        }
+        sessionStorage.removeItem("pa_spotify_refresh_token_session");
+        // Clean up old remember flag
+        localStorage.removeItem("pa_spotify_refresh_token_remember");
     }
 
     /* ─────────────────────────────────────────────────────────────────────────
@@ -98,9 +95,7 @@
             localStorage.setItem(LS.CID, cfg.c);
         }
         if (cfg.r) {
-            // Mark as persistent so token survives iCUE session reloads
-            localStorage.setItem(LS.RTOKEN_REMEMBER, "1");
-            setRefreshToken(cfg.r, true);
+            setRefreshToken(cfg.r);
         }
     }
 
@@ -132,22 +127,6 @@
         return `<iframe src="${buildIcueUrl()}"></iframe>`;
     }
 
-    function migrateRefreshTokenStorage() {
-        const legacy = localStorage.getItem(LS.RTOKEN);
-        if (!legacy) return;
-
-        const remember = localStorage.getItem(LS.RTOKEN_REMEMBER);
-        sessionStorage.setItem(SS.RTOKEN, legacy);
-
-        if (remember === "1") {
-            return;
-        }
-
-        // Hardening: default legacy installs to session-only unless user explicitly opted in.
-        localStorage.setItem(LS.RTOKEN_REMEMBER, "0");
-        localStorage.removeItem(LS.RTOKEN);
-    }
-
     /* ─────────────────────────────────────────────────────────────────────────
      *  i18n
      * ────────────────────────────────────────────────────────────────────────*/
@@ -160,8 +139,6 @@
             authBtn: "Autoriser & obtenir le Refresh Token",
             refreshLbl: "Refresh Token",
             tokenHint: "Après autorisation, copiez le token depuis la page callback et collez-le ici.",
-            rememberTokenLbl: "Mémoriser ce token sur cet appareil",
-            rememberTokenHint: "Désactivé = stockage en session (plus sûr, non persistant).",
             save: "Enregistrer",
             lyricsLbl: "Paroles",
             noSong: "Lancez une chanson pour voir les paroles",
@@ -191,8 +168,6 @@
             authBtn: "Authorize & get Refresh Token",
             refreshLbl: "Refresh Token",
             tokenHint: "After authorization, copy the token from the callback page and paste it here.",
-            rememberTokenLbl: "Remember this token on this device",
-            rememberTokenHint: "Disabled = session-only storage (safer, not persistent).",
             save: "Save",
             lyricsLbl: "Lyrics",
             noSong: "Play a song to see lyrics",
@@ -229,17 +204,30 @@
         el._t = setTimeout(() => el.classList.remove("visible"), dur);
     }
 
-    /* ─────────────────────────────────────────────────────────────────────────
-     *  THEME
-     * ────────────────────────────────────────────────────────────────────────*/
+    // Cycle: dark → light → blur → dark
     function applyTheme(th) {
-        state.theme = (th === "light") ? "light" : "dark";
+        const valid = ["dark", "light", "blur"];
+        state.theme = valid.includes(th) ? th : "dark";
         document.documentElement.setAttribute("data-theme", state.theme);
-        $("themeToggle").textContent = state.theme === "dark" ? "🌙" : "☀️";
+        const icons = { dark: "🌙", light: "☀️", blur: "🎨" };
+        $("themeToggle").textContent = icons[state.theme];
+        // Show/hide blur background depending on mode
+        refreshBgBlur();
+    }
+
+    function refreshBgBlur() {
+        const bgImg = $("bgImg");
+        if (!bgImg) return;
+        if (state.theme === "blur" && bgImg.src && bgImg.complete && bgImg.naturalWidth > 0) {
+            bgImg.style.opacity = "1";
+        } else {
+            bgImg.style.opacity = "0";
+        }
     }
 
     $("themeToggle").addEventListener("click", () => {
-        applyTheme(state.theme === "dark" ? "light" : "dark");
+        const cycle = { dark: "light", light: "blur", blur: "dark" };
+        applyTheme(cycle[state.theme] || "dark");
         localStorage.setItem(LS.THEME, state.theme);
     });
 
@@ -261,8 +249,6 @@
         el("t-auth-btn", "authBtn");
         el("t-refresh-token", "refreshLbl");
         el("t-token-hint", "tokenHint");
-        el("t-remember-token", "rememberTokenLbl");
-        el("t-remember-token-hint", "rememberTokenHint");
         el("t-lyrics", "lyricsLbl");
         el("t-no-song", "noSong");
         el("t-icue-hint", "icueHint");
@@ -295,8 +281,6 @@
         $("settingsPanel").classList.add("open");
         $("inputClientId").value = localStorage.getItem(LS.CID) || "";
         $("inputRefreshToken").value = getRefreshToken();
-        const remember = $("rememberToken");
-        if (remember) remember.checked = isRefreshTokenPersistent();
         refreshIcueUrlField();
     }
 
@@ -331,10 +315,8 @@
     $("saveBtn").addEventListener("click", () => {
         const cid = $("inputClientId").value.trim();
         const rtkn = $("inputRefreshToken").value.trim();
-        const remember = !!($("rememberToken") && $("rememberToken").checked);
         localStorage.setItem(LS.CID, cid);
-        localStorage.setItem(LS.RTOKEN_REMEMBER, remember ? "1" : "0");
-        setRefreshToken(rtkn, remember);
+        setRefreshToken(rtkn);
         refreshIcueUrlField();
         closeSettings();
         // Reset token so we re-fetch
@@ -412,7 +394,7 @@
             state.accessToken = data.access_token;
             state.tokenExpiry = Date.now() + (data.expires_in - 30) * 1000;
             // Spotify sometimes returns a new refresh_token — persist it immediately
-            if (data.refresh_token) setRefreshToken(data.refresh_token, isRefreshTokenPersistent());
+            if (data.refresh_token) setRefreshToken(data.refresh_token);
             return true;
         } catch (_) {
             return false;
@@ -757,9 +739,8 @@
             img.onload = () => {
                 img.classList.remove("ui-hidden");
                 noArt.classList.add("ui-hidden");
-                // Only animate in background after image loads
                 bgImg.src = url;
-                bgImg.onload = () => { bgImg.style.opacity = "1"; };
+                bgImg.onload = () => { refreshBgBlur(); };
             };
             img.src = url;
         } else {

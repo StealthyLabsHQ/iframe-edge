@@ -67,6 +67,25 @@ button {
     --overlay-8: rgba(0, 0, 0, 0.14);
 }
 
+/* ── Blur theme: album art fills background ─────────────── */
+:root[data-theme="blur"] {
+    --bg: transparent;
+    --surface: transparent;
+    --border: rgba(255, 255, 255, 0.12);
+    --border-h: rgba(255, 255, 255, 0.22);
+    --text-1: #ffffff;
+    --text-2: #cccccc;
+    --text-3: #888888;
+    --accent: #1DB954;
+    --accent-dim: rgba(29, 185, 84, 0.25);
+    --glass-bg: rgba(0, 0, 0, 0.35);
+    --glass-b: rgba(255, 255, 255, 0.1);
+    --toast-bg: rgba(20, 20, 20, 0.92);
+    --overlay-5: rgba(255, 255, 255, 0.07);
+    --overlay-8: rgba(255, 255, 255, 0.13);
+    --tr: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* ── Base ───────────────────────────────────────────────── */
 html,
 body {
@@ -111,6 +130,34 @@ body {
 
 :root[data-theme="light"] #bgBlur::after {
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.5));
+}
+
+/* Blur mode: lighter vignette — let the album art show through */
+:root[data-theme="blur"] #bgBlur::after {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.45));
+}
+
+/* Blur mode: widget glass is more transparent */
+:root[data-theme="blur"] #widget {
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(8px) saturate(1.2);
+    -webkit-backdrop-filter: blur(8px) saturate(1.2);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Blur mode: lyrics text more legible against colourful bg */
+:root[data-theme="blur"] .lyric-line {
+    color: rgba(255, 255, 255, 0.45);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="blur"] .lyric-line.near {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+:root[data-theme="blur"] .lyric-line.active {
+    color: #ffffff;
+    text-shadow: 0 0 22px rgba(29, 185, 84, 0.5), 0 1px 6px rgba(0, 0, 0, 0.6);
 }
 
 /* ── Widget card ────────────────────────────────────────── */
@@ -369,6 +416,20 @@ body {
     color: var(--accent);
     background: rgba(29, 185, 84, 0.28);
     border-color: rgba(29, 185, 84, 0.4);
+    position: relative;
+}
+
+/* Show "1" badge over SVG icon when looping a single track */
+.ctrl-btn[data-mode="track"]::after {
+    content: "1";
+    position: absolute;
+    bottom: 5px;
+    right: 6px;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--accent);
+    pointer-events: none;
 }
 
 /* ── Right column (lyrics) ──────────────────────────────── */
