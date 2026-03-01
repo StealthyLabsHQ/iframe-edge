@@ -123,7 +123,9 @@
     }
 
     function buildIcueUrl() {
-        return buildConfigUrl();
+        const cid = localStorage.getItem(LS.CID) || "";
+        const encoded = encodeConfig(cid, "");
+        return window.location.origin + window.location.pathname + HASH_PREFIX + encoded;
     }
 
     function buildIframeTag() {
@@ -177,8 +179,8 @@
             sessionSub: "Votre autorisation Spotify a été révoquée ou est expirée. Reconnectez-vous pour continuer.",
             reconnect: "Se reconnecter",
             copyUrlBtn: "Copier l'URL pour iCUE",
-            icueHint: "L'URL ci-dessous contient vos identifiants. Collez-la dans iCUE comme src du widget — ils seront restaurés automatiquement même après un changement de widget.",
-            icueUrlPh: "Sauvegardez vos identifiants pour générer l'URL…",
+            icueHint: "L'URL ci-dessous contient votre Client ID. Collez-la dans iCUE — vous devrez ré-autoriser le token dans les paramètres du widget.",
+            icueUrlPh: "Sauvegardez votre Client ID pour générer l'URL…",
             toastUrlCopied: "✓ URL copiée — collez-la dans iCUE",
         },
         en: {
@@ -208,8 +210,8 @@
             sessionSub: "Your Spotify authorization was revoked or expired. Reconnect to continue.",
             reconnect: "Reconnect",
             copyUrlBtn: "Copy URL for iCUE",
-            icueHint: "This URL contains your credentials. Paste it in iCUE as the widget src — they will be restored automatically even after switching widgets.",
-            icueUrlPh: "Save your credentials to generate the URL…",
+            icueHint: "This URL contains your Client ID. Paste it in iCUE — you will need to re-authorize the token in the widget settings.",
+            icueUrlPh: "Save your Client ID to generate the URL…",
             toastUrlCopied: "✓ URL copied — paste it in iCUE",
         },
     };
@@ -300,9 +302,8 @@
 
     function refreshIcueUrlField() {
         const cid = localStorage.getItem(LS.CID) || "";
-        const rtkn = getRefreshToken();
         const field = $("iCueUrl");
-        if (cid && rtkn) {
+        if (cid) {
             field.value = buildIframeTag();
         } else {
             field.value = "";
@@ -334,8 +335,6 @@
         localStorage.setItem(LS.CID, cid);
         localStorage.setItem(LS.RTOKEN_REMEMBER, remember ? "1" : "0");
         setRefreshToken(rtkn, remember);
-        // Keep URL hash in sync — iCUE will persist the config across widget switches
-        updateHashConfig(cid, rtkn);
         refreshIcueUrlField();
         closeSettings();
         // Reset token so we re-fetch
