@@ -59,9 +59,9 @@ To use these widgets on your Corsair setup, you will need:
 The AI Assistant widget requires an API key from either Google (Gemini), Anthropic (Claude), or OpenAI (ChatGPT) to function.
 
 **How to get an API Key:**
-- <img src="https://cdn.simpleicons.org/google/4285F4" width="14" height="14" style="vertical-align: middle;"> **Google Gemini (Free tier available / Pay-as-you-go [Recommended]):** Go to [Google AI Studio](https://aistudio.google.com/app/apikey), sign in with your Google account, and click "Create API Key".
-- <img src="https://cdn.simpleicons.org/anthropic/d1cdc1" width="14" height="14" style="vertical-align: middle;"> **Anthropic Claude (Pay-as-you-go):** Go to the [Anthropic Console](https://console.anthropic.com/settings/keys), sign in, and generate a new secret key.
-- <img src="https://cdn.simpleicons.org/openai/412991" width="14" height="14" style="vertical-align: middle;"> **OpenAI (Pay-as-you-go):** Go to the [OpenAI Platform](https://platform.openai.com/api-keys), sign in, and generate a new secret key.
+- <img src="svg/img/google.png" width="20" height="20" style="vertical-align: sub;"> **Google Gemini (Free tier available / Pay-as-you-go [Recommended]):** Go to [Google AI Studio](https://aistudio.google.com/app/apikey), sign in with your Google account, and click "Create API Key".
+- <img src="svg/img/anthropic.png" width="20" height="20" style="vertical-align: sub;"> **Anthropic Claude (Pay-as-you-go):** Go to the [Anthropic Console](https://console.anthropic.com/settings/keys), sign in, and generate a new secret key.
+- <img src="svg/img/openai.png" width="20" height="20" style="vertical-align: sub;"> **OpenAI (Pay-as-you-go):** Go to the [OpenAI Platform](https://platform.openai.com/api-keys), sign in, and generate a new secret key.
 
 **Setup Instructions:**
 1. Add the widget to iCUE using its `<iframe>` code from the table.
@@ -115,9 +115,9 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
 Le widget Assistant IA nécessite une clé API de Google (Gemini), Anthropic (Claude), ou OpenAI (ChatGPT) pour fonctionner.
 
 **Comment obtenir une clé API :**
-- <img src="https://cdn.simpleicons.org/google/4285F4" width="14" height="14" style="vertical-align: middle;"> **Google Gemini (Gratuit disponible / Payant à l'usage [Recommandé]) :** Allez sur [Google AI Studio](https://aistudio.google.com/app/apikey), connectez-vous avec votre compte Google et cliquez sur "Create API Key".
-- <img src="https://cdn.simpleicons.org/anthropic/d1cdc1" width="14" height="14" style="vertical-align: middle;"> **Anthropic Claude (Payant à l'usage) :** Allez sur la [Console Anthropic](https://console.anthropic.com/settings/keys), connectez-vous et générez une nouvelle clé secrète.
-- <img src="https://cdn.simpleicons.org/openai/412991" width="14" height="14" style="vertical-align: middle;"> **OpenAI (Payant à l'usage) :** Allez sur la [Plateforme OpenAI](https://platform.openai.com/api-keys), connectez-vous et générez une nouvelle clé secrète.
+- <img src="svg/img/google.png" width="20" height="20" style="vertical-align: sub;"> **Google Gemini (Gratuit disponible / Payant à l'usage [Recommandé]) :** Allez sur [Google AI Studio](https://aistudio.google.com/app/apikey), connectez-vous avec votre compte Google et cliquez sur "Create API Key".
+- <img src="svg/img/anthropic.png" width="20" height="20" style="vertical-align: sub;"> **Anthropic Claude (Payant à l'usage) :** Allez sur la [Console Anthropic](https://console.anthropic.com/settings/keys), connectez-vous et générez une nouvelle clé secrète.
+- <img src="svg/img/openai.png" width="20" height="20" style="vertical-align: sub;"> **OpenAI (Payant à l'usage) :** Allez sur la [Plateforme OpenAI](https://platform.openai.com/api-keys), connectez-vous et générez une nouvelle clé secrète.
 
 **Configuration :**
 1. Ajoutez le widget dans iCUE en utilisant son code `<iframe>` du tableau.
