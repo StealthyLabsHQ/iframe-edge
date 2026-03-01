@@ -3,8 +3,7 @@
 <img width="2560" height="720" alt="{ADD81F34-B6AF-41F5-8927-9F8BCA4BE490}" src="https://github.com/user-attachments/assets/ceccbf30-6d85-4d0e-aecf-327c5137d9c8" />
 <img width="2560" height="720" alt="{A72EA717-C9F2-4B4B-9514-57498A444FDE}" src="https://github.com/user-attachments/assets/cacc99a5-3e7c-4b96-a160-db1d7031cb02" />
 <img width="2560" height="720" alt="{A7221C84-BBC2-4EEC-B00B-86D7A814B4CC}" src="https://github.com/user-attachments/assets/1a1be2d4-1d50-48ba-9d91-31c3a3d91e64" />
-<img width="2560" height="720" alt="{83CBE387-290F-41B3-9F35-F6D5EC5656B7}" src="https://github.com/user-attachments/assets/f0076b26-60ff-4aeb-a98c-9952256329d2" />
-
+<img width="2560" height="720" alt="{0D4010FE-62BE-42F3-A0AD-2EEB821F9203}" src="https://github.com/user-attachments/assets/b3af95e0-2289-48e6-b895-bc2b2d309e23" />
 
 <p align="center">
   <b>All-in-one HTML/CSS/JS widgets in a single file for Productivity, Streaming, and more.</b></br>
@@ -65,6 +64,9 @@ To use these widgets on your Corsair setup, you will need:
 
 The AI Assistant widget requires an API key from either Google (Gemini), Anthropic (Claude), or OpenAI (ChatGPT) to function.
 
+<p align="center"><img width="420" height="573" alt="{D9C92563-D79B-4473-BF24-CE4F2FEB7B6D}" src="https://github.com/user-attachments/assets/3d705bdb-ce5a-4ed7-8589-008153144234" /></p>
+
+
 **How to get an API Key:**
 - <img src="svg/img/google.png" width="20" height="20" style="vertical-align: middle; margin-right: 4px;"> **Google Gemini (Free tier available / Pay-as-you-go [Recommended]):** Go to [Google AI Studio](https://aistudio.google.com/app/apikey), sign in with your Google account, and click "Create API Key".
 - <img src="svg/img/anthropic.png" width="20" height="20" style="vertical-align: middle; margin-right: 4px;"> **Anthropic Claude (Pay-as-you-go):** Go to the [Anthropic Console](https://console.anthropic.com/settings/keys), sign in, and generate a new secret key.
@@ -120,6 +122,8 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
 ### 🤖 Assistant IA
 
 Le widget Assistant IA nécessite une clé API de Google (Gemini), Anthropic (Claude), ou OpenAI (ChatGPT) pour fonctionner.
+
+<p align="center"><img width="420" height="573" alt="{D9C92563-D79B-4473-BF24-CE4F2FEB7B6D}" src="https://github.com/user-attachments/assets/3d705bdb-ce5a-4ed7-8589-008153144234" /></p>
 
 **Comment obtenir une clé API :**
 - <img src="svg/img/google.png" width="20" height="20" style="vertical-align: middle; margin-right: 4px;"> **Google Gemini (Gratuit disponible / Payant à l'usage [Recommandé]) :** Allez sur [Google AI Studio](https://aistudio.google.com/app/apikey), connectez-vous avec votre compte Google et cliquez sur "Create API Key".
