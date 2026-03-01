@@ -7,7 +7,7 @@
     <meta name="referrer" content="no-referrer" />
     <!-- connect-src includes https: to support user-configured proxy URLs -->
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://generativelanguage.googleapis.com https://api.anthropic.com https:; object-src 'none'; base-uri 'none'; form-action 'none';" />
+        content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://generativelanguage.googleapis.com https://api.anthropic.com https:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'; upgrade-insecure-requests; block-all-mixed-content;" />
     <script src="../productivity/theme-loader.js"></script>
     <title>AI Assistant</title>
     <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
@@ -24,6 +24,13 @@
 
         <!-- ── Header ─────────────────────────────────────────────── -->
         <div class="hdr">
+            <button class="icon-btn" id="sidebarToggle" aria-label="Toggle history">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
             <div class="hdr-icon" aria-hidden="true">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                     <path
@@ -55,7 +62,10 @@
         <!-- ── Main content ────────────────────────────────────────── -->
         <div id="content">
 
-            <!-- Sidebar: conversation history (sz-xl only) -->
+            <!-- Sidebar backdrop (tap outside to close on M/L) -->
+            <div id="sidebarBackdrop"></div>
+
+            <!-- Sidebar: conversation history -->
             <aside id="sidebar" aria-label="Conversation history">
                 <div class="sidebar-hdr">
                     <span id="t-history"></span>
@@ -158,7 +168,7 @@
                     <label for="inputGeminiKey" id="t-gemini-key-lbl"></label>
                     <input type="password" id="inputGeminiKey" autocomplete="off" placeholder="AIza…" />
                     <div class="field-hint" id="t-gemini-key-hint">
-                        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio
                             &rarr; Get API key</a>
                     </div>
                 </div>
@@ -192,7 +202,7 @@
                     <input type="password" id="inputClaudeKey" autocomplete="off" placeholder="sk-ant-…" />
                     <div class="field-hint" id="t-claude-key-hint">
                         <a href="https://console.anthropic.com/settings/keys" target="_blank"
-                            rel="noopener">console.anthropic.com &rarr; API Keys</a>
+                            rel="noopener noreferrer">console.anthropic.com &rarr; API Keys</a>
                     </div>
                 </div>
                 <div class="field">

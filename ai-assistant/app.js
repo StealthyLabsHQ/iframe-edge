@@ -16,6 +16,10 @@
         SYSTEM: "pa_ai_system_prompt",
         CONVS: "pa_ai_conversations",
     };
+    const SS = {
+        KEY_GEMINI: "pa_ai_key_gemini_session",
+        KEY_CLAUDE: "pa_ai_key_claude_session",
+    };
 
     const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
     const CLAUDE_BASE = "https://api.anthropic.com";
@@ -23,6 +27,19 @@
     const MAX_CONVS = 20;
 
     const $ = id => document.getElementById(id);
+
+    function enforceSameOriginFrame() {
+        if (window.top === window.self) return;
+        try {
+            const topOrigin = window.top.location.origin;
+            if (topOrigin !== window.location.origin) {
+                throw new Error("cross_origin_frame");
+            }
+        } catch (_) {
+            document.body.textContent = "Blocked: cross-origin framing is not allowed.";
+            throw new Error("blocked_cross_origin_frame");
+        }
+    }
 
     /* ─────────────────────────────────────────────────────────────────
      *  STATE
@@ -37,6 +54,77 @@
         isStreaming: false,
         abortCtrl: null,
     };
+
+    function safeGet(storage, key) {
+        try { return storage.getItem(key) || ""; } catch (_) { return ""; }
+    }
+
+    function safeSet(storage, key, value) {
+        try { storage.setItem(key, value); } catch (_) { }
+    }
+
+    function safeRemove(storage, key) {
+        try { storage.removeItem(key); } catch (_) { }
+    }
+
+    function sessionKeyForProvider(provider) {
+        return provider === "gemini" ? SS.KEY_GEMINI : SS.KEY_CLAUDE;
+    }
+
+    function legacyKeyForProvider(provider) {
+        return provider === "gemini" ? LS.KEY_GEMINI : LS.KEY_CLAUDE;
+    }
+
+    function getApiKey(provider = state.provider) {
+        const sessionKey = sessionKeyForProvider(provider);
+        const legacyKey = legacyKeyForProvider(provider);
+        const fromSession = safeGet(sessionStorage, sessionKey);
+        if (fromSession) return fromSession.trim();
+
+        // One-time migration from persistent localStorage to sessionStorage.
+        const fromLocal = safeGet(localStorage, legacyKey);
+        if (fromLocal) {
+            safeSet(sessionStorage, sessionKey, fromLocal.trim());
+            safeRemove(localStorage, legacyKey);
+            return fromLocal.trim();
+        }
+        return "";
+    }
+
+    function setApiKey(provider, value) {
+        const trimmed = (value || "").trim();
+        const sessionKey = sessionKeyForProvider(provider);
+        const legacyKey = legacyKeyForProvider(provider);
+        if (trimmed) safeSet(sessionStorage, sessionKey, trimmed);
+        else safeRemove(sessionStorage, sessionKey);
+        // Ensure no persistent copy remains.
+        safeRemove(localStorage, legacyKey);
+    }
+
+    function migrateLegacyApiKeys() {
+        getApiKey("gemini");
+        getApiKey("claude");
+    }
+
+    function normalizeProxyUrl(raw) {
+        const value = (raw || "").trim();
+        if (!value) return "";
+
+        let parsed;
+        try {
+            parsed = new URL(value);
+        } catch (_) {
+            throw new Error("invalid_proxy_url");
+        }
+
+        if (parsed.protocol !== "https:") throw new Error("invalid_proxy_url");
+        if (parsed.username || parsed.password) throw new Error("invalid_proxy_url");
+        if (parsed.search || parsed.hash) throw new Error("invalid_proxy_url");
+
+        const pathname = parsed.pathname.replace(/\/+$/, "");
+        const normalizedPath = pathname === "/" ? "" : pathname;
+        return `${parsed.origin}${normalizedPath}`;
+    }
 
     /* ─────────────────────────────────────────────────────────────────
      *  i18n
@@ -72,6 +160,7 @@
             toastSaved: "✓ Paramètres enregistrés",
             toastCleared: "✓ Historique effacé",
             toastError: "Erreur — vérifiez votre clé API",
+            toastInvalidProxy: "URL proxy invalide (HTTPS requis, sans auth/query/hash).",
             footerGemini: "Gemini peut se tromper. Vérifiez les informations importantes.",
             footerClaude: "Claude peut se tromper. Vérifiez les informations importantes.",
             s1: "Explique un concept complexe simplement",
@@ -109,6 +198,7 @@
             toastSaved: "✓ Settings saved",
             toastCleared: "✓ History cleared",
             toastError: "Error — check your API key",
+            toastInvalidProxy: "Invalid proxy URL (HTTPS only, no auth/query/hash).",
             footerGemini: "Gemini may be wrong. Verify important information.",
             footerClaude: "Claude may be wrong. Verify important information.",
             s1: "Explain a complex concept simply",
@@ -369,9 +459,7 @@
     }
 
     function hasApiKey() {
-        const key = state.provider === "gemini"
-            ? localStorage.getItem(LS.KEY_GEMINI)
-            : localStorage.getItem(LS.KEY_CLAUDE);
+        const key = getApiKey(state.provider);
         return !!(key && key.trim());
     }
 
@@ -544,7 +632,8 @@
      *  GEMINI API (streaming via SSE)
      * ────────────────────────────────────────────────────────────────*/
     async function streamGemini(contents, systemPrompt, model, key, signal, onChunk) {
-        const url = `${GEMINI_BASE}/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
+        const safeModel = encodeURIComponent(model);
+        const url = `${GEMINI_BASE}/${safeModel}:streamGenerateContent?alt=sse`;
         const body = {
             contents,
             generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
@@ -555,9 +644,13 @@
 
         const resp = await fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": key,
+            },
             body: JSON.stringify(body),
             signal,
+            referrerPolicy: "no-referrer",
         });
 
         if (!resp.ok) {
@@ -609,7 +702,7 @@
      *  direct browser calls. Falls back to user-configured proxy URL.
      * ────────────────────────────────────────────────────────────────*/
     async function streamClaude(messages, systemPrompt, model, key, proxyUrl, signal, onChunk) {
-        const base = proxyUrl ? proxyUrl.replace(/\/$/, "") : CLAUDE_BASE;
+        const base = proxyUrl ? normalizeProxyUrl(proxyUrl) : CLAUDE_BASE;
         const url = `${base}/v1/messages`;
         const body = { model, max_tokens: 8192, messages, stream: true };
         if (systemPrompt) body.system = systemPrompt;
@@ -622,7 +715,13 @@
             "anthropic-dangerous-direct-browser-access": "true",
         };
 
-        const resp = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal });
+        const resp = await fetch(url, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(body),
+            signal,
+            referrerPolicy: "no-referrer",
+        });
 
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}));
@@ -724,14 +823,14 @@
 
         try {
             if (provider === "gemini") {
-                const key = localStorage.getItem(LS.KEY_GEMINI) || "";
+                const key = getApiKey("gemini");
                 const model = localStorage.getItem(LS.MODEL_GEMINI) || "gemini-2.0-flash";
                 const contents = buildGeminiContents(conv.messages);
                 await streamGemini(contents, systemP, model, key, state.abortCtrl.signal, onChunk);
             } else {
-                const key = localStorage.getItem(LS.KEY_CLAUDE) || "";
+                const key = getApiKey("claude");
                 const model = localStorage.getItem(LS.MODEL_CLAUDE) || "claude-sonnet-4-6";
-                const proxy = localStorage.getItem(LS.PROXY) || "";
+                const proxy = normalizeProxyUrl(localStorage.getItem(LS.PROXY) || "");
                 // Exclude last assistant message from context if streaming
                 const msgs = buildClaudeMessages(conv.messages);
                 await streamClaude(msgs, systemP, model, key, proxy, state.abortCtrl.signal, onChunk);
@@ -777,12 +876,15 @@
                 const body = contentEl.closest(".msg-body");
                 if (body) body.classList.add("error");
                 contentEl.classList.remove("streaming");
-                contentEl.textContent = err.message || t("toastError");
+                const isProxyErr = err?.message === "invalid_proxy_url";
+                contentEl.textContent = isProxyErr ? t("toastInvalidProxy") : (err.message || t("toastError"));
                 const label = document.createElement("div");
                 label.className = "msg-error-label";
-                label.textContent = "⚠ " + (state.lang === "fr" ? "Erreur API" : "API Error");
+                label.textContent = "⚠ " + (state.lang === "fr"
+                    ? (isProxyErr ? "Configuration invalide" : "Erreur API")
+                    : (isProxyErr ? "Invalid configuration" : "API Error"));
                 contentEl.closest(".msg-bubble").appendChild(label);
-                showToast(t("toastError"), 4000);
+                showToast(isProxyErr ? t("toastInvalidProxy") : t("toastError"), 4000);
             }
         }
 
@@ -860,7 +962,34 @@
     }
 
     $("newChatBtn").addEventListener("click", startNewChat);
-    $("sidebarNewBtn").addEventListener("click", startNewChat);
+    $("sidebarNewBtn").addEventListener("click", () => {
+        startNewChat();
+        if (state.size === "sz-m" || state.size === "sz-l") closeSidebar();
+    });
+
+    /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+     *  SIDEBAR TOGGLE (collapsible drawer)
+     * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€*/
+    function openSidebar()  { $("widget").classList.add("sidebar-open"); }
+    function closeSidebar() { $("widget").classList.remove("sidebar-open"); }
+    function toggleSidebar() {
+        if ($("widget").classList.contains("sidebar-open")) closeSidebar();
+        else openSidebar();
+    }
+
+    function initSidebarState() {
+        if (state.size === "sz-xl") openSidebar();
+        else closeSidebar();
+    }
+
+    $("sidebarToggle").addEventListener("click", toggleSidebar);
+    $("sidebarBackdrop").addEventListener("click", closeSidebar);
+
+    // Auto-close drawer on history item click (M/L)
+    document.addEventListener("click", e => {
+        const item = e.target.closest(".history-item");
+        if (item && (state.size === "sz-m" || state.size === "sz-l")) closeSidebar();
+    });
 
     /* ─────────────────────────────────────────────────────────────────
      *  SETTINGS PANEL
@@ -870,8 +999,8 @@
         panel.classList.add("open");
 
         // Populate fields
-        $("inputGeminiKey").value = localStorage.getItem(LS.KEY_GEMINI) || "";
-        $("inputClaudeKey").value = localStorage.getItem(LS.KEY_CLAUDE) || "";
+        $("inputGeminiKey").value = getApiKey("gemini");
+        $("inputClaudeKey").value = getApiKey("claude");
         $("inputProxyUrl").value = localStorage.getItem(LS.PROXY) || "";
         $("inputSystem").value = localStorage.getItem(LS.SYSTEM) || "";
         $("selectGeminiModel").value = localStorage.getItem(LS.MODEL_GEMINI) || "gemini-2.0-flash";
@@ -910,11 +1039,18 @@
 
     $("saveBtn").addEventListener("click", () => {
         const provider = document.querySelector(".provider-tab.active")?.dataset.provider || "gemini";
+        let proxy = "";
+        try {
+            proxy = normalizeProxyUrl($("inputProxyUrl").value);
+        } catch (_) {
+            showToast(t("toastInvalidProxy"), 4000);
+            return;
+        }
 
         localStorage.setItem(LS.PROVIDER, provider);
-        localStorage.setItem(LS.KEY_GEMINI, $("inputGeminiKey").value.trim());
-        localStorage.setItem(LS.KEY_CLAUDE, $("inputClaudeKey").value.trim());
-        localStorage.setItem(LS.PROXY, $("inputProxyUrl").value.trim());
+        setApiKey("gemini", $("inputGeminiKey").value);
+        setApiKey("claude", $("inputClaudeKey").value);
+        localStorage.setItem(LS.PROXY, proxy);
         localStorage.setItem(LS.SYSTEM, $("inputSystem").value.trim());
         localStorage.setItem(LS.MODEL_GEMINI, $("selectGeminiModel").value);
         localStorage.setItem(LS.MODEL_CLAUDE, $("selectClaudeModel").value);
@@ -1098,6 +1234,8 @@
      *  INIT
      * ────────────────────────────────────────────────────────────────*/
     function init() {
+        enforceSameOriginFrame();
+        migrateLegacyApiKeys();
         applyTheme(state.theme);
         applyLang(state.lang);
 
@@ -1112,6 +1250,7 @@
         updateModelBadge();
         updateStaticStrings();
         initCustomSelects();   // replace native selects with WebView-safe dropdowns
+        initSidebarState();    // open sidebar on XL, closed on M/L by default
         refreshSetupOverlay();
         renderHistory();
         showChatState();

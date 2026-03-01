@@ -781,7 +781,7 @@
         }
 
         if (!data.is_playing || !data.item) {
-            showOverlay("🎵", t("notPlaying"), t("notPlayingSub"), null, null);
+            hideOverlay();
             stopProgressTick();
             state.isPlaying = false;
             state.trackId = null;

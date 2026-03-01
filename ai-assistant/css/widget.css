@@ -183,13 +183,49 @@ select {
 
 /* ── Sidebar ─────────────────────────────────────────────────────── */
 #sidebar {
-    display: none;
+    display: flex;
+    /* always in the flex flow */
     flex-direction: column;
-    width: var(--sidebar-w);
+    width: 0;
     flex-shrink: 0;
-    border-right: 1px solid var(--border);
+    border-right: 0 solid var(--border);
     background: var(--overlay-5);
     overflow: hidden;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+        border-right-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sidebar open — pushes content (M/L/XL all use this) */
+#widget.sidebar-open #sidebar {
+    width: var(--sidebar-w);
+    border-right-width: 1px;
+}
+
+/* Backdrop — only visible on M/L when drawer is open */
+#sidebarBackdrop {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 15;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+html.sz-m #widget.sidebar-open #sidebarBackdrop,
+html.sz-l #widget.sidebar-open #sidebarBackdrop {
+    display: block;
 }
 
 .sidebar-hdr {
