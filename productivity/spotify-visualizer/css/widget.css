@@ -514,7 +514,7 @@ html.sz-xl .lyric-line.active {
     position: absolute;
     inset: 0;
     z-index: 20;
-    background: var(--glass-bg);
+    background: rgba(14, 14, 14, 0.96);
     backdrop-filter: blur(28px);
     -webkit-backdrop-filter: blur(28px);
     display: flex;
@@ -696,28 +696,31 @@ html.sz-m .col-left {
     inset: 0;
     width: 100%;
     height: 100%;
-    align-items: stretch;
-    justify-content: stretch;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 60px;
+    /* leave room for track info and controls */
 }
 
 html.sz-m .col-left-inner {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 html.sz-m .album-wrap {
-    position: absolute;
-    inset: 0;
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 18px;
-    box-shadow: none;
+    width: clamp(140px, 55vmin, 260px) !important;
+    height: clamp(140px, 55vmin, 260px) !important;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    flex-shrink: 0;
 }
 
 html.sz-m .album-wrap img {
     object-fit: cover;
+    width: 100%;
+    height: 100%;
 }
 
 html.sz-m .album-wrap .no-art {
@@ -913,7 +916,7 @@ html.sz-xl .col-left-inner {
 
 html.sz-xl .album-wrap {
     width: 100%;
-    height: 130px;
+    height: 180px;
     flex-shrink: 0;
 }
 
