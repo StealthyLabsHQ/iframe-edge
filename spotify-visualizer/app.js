@@ -160,13 +160,14 @@
             setupSub: "Ouvrez les paramètres pour ajouter votre Client ID et Refresh Token Spotify.",
             openSettings: "Ouvrir les paramètres",
             toastSaved: "✓ Paramètres enregistrés",
+            toastSavedCopied: "✓ Enregistré — URL iCUE copiée ! Collez-la dans les paramètres du widget iCUE.",
             toastError: "Erreur de connexion Spotify",
             toastReauth: "⚠️ Token expiré — ré-autorisez dans les paramètres",
             sessionTitle: "Session expirée",
             sessionSub: "Votre autorisation Spotify a été révoquée ou est expirée. Reconnectez-vous pour continuer.",
             reconnect: "Se reconnecter",
             copyUrlBtn: "Copier l'URL pour iCUE",
-            icueHint: "Copiez cette URL et collez-la dans iCUE à la place de l'URL actuelle — vos identifiants seront restaurés automatiquement même si vous changez de widget.",
+            icueHint: "L'URL ci-dessous est copiée automatiquement à chaque Save. Collez-la dans les paramètres du widget iCUE — vos identifiants seront restaurés même après un changement de widget.",
             toastUrlCopied: "✓ URL copiée — collez-la dans iCUE",
         },
         en: {
@@ -189,13 +190,14 @@
             setupSub: "Open settings to add your Spotify Client ID and Refresh Token.",
             openSettings: "Open Settings",
             toastSaved: "✓ Settings saved",
+            toastSavedCopied: "✓ Saved — iCUE URL copied! Paste it in your iCUE widget settings.",
             toastError: "Spotify connection error",
             toastReauth: "⚠️ Token expired — re-authorize in settings",
             sessionTitle: "Session expired",
             sessionSub: "Your Spotify authorization was revoked or expired. Reconnect to continue.",
             reconnect: "Reconnect",
             copyUrlBtn: "Copy URL for iCUE",
-            icueHint: "Copy this URL and paste it in iCUE instead of the current URL — your credentials will be restored automatically even if you switch widgets.",
+            icueHint: "This URL is automatically copied on every Save. Paste it in the iCUE widget settings — your credentials will be restored even after switching widgets.",
             toastUrlCopied: "✓ URL copied — paste it in iCUE",
         },
     };
@@ -310,12 +312,21 @@
         setRefreshToken(rtkn, remember);
         // Keep URL hash in sync — iCUE will persist the config across widget switches
         updateHashConfig(cid, rtkn);
-        showToast(t("toastSaved"));
         closeSettings();
         // Reset token so we re-fetch
         state.accessToken = null;
         state.tokenExpiry = 0;
         startPolling();
+        // Auto-copy the iCUE URL to clipboard so the user just pastes it in iCUE
+        if (cid && rtkn) {
+            navigator.clipboard.writeText(buildConfigUrl()).then(() => {
+                showToast(t("toastSavedCopied"), 4500);
+            }).catch(() => {
+                showToast(t("toastSaved"));
+            });
+        } else {
+            showToast(t("toastSaved"));
+        }
     });
 
     $("copyUrlBtn").addEventListener("click", () => {
