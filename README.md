@@ -55,6 +55,25 @@ To use these widgets on your Corsair setup, you will need:
 
 > **🎉 Done!** The widget will load live from GitHub Pages.
 
+### 🎵 Spotify Visualizer
+
+**Prerequisites:**
+- A **Spotify Premium** account.
+
+**Setup Instructions:**
+1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in.
+2. Click on **Create app**.
+3. Fill in the app name and description.
+4. For the **Redirect URI**, add exactly: 
+   `https://stealthylabshq.github.io/iframe-edge/productivity/spotify-visualizer/auth/callback.html`
+5. Make sure to check the **Web API** box.
+6. Save and go to your app settings to find your **Client ID**.
+
+**How to Use:**
+1. Add the widget to iCUE as described above using its specific URL.
+2. When the widget loads, enter your **Client ID** to connect.
+3. You will be redirected to log in and grant permissions.
+
 ---
 
 ## 🇫🇷 Documentation en Français
@@ -78,4 +97,24 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
    ```
 
 > **🎉 Et voilà !** Le widget se chargera directement depuis GitHub Pages.
+
+### 🎵 Spotify Visualizer
+
+**Prérequis :**
+- Avoir un compte **Spotify Premium**.
+
+**Comment l'installer :**
+1. Allez sur le site des développeurs Spotify avec [ce lien](https://developer.spotify.com/dashboard) et connectez-vous.
+2. Cliquez sur **Create app** (Créer une application).
+3. Remplissez le nom et la description de l'application.
+4. Ajouter en tant que **Redirect URI** exactement : 
+   `https://stealthylabshq.github.io/iframe-edge/productivity/spotify-visualizer/auth/callback.html`
+5. Et cochez la case **Web API**.
+6. Enregistrez et récupérez votre **Client ID**.
+
+**Comment l'utiliser :**
+1. Ajoutez le widget dans iCUE comme décrit plus haut avec son URL.
+2. Au chargement du widget, entrez votre **Client ID** pour vous connecter.
+3. Autorisez l'accès à votre compte et profitez de la musique !
+
 ---

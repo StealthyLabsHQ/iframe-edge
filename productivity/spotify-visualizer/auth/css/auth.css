@@ -187,7 +187,7 @@ p {
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 14px 50px 14px 16px;
+    padding: 14px 76px 14px 16px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     color: #1DB954;
@@ -198,8 +198,8 @@ p {
 
 .copy-btn {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 12px;
+    right: 12px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;

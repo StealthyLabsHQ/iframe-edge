@@ -698,9 +698,9 @@ html.sz-m .col-left-inner {
 }
 
 html.sz-m .album-wrap {
-    width: clamp(140px, 55vmin, 260px) !important;
-    height: clamp(140px, 55vmin, 260px) !important;
-    border-radius: 0;
+    width: clamp(160px, 75vmin, 420px) !important;
+    height: clamp(160px, 75vmin, 420px) !important;
+    border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
     flex-shrink: 0;
 }
