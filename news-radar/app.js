@@ -193,6 +193,24 @@
             }
         });
 
+        // Within Google News group: EN first when lang=en, FR first when lang=fr
+        const gnews = groups.get("t-group-gnews");
+        if (gnews) {
+            const frOpt = gnews.find((el) => el.dataset?.value?.includes("ceid=FR:fr"));
+            const enOpt = gnews.find((el) => el.dataset?.value?.includes("ceid=US:en"));
+            if (frOpt && enOpt) {
+                const frIdx = gnews.indexOf(frOpt);
+                const enIdx = gnews.indexOf(enOpt);
+                if (currentLang === "en" && frIdx < enIdx) {
+                    gnews[frIdx] = enOpt;
+                    gnews[enIdx] = frOpt;
+                } else if (currentLang === "fr" && enIdx < frIdx) {
+                    gnews[enIdx] = frOpt;
+                    gnews[frIdx] = enOpt;
+                }
+            }
+        }
+
         // Re-append in desired order
         for (const groupId of order) {
             const elements = groups.get(groupId);
