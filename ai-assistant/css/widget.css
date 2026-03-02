@@ -7,7 +7,7 @@
 /* ── Theme variables ─────────────────────────────────────────────── */
 :root {
     --bg: #000000;
-    --surface: #0d0d0d;
+    --surface: #000000;
     --border: rgba(255, 255, 255, 0.08);
     --border-h: rgba(255, 255, 255, 0.15);
     --text-1: #ffffff;
@@ -17,9 +17,9 @@
     --accent-h: #c4b5fd;
     --accent-dim: rgba(167, 139, 250, 0.14);
     --accent-border: rgba(167, 139, 250, 0.35);
-    --glass-bg: rgba(10, 10, 14, 0.72);
+    --glass-bg: rgba(0, 0, 0, 0.85);
     --glass-b: rgba(255, 255, 255, 0.09);
-    --toast-bg: #1c1c1c;
+    --toast-bg: #000000;
     --overlay-5: rgba(255, 255, 255, 0.05);
     --overlay-8: rgba(255, 255, 255, 0.08);
     --overlay-12: rgba(255, 255, 255, 0.12);

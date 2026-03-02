@@ -15,13 +15,15 @@ select {
   outline: none;
 }
 
-button { cursor: pointer; }
+button {
+  cursor: pointer;
+}
 
 /* ── Tokens ──────────────────────────────────────────────── */
 :root,
 :root[data-theme="dark"] {
   --bg: #000000;
-  --surface: #121212;
+  --surface: #000000;
   --border: var(--overlay-8);
   --border-h: rgba(255, 255, 255, 0.15);
   --text-1: #ffffff;
@@ -78,20 +80,23 @@ body::after {
   content: "";
   position: fixed;
   inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0px,
-    transparent 3px,
-    var(--grid-overlay) 3px,
-    var(--grid-overlay) 4px
-  );
+  background: repeating-linear-gradient(0deg,
+      transparent 0px,
+      transparent 3px,
+      var(--grid-overlay) 3px,
+      var(--grid-overlay) 4px);
   pointer-events: none;
   z-index: 9999;
 }
 
 /* ── Utility ─────────────────────────────────────────────── */
-.income-color  { color: var(--accent); }
-.expense-color { color: #e17055; }
+.income-color {
+  color: var(--accent);
+}
+
+.expense-color {
+  color: #e17055;
+}
 
 /* ── Widget shell ────────────────────────────────────────── */
 .widget {

@@ -17,7 +17,7 @@
 - **No external dependencies:** Pure HTML, CSS, and vanilla JavaScript bundled in single files.
 - **Fully Responsive:** Automatically scales to fit any container size (`M`, `L`, `XL`).
 - **Plug & Play:** Just copy the code and paste it.
-- **Dark Mode / Light Mode** with a toggle on each widget.
+- **Dark Mode OLED / Light Mode** with a toggle on each widget.
 - **EN / FR** bilingual support on all widgets.
 - **AI Assistant for 3 AI Models:** Google Gemini, Anthropic Claude, and OpenAI ChatGPT.
 ---
@@ -27,15 +27,17 @@
 | Widget | iCUE `<iframe>` Code (Copy & Paste) |
 |---|---|
 | 🤖 **AI Assistant** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/ai-assistant/"></iframe>` |
-| 💧 Hydration | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>` |
+| � News Radar | `<iframe src="https://stealthylabshq.github.io/iframe-edge/news-radar/"></iframe>` |
+| 🎵 Spotify Visualizer | `<iframe src="https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/"></iframe>` |
+| �💧 Hydration | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>` |
 | 💰 Budget | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/budget/"></iframe>` |
 | 🍅 Pomodoro | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/pomodoro/"></iframe>` |
+| ⏱️ Timer & Countdown | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/timer/"></iframe>` |
 | 📝 Quick Notes | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/notes/"></iframe>` |
 | 🎯 Daily Focus | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/daily-focus/"></iframe>` |
 | ✅ Habit Tracker | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/habit-tracker/"></iframe>` |
 | 🧘 Posture & Blink | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/posture-reminder/"></iframe>` |
 | 📋 Quick Clipboard | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/quick-clipboard/"></iframe>` |
-| 🎵 Spotify Visualizer | `<iframe src="https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/"></iframe>` |
 
 
 ---

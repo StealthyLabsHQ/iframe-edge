@@ -16,7 +16,7 @@ button {
 :root,
 :root[data-theme="dark"] {
     --bg: #000000;
-    --surface: #121212;
+    --surface: #000000;
     --border: var(--overlay-8);
     --border-h: rgba(255, 255, 255, 0.15);
     --text-1: #ffffff;

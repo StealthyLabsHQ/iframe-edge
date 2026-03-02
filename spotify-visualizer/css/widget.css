@@ -34,7 +34,7 @@ button {
 :root,
 :root[data-theme="dark"] {
     --bg: #000000;
-    --surface: #0d0d0d;
+    --surface: #000000;
     --border: rgba(255, 255, 255, 0.08);
     --border-h: rgba(255, 255, 255, 0.15);
     --text-1: #ffffff;
@@ -42,9 +42,9 @@ button {
     --text-3: #555555;
     --accent: #1DB954;
     --accent-dim: rgba(29, 185, 84, 0.2);
-    --glass-bg: rgba(0, 0, 0, 0.55);
+    --glass-bg: rgba(0, 0, 0, 0.85);
     --glass-b: rgba(255, 255, 255, 0.09);
-    --toast-bg: #1c1c1c;
+    --toast-bg: #000000;
     --overlay-5: rgba(255, 255, 255, 0.05);
     --overlay-8: rgba(255, 255, 255, 0.08);
     --tr: 0.18s cubic-bezier(0.4, 0, 0.2, 1);

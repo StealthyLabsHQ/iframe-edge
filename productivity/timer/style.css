@@ -16,7 +16,7 @@ button {
 :root,
 :root[data-theme="dark"] {
   --bg: #000000;
-  --surface: #121212;
+  --surface: #000000;
   --border: var(--overlay-8);
   --border-h: rgba(255, 255, 255, 0.15);
   --text-1: #ffffff;
@@ -105,10 +105,10 @@ body::after {
 }
 
 .widget.is-running {
-  border-color: rgba(var(--pc-rgb, 255,107,107), 0.2);
+  border-color: rgba(var(--pc-rgb, 255, 107, 107), 0.2);
   box-shadow:
-    0 0 40px rgba(var(--pc-rgb, 255,107,107), 0.06),
-    inset 0 0 60px rgba(var(--pc-rgb, 255,107,107), 0.02);
+    0 0 40px rgba(var(--pc-rgb, 255, 107, 107), 0.06),
+    inset 0 0 60px rgba(var(--pc-rgb, 255, 107, 107), 0.02);
 }
 
 .widget.is-running::before {
@@ -116,9 +116,17 @@ body::after {
 }
 
 @keyframes endFlash {
-  0%   { box-shadow: 0 0 0 0 rgba(var(--pc-rgb, 255,107,107), 0); }
-  35%  { box-shadow: 0 0 32px 6px rgba(var(--pc-rgb, 255,107,107), 0.45), inset 0 0 40px rgba(var(--pc-rgb, 255,107,107), 0.1); }
-  100% { box-shadow: 0 0 0 0 rgba(var(--pc-rgb, 255,107,107), 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--pc-rgb, 255, 107, 107), 0);
+  }
+
+  35% {
+    box-shadow: 0 0 32px 6px rgba(var(--pc-rgb, 255, 107, 107), 0.45), inset 0 0 40px rgba(var(--pc-rgb, 255, 107, 107), 0.1);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--pc-rgb, 255, 107, 107), 0);
+  }
 }
 
 .widget.end-flash {
@@ -138,7 +146,7 @@ body::after {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: rgba(var(--pc-rgb, 255,107,107), 0.12);
+  background: rgba(var(--pc-rgb, 255, 107, 107), 0.12);
   color: var(--pc, var(--accent));
   display: flex;
   align-items: center;
@@ -191,8 +199,8 @@ body::after {
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
-  border: 1px solid rgba(var(--pc-rgb, 255,107,107), 0.25);
-  background: rgba(var(--pc-rgb, 255,107,107), 0.1);
+  border: 1px solid rgba(var(--pc-rgb, 255, 107, 107), 0.25);
+  background: rgba(var(--pc-rgb, 255, 107, 107), 0.1);
   color: var(--pc, var(--accent));
   flex-shrink: 0;
   transition: all 0.4s ease;
@@ -208,8 +216,17 @@ body::after {
 }
 
 @keyframes pulseDot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.4; transform: scale(0.65); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(0.65);
+  }
 }
 
 /* ── Timer views ──────────────────────────────────────────────────────── */
@@ -373,8 +390,13 @@ body::after {
   transition: opacity 0.1s ease;
 }
 
-.btn:active { transform: scale(0.95); }
-.btn:active::after { opacity: 1; }
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn:active::after {
+  opacity: 1;
+}
 
 .btn-ghost {
   background: var(--overlay-5);
@@ -396,7 +418,9 @@ body::after {
   transition: filter var(--tr), background 0.5s ease, transform var(--tr);
 }
 
-.btn-timer:hover { filter: brightness(1.08); }
+.btn-timer:hover {
+  filter: brightness(1.08);
+}
 
 /* ── Phase section ────────────────────────────────────────────────────── */
 
@@ -562,7 +586,9 @@ body::after {
   font-size: 11px;
 }
 
-.phase-save-btn:hover { color: #34d399; }
+.phase-save-btn:hover {
+  color: #34d399;
+}
 
 /* Add phase button */
 
