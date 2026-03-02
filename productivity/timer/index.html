@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <script src="../theme-loader.js"></script>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests" />
+  <title>Timer</title>
+  <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="widget" id="widget">
+
+    <!-- ── Header ───────────────────────────────────────────────────── -->
+    <div class="mod-header">
+      <div class="mod-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      </div>
+      <span class="mod-title" id="t-title">TIMER</span>
+      <div style="margin-left:auto;display:flex;gap:5px;align-items:center">
+        <button class="lang-toggle" id="displayBtn" aria-label="Toggle display" title="Switch display">
+          <!-- updated by JS -->
+        </button>
+        <button class="lang-toggle" id="themeToggle">🌙</button>
+        <div class="lang-toggle" id="langToggle">FR</div>
+      </div>
+    </div>
+
+    <!-- ── Phase badge ──────────────────────────────────────────────── -->
+    <div class="phase-badge" id="phaseBadge">
+      <span class="badge-dot"></span>
+      <span id="phaseLabel">Live</span>
+    </div>
+
+    <!-- ── Ring view ────────────────────────────────────────────────── -->
+    <div id="ringView" class="timer-view">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 100 100">
+          <defs>
+            <filter id="timerGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <circle class="ring-track" cx="50" cy="50" r="42" />
+          <circle class="ring-progress" id="ringProgress" cx="50" cy="50" r="42"
+            stroke-dasharray="263.89" stroke-dashoffset="0" />
+        </svg>
+        <div class="ring-center">
+          <div class="timer-digits" id="timerDigits">00:00</div>
+          <div class="timer-sublabel" id="timerSub">–</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Digital view ─────────────────────────────────────────────── -->
+    <div id="digitalView" class="timer-view hidden">
+      <div class="digital-wrap">
+        <div class="digital-digits" id="digitalDigits">00:00</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="digital-meta">
+          <span class="timer-sublabel" id="digitalSub">–</span>
+          <span class="digital-total" id="digitalTotal"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Controls ─────────────────────────────────────────────────── -->
+    <div class="timer-controls">
+      <button class="btn btn-ghost" id="resetBtn" aria-label="Reset">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round">
+          <polyline points="1 4 1 10 7 10" />
+          <path d="M3.51 15a9 9 0 1 0 .49-3.86" />
+        </svg>
+      </button>
+      <button class="btn btn-timer" id="startBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <path id="startIconPath" d="M5 3 19 12 5 21z" />
+        </svg>
+        <span id="startLabel">Start</span>
+      </button>
+      <button class="btn btn-ghost" id="skipBtn" aria-label="Skip phase">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round">
+          <polygon points="5 4 15 12 5 20 5 4" />
+          <line x1="19" y1="5" x2="19" y2="19" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- ── Phase list ────────────────────────────────────────────────── -->
+    <div class="phase-section">
+      <div class="phase-list" id="phaseList"></div>
+      <button class="btn-add-phase" id="addPhaseBtn">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+          stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        <span id="addLabel">Ajouter</span>
+      </button>
+    </div>
+
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+
+</html>

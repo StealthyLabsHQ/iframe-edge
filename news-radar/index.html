@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <script>
+        (function () {
+            var t = localStorage.getItem("pa_theme") || "dark";
+            document.documentElement.setAttribute("data-theme", t);
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>News Radar</title>
+    <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+    <div class="widget">
+        <!-- Header -->
+        <div class="mod-header">
+            <div class="mod-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="2"></circle>
+                    <path d="M16.24 7.76a6 6 0 0 1 0 8.49"></path>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                    <path d="M7.76 16.24a6 6 0 0 1 0-8.49"></path>
+                    <path d="M4.93 19.07a10 10 0 0 1 0-14.14"></path>
+                </svg>
+            </div>
+            <span class="mod-title" id="t-title">News Radar</span>
+            <div class="lang-toggle" id="themeToggle" style="margin-left: auto">🌙</div>
+            <div class="lang-toggle" id="langToggle">EN</div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-bar">
+            <input class="search-input" id="keywordInput" type="text" placeholder="Enter a keyword…"
+                spellcheck="false" />
+            <button class="btn-search" id="searchBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span id="t-search">Search</span>
+            </button>
+        </div>
+
+        <!-- Source -->
+        <div class="source-bar">
+            <select class="source-select" id="sourceSelect">
+                <option value="https://news.google.com/rss?hl=fr&gl=FR&ceid=FR:fr">Google News FR</option>
+                <option value="https://news.google.com/rss?hl=en&gl=US&ceid=US:en">Google News EN</option>
+                <option value="https://feeds.arstechnica.com/arstechnica/index">Ars Technica</option>
+                <option value="https://www.theverge.com/rss/index.xml">The Verge</option>
+                <option value="custom" id="t-custom">Custom URL…</option>
+            </select>
+            <input class="custom-url-input" id="customUrlInput" type="url" placeholder="https://example.com/feed.xml" />
+        </div>
+
+        <!-- Status -->
+        <div class="status-line">
+            <div class="spinner" id="spinner"></div>
+            <span class="status-text" id="statusText"></span>
+            <span class="status-count" id="statusCount"></span>
+        </div>
+
+        <!-- Articles -->
+        <div class="article-list" id="articleList">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <path d="M16.24 7.76a6 6 0 0 1 0 8.49"></path>
+                        <path d="M7.76 16.24a6 6 0 0 1 0-8.49"></path>
+                    </svg>
+                </div>
+                <div class="empty-title" id="t-emptyTitle">No signal yet</div>
+                <div class="empty-desc" id="t-emptyDesc">Enter a keyword and hit Search to start scanning feeds.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+</body>
+
+</html>
