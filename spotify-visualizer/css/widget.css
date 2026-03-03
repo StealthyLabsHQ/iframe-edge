@@ -198,12 +198,7 @@ body {
     flex-shrink: 0;
 }
 
-.hdr-title {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--text-2);
+.hdr-spacer {
     flex: 1;
 }
 

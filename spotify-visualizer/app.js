@@ -246,7 +246,6 @@
 
     function updateStaticStrings() {
         const el = (id, key) => { const e = $(id); if (e) e.textContent = t(key); };
-        el("t-title", "title");
         el("t-settings", "settings");
         el("t-client-id", "clientIdLbl");
         el("t-client-hint", "clientHint");
