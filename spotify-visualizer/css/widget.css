@@ -432,6 +432,64 @@ body {
     pointer-events: none;
 }
 
+/* ── Volume row ─────────────────────────────────────────── */
+.volume-row {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0 4px;
+}
+
+.volume-btn {
+    flex-shrink: 0;
+}
+
+#volumeSlider {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--overlay-8);
+    outline: none;
+    cursor: pointer;
+    transition: background var(--tr);
+}
+
+#volumeSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.15s ease;
+}
+
+#volumeSlider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+#volumeSlider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+#volumeSlider::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--overlay-8);
+}
+
 /* ── Right column (lyrics) ──────────────────────────────── */
 .col-right {
     flex: 1;
@@ -828,6 +886,7 @@ html.sz-xl .lyric-line.active {
 #trackInfo,
 .progress-wrap,
 .controls,
+.volume-row,
 .col-right {
     display: none;
 }
@@ -959,6 +1018,10 @@ html.sz-m .col-right {
     display: none;
 }
 
+html.sz-m .volume-row {
+    display: none;
+}
+
 html.sz-m .hdr {
     position: relative;
     z-index: 5;
@@ -1038,6 +1101,38 @@ html.sz-l .controls {
     display: flex;
     justify-content: center;
     gap: 12px;
+}
+
+html.sz-l .volume-row {
+    display: flex;
+    justify-content: center;
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+html.sz-l .volume-row .ctrl-btn.ctrl-sm {
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+}
+
+html.sz-l .volume-row .ctrl-btn.ctrl-sm svg {
+    width: 16px;
+    height: 16px;
+}
+
+html.sz-l #volumeSlider {
+    height: 5px;
+}
+
+html.sz-l #volumeSlider::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+}
+
+html.sz-l #volumeSlider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
 }
 
 html.sz-l .controls .ctrl-btn {
@@ -1152,6 +1247,38 @@ html.sz-xl .controls {
     display: flex;
     justify-content: center;
     gap: 10px;
+}
+
+html.sz-xl .volume-row {
+    display: flex;
+    justify-content: center;
+    max-width: 260px;
+    margin: 0 auto;
+}
+
+html.sz-xl .volume-row .ctrl-btn.ctrl-sm {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+}
+
+html.sz-xl .volume-row .ctrl-btn.ctrl-sm svg {
+    width: 15px;
+    height: 15px;
+}
+
+html.sz-xl #volumeSlider {
+    height: 5px;
+}
+
+html.sz-xl #volumeSlider::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+}
+
+html.sz-xl #volumeSlider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
 }
 
 html.sz-xl .controls .ctrl-btn {

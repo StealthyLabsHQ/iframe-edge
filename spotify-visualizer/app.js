@@ -40,6 +40,10 @@
         sizeClass: '',             // 'sz-m' | 'sz-l' | 'sz-xl'
         theme: localStorage.getItem(LS.THEME) || "dark", // "dark" | "light" | "blur"
         lang: localStorage.getItem(LS.LANG) || "fr",
+        volume: 100,
+        volumeBeforeMute: 100,     // last non-zero volume for mute toggle
+        volumeDebounce: null,
+        volumeDragging: false,     // true while user is dragging the slider
     };
 
     // Token is always persisted in localStorage — never session-only.
@@ -523,6 +527,69 @@
     }
 
     /* ─────────────────────────────────────────────────────────────────────────
+     *  VOLUME CONTROL
+     * ────────────────────────────────────────────────────────────────────────*/
+    function updateVolumeIcon(vol) {
+        const icon = $("volumeIcon");
+        if (!icon) return;
+        if (vol === 0) {
+            icon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>' +
+                '<line x1="23" y1="9" x2="17" y2="15"/>' +
+                '<line x1="17" y1="9" x2="23" y2="15"/>';
+        } else if (vol < 50) {
+            icon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>' +
+                '<path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>';
+        } else {
+            icon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>' +
+                '<path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>' +
+                '<path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>';
+        }
+    }
+
+    function setVolume(vol) {
+        state.volume = vol;
+        $("volumeSlider").value = vol;
+        updateVolumeIcon(vol);
+    }
+
+    function sendVolumeToSpotify(vol) {
+        clearTimeout(state.volumeDebounce);
+        state.volumeDebounce = setTimeout(async () => {
+            const token = await getAccessToken();
+            if (!token) return;
+            try {
+                await fetch(API_BASE + "/me/player/volume?volume_percent=" + Math.round(vol), {
+                    method: "PUT",
+                    headers: { Authorization: "Bearer " + token },
+                });
+            } catch (_) { }
+        }, 250);
+    }
+
+    $("volumeSlider").addEventListener("mousedown", () => { state.volumeDragging = true; });
+    $("volumeSlider").addEventListener("touchstart", () => { state.volumeDragging = true; }, { passive: true });
+    window.addEventListener("mouseup", () => { state.volumeDragging = false; });
+    window.addEventListener("touchend", () => { state.volumeDragging = false; });
+
+    $("volumeSlider").addEventListener("input", e => {
+        const vol = parseInt(e.target.value, 10);
+        state.volume = vol;
+        if (vol > 0) state.volumeBeforeMute = vol;
+        updateVolumeIcon(vol);
+        sendVolumeToSpotify(vol);
+    });
+
+    $("volumeBtn").addEventListener("click", () => {
+        if (state.volume > 0) {
+            state.volumeBeforeMute = state.volume;
+            setVolume(0);
+        } else {
+            setVolume(state.volumeBeforeMute || 100);
+        }
+        sendVolumeToSpotify(state.volume);
+    });
+
+    /* ─────────────────────────────────────────────────────────────────────────
      *  PROGRESS BAR interpolation
      * ────────────────────────────────────────────────────────────────────────*/
     function formatMs(ms) {
@@ -810,6 +877,12 @@
         if (data.shuffle_state !== undefined) state.shuffleOn = data.shuffle_state;
         if (data.repeat_state !== undefined) state.repeatMode = data.repeat_state;
         updateShuffleRepeat();
+
+        // Volume sync — only update when user is not dragging
+        if (data.device && data.device.volume_percent !== undefined && !state.volumeDragging) {
+            setVolume(data.device.volume_percent);
+            if (data.device.volume_percent > 0) state.volumeBeforeMute = data.device.volume_percent;
+        }
 
         if (state.isPlaying) startProgressTick();
         else stopProgressTick();
