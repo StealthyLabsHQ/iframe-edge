@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://www.youtube.com https://s.ytimg.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.wheretheiss.at https://nominatim.openstreetmap.org; frame-src https://www.youtube.com; object-src 'none'; base-uri 'none'; form-action 'none';" />
+        content="default-src 'self'; script-src 'self' https://unpkg.com https://www.youtube.com https://s.ytimg.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.wheretheiss.at; frame-src https://www.youtube.com; object-src 'none'; base-uri 'none'; form-action 'none';" />
     <script src="../productivity/theme-loader.js"></script>
     <title>ISS Horizon</title>
     <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
@@ -40,14 +40,7 @@
                 <span class="live-dot"></span>LIVE
             </span>
 
-            <!-- Cockpit mode toggle -->
-            <button class="icon-btn" id="cockpitBtn" aria-label="Cockpit mode" title="Lock view to ISS">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
-                </svg>
-            </button>
+
 
             <!-- Settings toggle -->
             <button class="icon-btn" id="settingsToggle" aria-label="Settings">
@@ -60,49 +53,21 @@
             </button>
         </div>
 
-        <!-- ── Zone Supérieure: YouTube Live Feed ─────────────────── -->
+        <!-- ── Zone Supérieure: YouTube Live Feed ─────────────── -->
         <div class="video-zone" id="videoZone">
-            <div class="video-wrap" id="videoWrap">
-                <div id="ytPlayer"></div>
-            </div>
-            <!-- Mute overlay button -->
-            <button class="mute-btn" id="muteBtn" aria-label="Toggle mute">
-                <svg id="muteIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                </svg>
-                <svg id="unmuteIcon" class="ui-hidden" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                    <line x1="23" y1="9" x2="17" y2="15" />
-                    <line x1="17" y1="9" x2="23" y2="15" />
-                </svg>
+            <iframe id="ytIframe"
+                src="https://www.youtube.com/embed/zPH5KtjJFaQ?autoplay=1&mute=1&modestbranding=1&rel=0&playsinline=1"
+                allow="autoplay; encrypted-media" allowfullscreen frameborder="0"
+                style="width:100%;height:100%;border:none;display:block;"></iframe>
+            <!-- Source switch button -->
+            <button class="source-btn" id="sourceBtn" aria-label="Switch camera" title="Switch ISS camera feed">
+                📷 <span id="sourceName">HD Views</span>
             </button>
             <!-- Video overlay label -->
-            <div class="video-label">📡 NASA HDEV — High Definition Earth Viewing</div>
+            <div class="video-label">📡 ISS — Live from Space</div>
         </div>
 
-        <!-- ── Zone Centrale: 3D Globe ────────────────────────────── -->
-        <div class="globe-zone" id="globeZone">
-            <canvas id="globeCanvas"></canvas>
 
-            <!-- Tap-to-Locate popup -->
-            <div class="city-popup hidden" id="cityPopup">
-                <button class="city-popup-close" id="cityPopupClose" aria-label="Close">×</button>
-                <div class="city-popup-name" id="cityPopupName">—</div>
-                <div class="city-popup-pass" id="cityPopupPass">—</div>
-            </div>
-
-            <!-- Touch hint (fades out after first interaction) -->
-            <div class="globe-hint" id="globeHint">
-                <span>↔ Rotate · Tap to locate</span>
-            </div>
-
-            <!-- Cockpit mode indicator -->
-            <div class="cockpit-label ui-hidden" id="cockpitLabel">🚀 COCKPIT MODE</div>
-        </div>
 
         <!-- ── Zone Inférieure: Telemetry Data ────────────────────── -->
         <div class="data-zone" id="dataZone">
@@ -175,13 +140,7 @@
                 <div class="field-hint">NASA HDEV Live Stream ID. Leave default for official NASA feed.</div>
             </div>
 
-            <div class="field">
-                <label for="inputAutoRotate">Globe Auto-Rotate Speed</label>
-                <input type="range" id="inputAutoRotate" min="0" max="10" value="3" step="1" />
-                <div class="field-hint range-hint">
-                    <span>Off</span><span id="rotateVal">3</span><span>Fast</span>
-                </div>
-            </div>
+
 
             <div class="divider"></div>
             <button class="save-btn" id="saveBtn">Save</button>
@@ -192,10 +151,8 @@
     <!-- Toast notification -->
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <!-- Three.js via CDN (v0.160 = last version with UMD build/three.min.js) -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-    <!-- YouTube IFrame API -->
-    <script src="https://www.youtube.com/iframe_api"></script>
+
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="./app.js"></script>
