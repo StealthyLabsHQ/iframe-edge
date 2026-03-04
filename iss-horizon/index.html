@@ -83,7 +83,9 @@
 
         /* sz-m: Compact vertical */
         body.sz-m .video-zone {
-            flex: 0 0 30%;
+            flex: 0 0 auto;
+            aspect-ratio: 16 / 9;
+            max-height: 30%;
         }
 
         body.sz-m .data-map-stack {
@@ -102,15 +104,17 @@
 
         /* sz-l: Wide landscape */
         body.sz-l .video-zone {
-            flex: 0 0 35%;
+            flex: 0 0 auto;
+            aspect-ratio: 16 / 9;
+            max-height: 30%;
         }
 
         body.is-theater.sz-m .video-zone {
-            flex: 0 0 35%;
+            max-height: 35%;
         }
 
         body.is-theater.sz-l .video-zone {
-            flex: 0 0 42%;
+            max-height: 38%;
         }
 
         body.sz-l .data-map-stack {
