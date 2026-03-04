@@ -15,7 +15,8 @@
         { id: 'FV4Q9DryTG8', name: 'NASA ISS Live (Official)', type: 'youtube' },
         { id: 'fO9e9jnhYK8', name: 'Sen 4K Earth Live', type: 'youtube' },
         { id: '0FBiyFpV__g', name: 'ISS 24/7 Stream', type: 'youtube' },
-        { id: 'vytmBNhc9ig', name: 'NASA Earth Live 24/7', type: 'youtube' }
+        { id: 'vytmBNhc9ig', name: 'NASA Earth Live 24/7', type: 'youtube' },
+        { id: '17074538', name: 'NASA HDEV (IBM)', type: 'ibm' }
     ];
     const query = new URLSearchParams(location.search);
     const forcedProvider = (query.get('provider') || '').toLowerCase();
@@ -24,7 +25,8 @@
     const IS_LOCAL_FILE = location.protocol === 'file:';
     const IS_ICUE_WEBVIEW = /icue|corsair/i.test(navigator.userAgent || '');
     const FORCE_IBM_ONLY = forcedProvider === 'ibm' || forcedProvider === 'safe';
-    const ALLOW_YOUTUBE = !IS_LOCAL_FILE && !FORCE_IBM_ONLY;
+    const FORCE_ICUE_SAFE = IS_ICUE_WEBVIEW && !allowIcueBlocked && forcedProvider !== 'youtube';
+    const ALLOW_YOUTUBE = !IS_LOCAL_FILE && !FORCE_IBM_ONLY && !FORCE_ICUE_SAFE;
     const THEATER_DEFAULT = true;
     const KNOWN_UNSTABLE_YOUTUBE_IDS = new Set(['0FBiyFpV__g']);
     const ICUE_BLOCKED_YOUTUBE_IDS = new Set([
@@ -134,7 +136,9 @@
     // Init
     updateMuteIcon();
     loadSource(PLAYABLE_SOURCES[currentSourceIdx]);
-    if (IS_ICUE_WEBVIEW && !allowIcueBlocked && PLAYABLE_SOURCES.length > 1) {
+    if (FORCE_ICUE_SAFE) {
+        btnSwitchSource.title = 'iCUE-safe mode: IBM fallback active';
+    } else if (IS_ICUE_WEBVIEW && !allowIcueBlocked && PLAYABLE_SOURCES.length > 1) {
         btnSwitchSource.title = 'iCUE-safe source list active';
     }
     if (PLAYABLE_SOURCES.length <= 1) {
