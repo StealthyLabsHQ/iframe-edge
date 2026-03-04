@@ -20,14 +20,15 @@
     ];
     const query = new URLSearchParams(location.search);
     const forcedProvider = (query.get('provider') || '').toLowerCase();
-    const IS_ICUE_WEBVIEW = /icue|corsair/i.test(navigator.userAgent || '');
+    const allowUnstable = query.get('allowUnstable') === '1';
     const IS_LOCAL_FILE = location.protocol === 'file:';
     const FORCE_IBM_ONLY = forcedProvider === 'ibm' || forcedProvider === 'safe';
-    const ALLOW_YOUTUBE = !IS_LOCAL_FILE && !FORCE_IBM_ONLY && !IS_ICUE_WEBVIEW;
+    const ALLOW_YOUTUBE = !IS_LOCAL_FILE && !FORCE_IBM_ONLY;
     const THEATER_DEFAULT = true;
+    const KNOWN_UNSTABLE_YOUTUBE_IDS = new Set(['0FBiyFpV__g']);
     const FALLBACK_IBM_SOURCE = SOURCES.find(s => s.type === 'ibm') || SOURCES[0];
     const PLAYABLE_SOURCES = ALLOW_YOUTUBE
-        ? SOURCES.slice()
+        ? SOURCES.filter(s => s.type !== 'youtube' || allowUnstable || !KNOWN_UNSTABLE_YOUTUBE_IDS.has(s.id))
         : SOURCES.filter(s => s.type === 'ibm');
     if (!PLAYABLE_SOURCES.length) PLAYABLE_SOURCES.push(...SOURCES);
     let currentSourceIdx = 0;
@@ -45,6 +46,7 @@
 
     let isMuted = true;
     const EMBED_ORIGIN_FALLBACK = 'https://stealthylabshq.github.io';
+    const YOUTUBE_EMBED_HOST = 'https://www.youtube-nocookie.com';
 
     function getEmbedIdentity() {
         const origin = (location.origin && location.origin !== 'null') ? location.origin : EMBED_ORIGIN_FALLBACK;
@@ -75,7 +77,7 @@
             origin,
             widget_referrer: widgetReferrer
         });
-        return `https://www.youtube.com/embed/${source.id}?${params.toString()}`;
+        return `${YOUTUBE_EMBED_HOST}/embed/${source.id}?${params.toString()}`;
     }
 
     function resolvePlayableSource(source) {
