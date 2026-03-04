@@ -20,14 +20,27 @@
     const query = new URLSearchParams(location.search);
     const forcedProvider = (query.get('provider') || '').toLowerCase();
     const allowUnstable = query.get('allowUnstable') === '1';
+    const allowIcueBlocked = query.get('allowIcueBlocked') === '1';
     const IS_LOCAL_FILE = location.protocol === 'file:';
+    const IS_ICUE_WEBVIEW = /icue|corsair/i.test(navigator.userAgent || '');
     const FORCE_IBM_ONLY = forcedProvider === 'ibm' || forcedProvider === 'safe';
     const ALLOW_YOUTUBE = !IS_LOCAL_FILE && !FORCE_IBM_ONLY;
     const THEATER_DEFAULT = true;
     const KNOWN_UNSTABLE_YOUTUBE_IDS = new Set(['0FBiyFpV__g']);
+    const ICUE_BLOCKED_YOUTUBE_IDS = new Set([
+        'FV4Q9DryTG8', // NASA ISS Live (Official)
+        'fO9e9jnhYK8', // Sen 4K Earth Live
+        '0FBiyFpV__g', // ISS 24/7 Stream
+        'vytmBNhc9ig'  // NASA Earth Live 24/7
+    ]);
     const FALLBACK_IBM_SOURCE = SOURCES.find(s => s.type === 'ibm') || SOURCES[0];
     const PLAYABLE_SOURCES = ALLOW_YOUTUBE
-        ? SOURCES.filter(s => s.type !== 'youtube' || allowUnstable || !KNOWN_UNSTABLE_YOUTUBE_IDS.has(s.id))
+        ? SOURCES.filter((s) => {
+            if (s.type !== 'youtube') return true;
+            if (!allowUnstable && KNOWN_UNSTABLE_YOUTUBE_IDS.has(s.id)) return false;
+            if (IS_ICUE_WEBVIEW && !allowIcueBlocked && ICUE_BLOCKED_YOUTUBE_IDS.has(s.id)) return false;
+            return true;
+        })
         : SOURCES.filter(s => s.type === 'ibm');
     if (!PLAYABLE_SOURCES.length) PLAYABLE_SOURCES.push(...SOURCES);
     let currentSourceIdx = 0;
@@ -65,15 +78,15 @@
     }
 
     function buildIframeSrc(source, muted) {
-        const vol = muted ? 0 : 1;
         if (source.type === 'ibm') {
+            const vol = muted ? 0 : 100;
             return `https://video.ibm.com/embed/${source.id}?autoplay=1&volume=${vol}&controls=0&showtitle=false`;
         }
-        // YouTube
+        // YouTube: mute=1 means muted, mute=0 means unmuted
         const { origin, widgetReferrer } = getEmbedIdentity();
         const params = new URLSearchParams({
             autoplay: '1',
-            mute: String(vol),
+            mute: muted ? '1' : '0',
             controls: '0',
             modestbranding: '1',
             rel: '0',
@@ -121,6 +134,9 @@
     // Init
     updateMuteIcon();
     loadSource(PLAYABLE_SOURCES[currentSourceIdx]);
+    if (IS_ICUE_WEBVIEW && !allowIcueBlocked && PLAYABLE_SOURCES.length > 1) {
+        btnSwitchSource.title = 'iCUE-safe source list active';
+    }
     if (PLAYABLE_SOURCES.length <= 1) {
         btnSwitchSource.style.pointerEvents = 'none';
         btnSwitchSource.style.opacity = '0.7';
