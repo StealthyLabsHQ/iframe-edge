@@ -15,8 +15,7 @@
         { id: 'FV4Q9DryTG8', name: 'NASA ISS Live (Official)', type: 'youtube' },
         { id: 'fO9e9jnhYK8', name: 'Sen 4K Earth Live', type: 'youtube' },
         { id: '0FBiyFpV__g', name: 'ISS 24/7 Stream', type: 'youtube' },
-        { id: 'vytmBNhc9ig', name: 'NASA Earth Live 24/7', type: 'youtube' },
-        { id: '17074538', name: 'NASA HDEV (IBM)', type: 'ibm' }
+        { id: 'vytmBNhc9ig', name: 'NASA Earth Live 24/7', type: 'youtube' }
     ];
     const query = new URLSearchParams(location.search);
     const forcedProvider = (query.get('provider') || '').toLowerCase();
@@ -43,10 +42,19 @@
     const btnSwitchSource = $('btnSwitchSource');
     const lbSource = $('lbSource');
     const videoZone = $('videoZone');
+    const SVG_NS = 'http://www.w3.org/2000/svg';
 
     let isMuted = true;
     const EMBED_ORIGIN_FALLBACK = 'https://stealthylabshq.github.io';
     const YOUTUBE_EMBED_HOST = 'https://www.youtube-nocookie.com';
+
+    function appendSvgElement(parent, tag, attrs) {
+        const el = document.createElementNS(SVG_NS, tag);
+        for (const [k, v] of Object.entries(attrs)) {
+            el.setAttribute(k, v);
+        }
+        parent.appendChild(el);
+    }
 
     function getEmbedIdentity() {
         const origin = (location.origin && location.origin !== 'null') ? location.origin : EMBED_ORIGIN_FALLBACK;
@@ -129,10 +137,14 @@
     });
 
     function updateMuteIcon() {
+        iconMute.replaceChildren();
+        appendSvgElement(iconMute, 'polygon', { points: '11 5 6 9 2 9 2 15 6 15 11 19 11 5' });
         if (isMuted) {
-            iconMute.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>`;
+            appendSvgElement(iconMute, 'line', { x1: '23', y1: '9', x2: '17', y2: '15' });
+            appendSvgElement(iconMute, 'line', { x1: '17', y1: '9', x2: '23', y2: '15' });
         } else {
-            iconMute.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>`;
+            appendSvgElement(iconMute, 'path', { d: 'M15.54 8.46a5 5 0 0 1 0 7.07' });
+            appendSvgElement(iconMute, 'path', { d: 'M19.07 4.93a10 10 0 0 1 0 14.14' });
         }
     }
 
@@ -261,6 +273,52 @@
         return { pastPts, futurePts };
     }
 
+    function createUnreachablePassPopup(clickLat) {
+        const safeLat = Number.isFinite(clickLat) ? clickLat : 0;
+        const container = document.createElement('div');
+
+        const title = document.createElement('div');
+        title.className = 'pass-popup-title';
+        title.textContent = 'ISS Flyover';
+
+        const status = document.createElement('div');
+        status.className = 'pass-popup-unreachable';
+        status.textContent = 'Unreachable';
+
+        const detail = document.createElement('div');
+        detail.className = 'pass-popup-detail';
+        detail.append(`The ISS orbit (${INCLINATION} deg inclination)`);
+        detail.appendChild(document.createElement('br'));
+        detail.append(`does not reach this latitude (${Math.abs(safeLat).toFixed(1)} deg).`);
+
+        container.append(title, status, detail);
+        return container;
+    }
+
+    function createNextPassPopup(timeStr, dateStr, relStr, distKm) {
+        const safeDist = Number.isFinite(distKm) ? Math.max(0, Math.round(distKm)) : 0;
+        const container = document.createElement('div');
+
+        const title = document.createElement('div');
+        title.className = 'pass-popup-title';
+        title.textContent = 'Next ISS Flyover';
+
+        const time = document.createElement('div');
+        time.className = 'pass-popup-time';
+        time.textContent = String(timeStr || '--:--');
+
+        const eta = document.createElement('div');
+        eta.className = 'pass-popup-detail';
+        eta.textContent = `${String(dateStr || '')} - in ~${String(relStr || '0min')}`;
+
+        const distance = document.createElement('div');
+        distance.className = 'pass-popup-detail';
+        distance.textContent = `Closest approach: ~${safeDist} km`;
+
+        container.append(title, time, eta, distance);
+        return container;
+    }
+
 
     // ── Leaflet Map Setup ────────────────────────────────────────────
     let leafletMap = null, issMapMarker = null;
@@ -309,11 +367,7 @@
             if (Math.abs(clickLat) > INCLINATION) {
                 L.popup()
                     .setLatLng(e.latlng)
-                    .setContent(
-                        `<div class="pass-popup-title">🛰️ ISS Flyover</div>` +
-                        `<div class="pass-popup-unreachable">Unreachable</div>` +
-                        `<div class="pass-popup-detail">The ISS orbit (${INCLINATION}° inclination)<br>does not reach this latitude (${Math.abs(clickLat).toFixed(1)}°).</div>`
-                    )
+                    .setContent(createUnreachablePassPopup(clickLat))
                     .openOn(leafletMap);
                 return;
             }
@@ -334,12 +388,7 @@
 
                 L.popup()
                     .setLatLng(e.latlng)
-                    .setContent(
-                        `<div class="pass-popup-title">🛰️ Next ISS Flyover</div>` +
-                        `<div class="pass-popup-time">${timeStr}</div>` +
-                        `<div class="pass-popup-detail">${dateStr} — in ~${relStr}</div>` +
-                        `<div class="pass-popup-detail">Closest approach: ~${distKm} km</div>`
-                    )
+                    .setContent(createNextPassPopup(timeStr, dateStr, relStr, distKm))
                     .openOn(leafletMap);
             }
         });
@@ -494,10 +543,21 @@
     // Instant render from cache
     try {
         const cached = JSON.parse(localStorage.getItem('iss_cache'));
-        if (cached && !isNaN(cached.lat) && !isNaN(cached.lon)) {
-            issData = cached;
-            updateTelemetry(cached.vel, cached.alt, cached.lat, cached.lon);
-            updateLeafletMap(cached.lat, cached.lon);
+        if (cached) {
+            const lat = Number(cached.lat);
+            const lon = Number(cached.lon);
+            const alt = Number(cached.alt);
+            const vel = Number(cached.vel);
+            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                issData = {
+                    lat,
+                    lon,
+                    alt: Number.isFinite(alt) ? alt : issData.alt,
+                    vel: Number.isFinite(vel) ? vel : issData.vel
+                };
+                updateTelemetry(issData.vel, issData.alt, issData.lat, issData.lon);
+                updateLeafletMap(issData.lat, issData.lon);
+            }
         }
     } catch (_) { }
 
