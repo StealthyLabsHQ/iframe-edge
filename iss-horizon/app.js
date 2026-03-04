@@ -19,6 +19,7 @@
     const IS_LOCAL_FILE = location.protocol === 'file:';
     const FORCE_IBM_ONLY = forcedProvider === 'ibm' || forcedProvider === 'safe';
     const ALLOW_YOUTUBE = !IS_LOCAL_FILE && !FORCE_IBM_ONLY && !IS_ICUE_WEBVIEW;
+    const THEATER_DEFAULT = true;
     const FALLBACK_IBM_SOURCE = SOURCES.find(s => s.type === 'ibm') || SOURCES[0];
     const PLAYABLE_SOURCES = ALLOW_YOUTUBE
         ? SOURCES.slice()
@@ -83,6 +84,8 @@
         iframe.src = buildIframeSrc(playable, isMuted);
         lbSource.textContent = playable.name;
         videoZone.classList.remove('is-error');
+        const theaterOn = THEATER_DEFAULT && playable.type === 'youtube';
+        document.body.classList.toggle('is-theater', theaterOn);
         return playable;
     }
 
