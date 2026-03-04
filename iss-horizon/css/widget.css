@@ -1,0 +1,799 @@
+/* ── Reset ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+button {
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    background: none;
+}
+
+/* ── Utility ────────────────────────────────────────────── */
+.ui-hidden {
+    display: none !important;
+}
+
+/* ── CSS Tokens ─────────────────────────────────────────── */
+:root,
+:root[data-theme="dark"] {
+    --bg: #020d1a;
+    --surface: #040f1f;
+    --border: rgba(0, 212, 255, 0.10);
+    --border-h: rgba(0, 212, 255, 0.25);
+    --text-1: #e8f4ff;
+    --text-2: #7aa8c4;
+    --text-3: #3d6278;
+    --accent: #00d4ff;
+    --accent-2: #0066ff;
+    --accent-dim: rgba(0, 212, 255, 0.15);
+    --accent-glow: rgba(0, 212, 255, 0.35);
+    --glass-bg: rgba(2, 13, 30, 0.82);
+    --glass-b: rgba(0, 212, 255, 0.08);
+    --overlay-5: rgba(0, 212, 255, 0.05);
+    --overlay-8: rgba(0, 212, 255, 0.09);
+    --toast-bg: rgba(4, 20, 40, 0.95);
+    --tr: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    --danger: #ff4444;
+}
+
+:root[data-theme="light"] {
+    --bg: #d0e8f5;
+    --surface: #e8f4ff;
+    --border: rgba(0, 100, 180, 0.15);
+    --border-h: rgba(0, 100, 180, 0.30);
+    --text-1: #05101e;
+    --text-2: #2a5070;
+    --text-3: #6090aa;
+    --accent: #0066cc;
+    --accent-2: #004499;
+    --accent-dim: rgba(0, 102, 204, 0.12);
+    --accent-glow: rgba(0, 102, 204, 0.25);
+    --glass-bg: rgba(220, 240, 255, 0.88);
+    --glass-b: rgba(0, 100, 180, 0.12);
+    --overlay-5: rgba(0, 100, 180, 0.06);
+    --overlay-8: rgba(0, 100, 180, 0.11);
+    --toast-bg: rgba(220, 240, 255, 0.97);
+}
+
+/* ── Base ───────────────────────────────────────────────── */
+html,
+body {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text-1);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Widget card ────────────────────────────────────────── */
+#widget {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(1.6);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+    border: 1px solid var(--glass-b);
+    border-radius: 0;
+    overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.hdr {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 12px 8px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.hdr-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 12px var(--accent-dim);
+}
+
+.hdr-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: 0.3px;
+}
+
+.hdr-spacer {
+    flex: 1;
+}
+
+/* ── Live badge ─────────────────────────────────────────── */
+.live-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: rgba(255, 50, 50, 0.12);
+    border: 1px solid rgba(255, 50, 50, 0.3);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #ff5555;
+    flex-shrink: 0;
+}
+
+.live-badge.offline {
+    background: rgba(100, 100, 100, 0.12);
+    border-color: rgba(100, 100, 100, 0.3);
+    color: var(--text-3);
+}
+
+.live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff4444;
+    animation: livePulse 1.4s ease-in-out infinite;
+}
+
+.live-badge.offline .live-dot {
+    background: var(--text-3);
+    animation: none;
+}
+
+@keyframes livePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+/* ── Icon buttons ───────────────────────────────────────── */
+.icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--overlay-5);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--tr);
+    flex-shrink: 0;
+}
+
+.icon-btn:hover {
+    background: var(--overlay-8);
+    color: var(--text-1);
+    border-color: var(--border-h);
+}
+
+.icon-btn:active {
+    transform: scale(0.92);
+}
+
+/* Cockpit mode ON */
+.icon-btn.cockpit-on {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 14px var(--accent-glow);
+}
+
+/* ── Zone Supérieure: Video ─────────────────────────────── */
+.video-zone {
+    position: relative;
+    flex-shrink: 0;
+    height: 28%;
+    min-height: 80px;
+    background: #000;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+}
+
+.video-wrap {
+    position: absolute;
+    inset: 0;
+}
+
+.video-wrap iframe,
+#ytPlayer iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+/* YouTube player fills zone */
+#ytPlayer {
+    width: 100%;
+    height: 100%;
+}
+
+/* Mute button overlay */
+.mute-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--tr);
+    z-index: 5;
+}
+
+.mute-btn:hover {
+    background: rgba(0, 212, 255, 0.25);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Video label */
+.video-label {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Offline placeholder */
+.video-offline {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(160deg, #020d1a 0%, #040f30 100%);
+    color: var(--text-3);
+    font-size: 11px;
+}
+
+.video-offline-icon {
+    font-size: 28px;
+    opacity: 0.5;
+}
+
+/* ── Zone Centrale: 3D Globe ─────────────────────────────── */
+.globe-zone {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, #040d20 0%, #000509 100%);
+    cursor: grab;
+}
+
+.globe-zone:active {
+    cursor: grabbing;
+}
+
+#globeCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+/* Globe touch / rotate hint */
+.globe-hint {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    pointer-events: none;
+    letter-spacing: 0.5px;
+    transition: opacity 0.5s ease;
+    white-space: nowrap;
+}
+
+.globe-hint.hidden {
+    opacity: 0;
+}
+
+/* Cockpit mode label */
+.cockpit-label {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    background: rgba(0, 212, 255, 0.08);
+    border: 1px solid rgba(0, 212, 255, 0.25);
+    padding: 4px 12px;
+    border-radius: 20px;
+    pointer-events: none;
+    animation: cockpitGlow 2s ease-in-out infinite;
+}
+
+@keyframes cockpitGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 8px var(--accent-dim);
+    }
+
+    50% {
+        box-shadow: 0 0 18px var(--accent-glow);
+    }
+}
+
+/* ── City popup ─────────────────────────────────────────── */
+.city-popup {
+    position: absolute;
+    z-index: 20;
+    padding: 12px 14px 12px 14px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-h);
+    border-radius: 14px;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--accent-dim);
+    min-width: 140px;
+    pointer-events: all;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.city-popup.hidden {
+    opacity: 0;
+    transform: scale(0.88);
+    pointer-events: none;
+}
+
+.city-popup-close {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 14px;
+    color: var(--text-3);
+    line-height: 1;
+    transition: color var(--tr);
+}
+
+.city-popup-close:hover {
+    color: var(--text-1);
+}
+
+.city-popup-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-1);
+    margin-bottom: 4px;
+    padding-right: 16px;
+}
+
+.city-popup-pass {
+    font-size: 10px;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Zone Inférieure: Data panel ────────────────────────── */
+.data-zone {
+    display: flex;
+    align-items: stretch;
+    flex-shrink: 0;
+    height: 56px;
+    border-top: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.data-card {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 6px;
+    transition: background var(--tr);
+}
+
+.data-card:hover {
+    background: var(--overlay-5);
+}
+
+.data-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 4px var(--accent-glow));
+}
+
+.data-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.data-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+    font-variant-numeric: tabular-nums;
+}
+
+.data-label {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-top: 1px;
+}
+
+.data-divider {
+    width: 1px;
+    background: var(--border);
+    align-self: stretch;
+    margin: 10px 0;
+}
+
+/* ── Settings panel ─────────────────────────────────────── */
+#settingsPanel {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    background: rgba(2, 10, 22, 0.96);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+}
+
+#settingsPanel.open {
+    transform: translateX(0);
+}
+
+.settings-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.settings-hdr h2 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-1);
+}
+
+.field {
+    margin-bottom: 16px;
+}
+
+.field label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: 6px;
+}
+
+.field input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--overlay-5);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text-1);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    outline: none;
+    transition: border-color var(--tr);
+}
+
+.field input[type="text"]::placeholder {
+    color: var(--text-3);
+}
+
+.field input[type="text"]:focus {
+    border-color: var(--accent);
+}
+
+/* Range slider */
+.field input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--overlay-8);
+    outline: none;
+    cursor: pointer;
+    margin-top: 6px;
+}
+
+.field input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent-glow);
+    transition: transform 0.15s ease;
+}
+
+.field input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.range-hint {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--text-3);
+    margin-top: 4px;
+}
+
+#rotateVal {
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+}
+
+.field-hint {
+    font-size: 10px;
+    color: var(--text-3);
+    margin-top: 5px;
+    line-height: 1.5;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0;
+}
+
+.save-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    transition: filter var(--tr), box-shadow var(--tr);
+    cursor: pointer;
+}
+
+.save-btn:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* ── Toast ──────────────────────────────────────────────── */
+.toast {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--toast-bg);
+    color: var(--text-1);
+    border: 1px solid var(--border-h);
+    padding: 9px 18px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 100;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ── Zone Carte 2D: Ground Track ─────────────────────────── */
+.map-zone {
+    flex-shrink: 0;
+    height: 175px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.map-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 12px;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid var(--border);
+}
+
+.map-hdr-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-2);
+}
+
+.map-follow-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--text-3);
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: var(--overlay-5);
+    border: 1px solid var(--border);
+    transition: all var(--tr);
+}
+
+.map-follow-btn:hover {
+    color: var(--text-2);
+    border-color: var(--border-h);
+}
+
+.map-follow-btn.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-color: rgba(0, 212, 255, 0.3);
+}
+
+#issMap {
+    flex: 1;
+    min-height: 0;
+}
+
+/* ── Leaflet dark overrides ─────────────────────────────── */
+.leaflet-container {
+    background: #020812 !important;
+    font-family: 'Inter', sans-serif;
+}
+
+.leaflet-control-attribution {
+    display: none !important;
+}
+
+.leaflet-control-zoom {
+    display: none !important;
+}
+
+/* Remove tile gaps / white flash */
+.leaflet-tile-pane {
+    opacity: 0.92;
+}
+
+/* ISS dot marker */
+.iss-map-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.iss-dot-outer {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(0, 212, 255, 0.15);
+    border: 1.5px solid rgba(0, 212, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: issMapPulse 1.6s ease-in-out infinite;
+}
+
+.iss-dot-inner {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #00d4ff;
+    box-shadow: 0 0 8px #00d4ff, 0 0 16px rgba(0, 212, 255, 0.6);
+}
+
+@keyframes issMapPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.25);
+        opacity: 0.75;
+    }
+}
+
+/* Trajectory polyline glow — Leaflet SVG path */
+.iss-track-line {
+    filter: drop-shadow(0 0 3px rgba(0, 212, 255, 0.5));
+}
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--overlay-8);
+    border-radius: 2px;
+}

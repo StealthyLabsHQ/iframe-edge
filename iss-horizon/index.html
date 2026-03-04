@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://www.youtube.com https://s.ytimg.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.wheretheiss.at https://nominatim.openstreetmap.org; frame-src https://www.youtube.com; object-src 'none'; base-uri 'none'; form-action 'none';" />
+    <script src="../productivity/theme-loader.js"></script>
+    <title>ISS Horizon</title>
+    <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="./css/widget.css" />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body>
+    <div id="widget">
+
+        <!-- ── Header ─────────────────────────────────────────────── -->
+        <div class="hdr">
+            <div class="hdr-icon" aria-hidden="true">
+                <!-- ISS icon -->
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 2a1 1 0 0 0-1 1v1.07A8.001 8.001 0 0 0 4.07 11H3a1 1 0 0 0 0 2h1.07A8.001 8.001 0 0 0 11 19.93V21a1 1 0 0 0 2 0v-1.07A8.001 8.001 0 0 0 19.93 13H21a1 1 0 0 0 0-2h-1.07A8.001 8.001 0 0 0 13 4.07V3a1 1 0 0 0-1-1zm0 4a6 6 0 1 1 0 12A6 6 0 0 1 12 6zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+                </svg>
+            </div>
+            <span class="hdr-title">ISS Horizon</span>
+            <span class="hdr-spacer"></span>
+
+            <!-- Live badge -->
+            <span class="live-badge" id="liveBadge">
+                <span class="live-dot"></span>LIVE
+            </span>
+
+            <!-- Cockpit mode toggle -->
+            <button class="icon-btn" id="cockpitBtn" aria-label="Cockpit mode" title="Lock view to ISS">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
+                </svg>
+            </button>
+
+            <!-- Settings toggle -->
+            <button class="icon-btn" id="settingsToggle" aria-label="Settings">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- ── Zone Supérieure: YouTube Live Feed ─────────────────── -->
+        <div class="video-zone" id="videoZone">
+            <div class="video-wrap" id="videoWrap">
+                <div id="ytPlayer"></div>
+            </div>
+            <!-- Mute overlay button -->
+            <button class="mute-btn" id="muteBtn" aria-label="Toggle mute">
+                <svg id="muteIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                </svg>
+                <svg id="unmuteIcon" class="ui-hidden" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <line x1="23" y1="9" x2="17" y2="15" />
+                    <line x1="17" y1="9" x2="23" y2="15" />
+                </svg>
+            </button>
+            <!-- Video overlay label -->
+            <div class="video-label">📡 NASA HDEV — High Definition Earth Viewing</div>
+        </div>
+
+        <!-- ── Zone Centrale: 3D Globe ────────────────────────────── -->
+        <div class="globe-zone" id="globeZone">
+            <canvas id="globeCanvas"></canvas>
+
+            <!-- Tap-to-Locate popup -->
+            <div class="city-popup hidden" id="cityPopup">
+                <button class="city-popup-close" id="cityPopupClose" aria-label="Close">×</button>
+                <div class="city-popup-name" id="cityPopupName">—</div>
+                <div class="city-popup-pass" id="cityPopupPass">—</div>
+            </div>
+
+            <!-- Touch hint (fades out after first interaction) -->
+            <div class="globe-hint" id="globeHint">
+                <span>↔ Rotate · Tap to locate</span>
+            </div>
+
+            <!-- Cockpit mode indicator -->
+            <div class="cockpit-label ui-hidden" id="cockpitLabel">🚀 COCKPIT MODE</div>
+        </div>
+
+        <!-- ── Zone Inférieure: Telemetry Data ────────────────────── -->
+        <div class="data-zone" id="dataZone">
+            <div class="data-card" id="cardSpeed">
+                <div class="data-icon">🚀</div>
+                <div class="data-body">
+                    <div class="data-value" id="valSpeed">—</div>
+                    <div class="data-label">Speed</div>
+                </div>
+            </div>
+            <div class="data-divider"></div>
+            <div class="data-card" id="cardAlt">
+                <div class="data-icon">📡</div>
+                <div class="data-body">
+                    <div class="data-value" id="valAlt">—</div>
+                    <div class="data-label">Altitude</div>
+                </div>
+            </div>
+            <div class="data-divider"></div>
+            <div class="data-card" id="cardLat">
+                <div class="data-icon">🌐</div>
+                <div class="data-body">
+                    <div class="data-value" id="valLat">—</div>
+                    <div class="data-label">Latitude</div>
+                </div>
+            </div>
+            <div class="data-divider"></div>
+            <div class="data-card" id="cardLon">
+                <div class="data-icon">🌍</div>
+                <div class="data-body">
+                    <div class="data-value" id="valLon">—</div>
+                    <div class="data-label">Longitude</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Zone Carte 2D: Ground Track ───────────────────────── -->
+        <div class="map-zone" id="mapZone">
+            <div class="map-hdr">
+                <span class="map-hdr-label">📍 Ground Track</span>
+                <button class="map-follow-btn active" id="mapFollowBtn" title="Follow ISS">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    Follow ISS
+                </button>
+            </div>
+            <div id="issMap"></div>
+        </div>
+
+        <!-- ── Settings panel ─────────────────────────────────────── -->
+        <div id="settingsPanel" role="dialog" aria-label="Settings" aria-modal="true">
+            <div class="settings-hdr">
+                <h2>⚙️ Settings</h2>
+                <button class="icon-btn" id="closeSettings" aria-label="Close settings">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="field">
+                <label for="inputVideoId">YouTube Video ID</label>
+                <input type="text" id="inputVideoId" placeholder="e.g. itdOFB8DQCA" autocomplete="off"
+                    spellcheck="false" />
+                <div class="field-hint">NASA HDEV Live Stream ID. Leave default for official NASA feed.</div>
+            </div>
+
+            <div class="field">
+                <label for="inputAutoRotate">Globe Auto-Rotate Speed</label>
+                <input type="range" id="inputAutoRotate" min="0" max="10" value="3" step="1" />
+                <div class="field-hint range-hint">
+                    <span>Off</span><span id="rotateVal">3</span><span>Fast</span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+            <button class="save-btn" id="saveBtn">Save</button>
+        </div>
+
+    </div><!-- /widget -->
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- Three.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.min.js"></script>
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="./app.js"></script>
+</body>
+
+</html>
