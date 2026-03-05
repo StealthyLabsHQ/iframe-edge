@@ -24,6 +24,7 @@
     const forcedProvider = (query.get('provider') || '').toLowerCase();
     const allowUnstable = query.get('allowUnstable') === '1';
     const allowIcueBlocked = query.get('allowIcueBlocked') === '1';
+    const safeMode = query.get('safeMode') !== '0';
     const IS_LOCAL_FILE = location.protocol === 'file:';
     const IS_ICUE_WEBVIEW = /icue|corsair/i.test(navigator.userAgent || '');
     const FORCE_IBM_ONLY = forcedProvider === 'ibm' || forcedProvider === 'safe';
@@ -45,7 +46,7 @@
             ? SOURCES.filter((s) => {
                 if (s.type !== 'youtube') return true;
                 if (!allowUnstable && KNOWN_UNSTABLE_YOUTUBE_IDS.has(s.id)) return false;
-                if (IS_ICUE_WEBVIEW && !allowIcueBlocked && ICUE_BLOCKED_YOUTUBE_IDS.has(s.id)) return false;
+                if (safeMode && !allowIcueBlocked && ICUE_BLOCKED_YOUTUBE_IDS.has(s.id)) return false;
                 return true;
             })
             : SOURCES.filter(s => s.type === 'ibm');
@@ -187,7 +188,9 @@
     // Init
     updateMuteIcon();
     loadSource(PLAYABLE_SOURCES[currentSourceIdx]);
-    if (FORCE_ICUE_SAFE) {
+    if (safeMode && !allowIcueBlocked && PLAYABLE_SOURCES.length > 1) {
+        btnSwitchSource.title = 'Safe source list active';
+    } else if (FORCE_ICUE_SAFE) {
         btnSwitchSource.title = 'iCUE-safe mode: IBM fallback active';
     } else if (IS_ICUE_WEBVIEW && !allowIcueBlocked && PLAYABLE_SOURCES.length > 1) {
         btnSwitchSource.title = 'iCUE-safe source list active';
