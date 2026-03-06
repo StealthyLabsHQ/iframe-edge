@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Claude Usage</title>
+    <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        /* ── Reset & Base ───────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #000000;
+            --surface: #0a0a0a;
+            --surface2: #111111;
+            --border: #1a1a1a;
+            --text: #e5e5e5;
+            --text2: #888888;
+            --claude: #a855f7;
+            --claude-glow: rgba(168, 85, 247, 0.35);
+            --claude-dim: rgba(168, 85, 247, 0.12);
+            --green: #34d399;
+            --yellow: #fbbf24;
+            --red: #ff2d55;
+            --radius: 10px;
+            --font: 'Inter', -apple-system, sans-serif;
+            --mono: 'JetBrains Mono', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg: #f0f0f0;
+            --surface: #ffffff;
+            --surface2: #f5f5f5;
+            --border: #e0e0e0;
+            --text: #1a1a1a;
+            --text2: #666666;
+            --claude-dim: rgba(168, 85, 247, 0.08);
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Widget Container ───────────────────────────── */
+        .widget {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .widget::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .widget::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        /* ── Header ─────────────────────────────────────── */
+        .mod-header {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .mod-icon {
+            color: var(--claude);
+            display: flex;
+        }
+
+        .mod-title {
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: -0.02em;
+        }
+
+        .header-right {
+            margin-left: auto;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .toggle-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text2);
+            font-size: 11px;
+            font-family: var(--font);
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn:hover {
+            color: var(--text);
+            border-color: var(--text2);
+        }
+
+        .btn-refresh {
+            background: var(--claude-dim);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            color: var(--claude);
+            font-size: 10px;
+            font-family: var(--font);
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-refresh:hover {
+            background: rgba(168, 85, 247, 0.25);
+            border-color: var(--claude);
+        }
+
+        .btn-refresh svg {
+            transition: transform 0.4s;
+        }
+
+        .btn-refresh:active svg {
+            transform: rotate(180deg);
+        }
+
+        /* ── Stats Cards ────────────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 14px 14px;
+            flex-shrink: 0;
+        }
+
+        .stat-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 10px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--claude);
+        }
+
+        .stat-value {
+            font-family: var(--mono);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--claude);
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        /* ── Hourly Chart ───────────────────────────────── */
+        .chart-section {
+            padding: 10px 14px 6px;
+            flex-shrink: 0;
+        }
+
+        .chart-title {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+
+        .chart-wrap {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 80px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px 6px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            min-height: 2px;
+            border-radius: 2px 2px 0 0;
+            background: linear-gradient(to top, var(--claude), rgba(168, 85, 247, 0.4));
+            transition: height 0.5s ease;
+            position: relative;
+        }
+
+        .chart-bar:hover {
+            background: var(--claude);
+            box-shadow: 0 0 8px var(--claude-glow);
+        }
+
+        .chart-bar:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 9px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 6px 0;
+            font-size: 9px;
+            color: var(--text2);
+            font-family: var(--mono);
+        }
+
+        /* ── Intensity Gauge ────────────────────────────── */
+        .gauge-section {
+            padding: 10px 14px 14px;
+            flex-shrink: 0;
+        }
+
+        .gauge-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+        }
+
+        .gauge-icon {
+            font-size: 16px;
+        }
+
+        .gauge-bar-wrap {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .gauge-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease, background 0.6s ease;
+            background: var(--green);
+        }
+
+        .gauge-fill.moderate {
+            background: var(--green);
+            width: 33%;
+        }
+
+        .gauge-fill.intense {
+            background: var(--yellow);
+            width: 66%;
+        }
+
+        .gauge-fill.critical {
+            background: var(--red);
+            width: 100%;
+        }
+
+        .gauge-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+        }
+
+        .gauge-label.moderate {
+            color: var(--green);
+        }
+
+        .gauge-label.intense {
+            color: var(--yellow);
+        }
+
+        .gauge-label.critical {
+            color: var(--red);
+        }
+
+        /* ── Provider Breakdown ─────────────────────────── */
+        .breakdown-section {
+            padding: 0 14px 14px;
+            flex-shrink: 0;
+        }
+
+        .breakdown-title {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .breakdown-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .breakdown-card .provider-name {
+            font-size: 9px;
+            color: var(--text2);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+
+        .breakdown-card .provider-count {
+            font-family: var(--mono);
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        .breakdown-card .provider-count.gemini {
+            color: #4285f4;
+        }
+
+        .breakdown-card .provider-count.claude {
+            color: var(--claude);
+        }
+
+        .breakdown-card .provider-count.openai {
+            color: #10a37f;
+        }
+
+        /* ── Empty State ────────────────────────────────── */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 30px 20px;
+            color: var(--text2);
+            text-align: center;
+            flex: 1;
+        }
+
+        .empty-icon {
+            font-size: 32px;
+            opacity: 0.4;
+        }
+
+        .empty-text {
+            font-size: 12px;
+        }
+
+        /* ── Toast ──────────────────────────────────────── */
+        .toast {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(60px);
+            background: var(--surface2);
+            color: var(--text);
+            font-size: 12px;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+
+        .toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── Responsive: sz-m ───────────────────────────── */
+        .sz-m .mod-title {
+            font-size: 12px;
+        }
+
+        .sz-m .stat-value {
+            font-size: 20px;
+        }
+
+        .sz-m .stat-card {
+            padding: 10px 8px;
+        }
+
+        .sz-m .chart-wrap {
+            height: 50px;
+        }
+
+        /* ── Responsive: sz-l ───────────────────────────── */
+        .sz-l .stat-value {
+            font-size: 30px;
+        }
+
+        .sz-l .chart-wrap {
+            height: 90px;
+        }
+
+        /* ── Responsive: sz-xl ──────────────────────────── */
+        .sz-xl .stat-value {
+            font-size: 36px;
+        }
+
+        .sz-xl .stat-card {
+            padding: 18px 12px;
+        }
+
+        .sz-xl .chart-wrap {
+            height: 120px;
+        }
+
+        .sz-xl .gauge-bar-wrap {
+            height: 10px;
+        }
+
+        .sz-xl .gauge-label {
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="widget">
+
+        <!-- Header -->
+        <div class="mod-header">
+            <div class="mod-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd">
+                    <path
+                        d="M13.827 3.52h3.603L24 20h-3.603l-6.57-16.48zm-7.258 0h3.767L16.906 20h-3.674l-1.343-3.461H5.017l-1.344 3.46H0L6.57 3.522zm4.132 9.959L8.453 7.687 6.205 13.48H10.7z" />
+                </svg>
+            </div>
+            <span class="mod-title" id="t-title">Claude Usage</span>
+            <div class="header-right">
+                <button class="btn-refresh" id="refreshBtn">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    <span id="t-refresh">Refresh</span>
+                </button>
+                <button class="toggle-btn" id="themeToggle">🌙</button>
+                <button class="toggle-btn" id="langToggle">EN</button>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="statMessages">0</div>
+                <div class="stat-label" id="t-stat-messages">Messages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statTokens">0</div>
+                <div class="stat-label" id="t-stat-tokens">Tokens (est.)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statConvs">0</div>
+                <div class="stat-label" id="t-stat-convs">Convs</div>
+            </div>
+        </div>
+
+        <!-- Hourly Chart -->
+        <div class="chart-section">
+            <div class="chart-title" id="t-chart-title">Activity by Hour</div>
+            <div class="chart-wrap" id="chartWrap"></div>
+            <div class="chart-labels">
+                <span>0h</span>
+                <span>6h</span>
+                <span>12h</span>
+                <span>18h</span>
+                <span>23h</span>
+            </div>
+        </div>
+
+        <!-- Intensity Gauge -->
+        <div class="gauge-section">
+            <div class="gauge-wrap">
+                <div class="gauge-icon">⚡</div>
+                <div class="gauge-bar-wrap">
+                    <div class="gauge-fill moderate" id="gaugeFill"></div>
+                </div>
+                <div class="gauge-label moderate" id="gaugeLabel">Moderate</div>
+            </div>
+        </div>
+
+        <!-- Provider Breakdown -->
+        <div class="breakdown-section">
+            <div class="breakdown-title" id="t-breakdown-title">All Conversations</div>
+            <div class="breakdown-grid">
+                <div class="breakdown-card">
+                    <div class="provider-name">Total</div>
+                    <div class="provider-count claude" id="totalAllConvs">0</div>
+                </div>
+                <div class="breakdown-card">
+                    <div class="provider-name" id="t-today-label">Today</div>
+                    <div class="provider-count gemini" id="totalTodayConvs">0</div>
+                </div>
+                <div class="breakdown-card">
+                    <div class="provider-name" id="t-chars-label">Characters</div>
+                    <div class="provider-count openai" id="totalChars">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">🤖</div>
+            <div class="empty-text" id="t-empty">No Claude conversations found today.</div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="./app.js"></script>
+</body>
+
+</html>
