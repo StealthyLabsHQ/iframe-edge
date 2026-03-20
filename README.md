@@ -29,6 +29,9 @@
 | 🤖 **AI Assistant** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/ai-assistant/"></iframe>` |
 | � News Radar | `<iframe src="https://stealthylabshq.github.io/iframe-edge/news-radar/"></iframe>` |
 | 🎵 Spotify Visualizer | `<iframe src="https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/"></iframe>` |
+| 🛰️ ISS Horizon | `<iframe src="https://stealthylabshq.github.io/iframe-edge/iss-horizon/"></iframe>` |
+| 📊 Claude Usage | `<iframe src="https://stealthylabshq.github.io/iframe-edge/claude-usage/"></iframe>` |
+| ⚔️ Conflict Tracker | `<iframe src="https://stealthylabshq.github.io/iframe-edge/conflict-tracker/"></iframe>` |
 | �💧 Hydration | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>` |
 | 💰 Budget | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/budget/"></iframe>` |
 | 🍅 Pomodoro | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/pomodoro/"></iframe>` |
