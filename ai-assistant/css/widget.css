@@ -5,46 +5,66 @@
  * ═══════════════════════════════════════════════════════════════════ */
 
 /* ── Theme variables ─────────────────────────────────────────────── */
-:root {
-    --bg: #000000;
-    --surface: #000000;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-h: rgba(255, 255, 255, 0.15);
-    --text-1: #ffffff;
-    --text-2: #a0a0a0;
-    --text-3: #555555;
-    --accent: #a78bfa;
-    --accent-h: #c4b5fd;
-    --accent-dim: rgba(167, 139, 250, 0.14);
+/* Widget-specific overrides on top of xeneon-edge.css tokens.
+   Purple accent is the AI identity — intentionally kept vs cyan. */
+:root,
+:root[data-theme="dark"] {
+    --bg:           #000000;
+    --surface:      rgba(255, 255, 255, 0.04);
+    --surface-h:    rgba(255, 255, 255, 0.07);
+    --border:       rgba(255, 255, 255, 0.08);
+    --border-h:     rgba(255, 255, 255, 0.18);
+    --text-1:       #ffffff;
+    --text-2:       rgba(255, 255, 255, 0.60);
+    --text-3:       rgba(255, 255, 255, 0.35);
+    /* AI purple accent — overrides xeneon cyan */
+    --accent:       #a78bfa;
+    --accent-h:     #c4b5fd;
+    --accent-d:     rgba(167, 139, 250, 0.12);
+    --accent-dim:   rgba(167, 139, 250, 0.14);
+    --accent-b:     rgba(167, 139, 250, 0.30);
     --accent-border: rgba(167, 139, 250, 0.35);
-    --glass-bg: rgba(0, 0, 0, 0.85);
-    --glass-b: rgba(255, 255, 255, 0.09);
-    --toast-bg: #000000;
-    --overlay-5: rgba(255, 255, 255, 0.05);
-    --overlay-8: rgba(255, 255, 255, 0.08);
-    --overlay-12: rgba(255, 255, 255, 0.12);
-    --tr: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-    --sidebar-w: 260px;
+    --accent-glow:  rgba(167, 139, 250, 0.22);
+    --glass-bg:     rgba(0, 0, 0, 0.85);
+    --glass-b:      rgba(255, 255, 255, 0.09);
+    --toast-bg:     #141414;
+    --overlay-5:    rgba(255, 255, 255, 0.05);
+    --overlay-8:    rgba(255, 255, 255, 0.08);
+    --overlay-10:   rgba(255, 255, 255, 0.10);
+    --overlay-12:   rgba(255, 255, 255, 0.12);
+    --overlay-15:   rgba(255, 255, 255, 0.15);
+    --tr:           0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    --tr-b:         0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --font-h:       'Space Grotesk', 'Inter', sans-serif;
+    --font-b:       'IBM Plex Sans', 'Inter', sans-serif;
+    --font-m:       'JetBrains Mono', monospace;
+    --sidebar-w:    260px;
 }
 
 :root[data-theme="light"] {
-    --bg: #e8e8ea;
-    --surface: #f4f4f6;
-    --border: rgba(0, 0, 0, 0.12);
-    --border-h: rgba(0, 0, 0, 0.24);
-    --text-1: #0a0a0a;
-    --text-2: #3a3a3a;
-    --text-3: #808080;
-    --accent: #7c3aed;
-    --accent-h: #6d28d9;
-    --accent-dim: rgba(124, 58, 237, 0.10);
+    --bg:           #e8e8ea;
+    --surface:      #f4f4f6;
+    --surface-h:    #ffffff;
+    --border:       rgba(0, 0, 0, 0.12);
+    --border-h:     rgba(0, 0, 0, 0.24);
+    --text-1:       #0a0a0a;
+    --text-2:       rgba(10, 10, 10, 0.56);
+    --text-3:       rgba(10, 10, 10, 0.38);
+    --accent:       #7c3aed;
+    --accent-h:     #6d28d9;
+    --accent-d:     rgba(124, 58, 237, 0.10);
+    --accent-dim:   rgba(124, 58, 237, 0.10);
+    --accent-b:     rgba(124, 58, 237, 0.28);
     --accent-border: rgba(124, 58, 237, 0.30);
-    --glass-bg: rgba(255, 255, 255, 0.82);
-    --glass-b: rgba(0, 0, 0, 0.10);
-    --toast-bg: #ffffff;
-    --overlay-5: rgba(0, 0, 0, 0.06);
-    --overlay-8: rgba(0, 0, 0, 0.10);
-    --overlay-12: rgba(0, 0, 0, 0.16);
+    --accent-glow:  rgba(124, 58, 237, 0.18);
+    --glass-bg:     rgba(255, 255, 255, 0.82);
+    --glass-b:      rgba(0, 0, 0, 0.10);
+    --toast-bg:     #ffffff;
+    --overlay-5:    rgba(0, 0, 0, 0.05);
+    --overlay-8:    rgba(0, 0, 0, 0.08);
+    --overlay-10:   rgba(0, 0, 0, 0.10);
+    --overlay-12:   rgba(0, 0, 0, 0.14);
+    --overlay-15:   rgba(0, 0, 0, 0.18);
 }
 
 
@@ -63,10 +83,11 @@ body {
     height: 100%;
     overflow: hidden;
     background: var(--bg);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-b);
     font-size: 13px;
     color: var(--text-1);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 button {

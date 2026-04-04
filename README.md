@@ -15,11 +15,13 @@
 ## ✨ Features
 
 - **No external dependencies:** Pure HTML, CSS, and vanilla JavaScript bundled in single files.
-- **Fully Responsive:** Automatically scales to fit any container size (`M`, `L`, `XL`).
-- **Plug & Play:** Just copy the code and paste it.
+- **Fully Responsive:** M / L / XL sizes via `?size=` URL param or iCUE body-class injection.
+- **Plug & Play:** Just copy the code and paste it into iCUE.
 - **Dark Mode OLED / Light Mode** with a toggle on each widget.
 - **EN / FR** bilingual support on all widgets.
 - **AI Assistant for 3 AI Models:** Google Gemini, Anthropic Claude, and OpenAI ChatGPT.
+- **Xeneon Edge Design System:** Shared `xeneon-edge.css` + `size-loader.js` — unified tokens, fonts, and size variants across all widgets.
+
 ---
 
 ## 🗂️ Available Widgets
@@ -27,20 +29,17 @@
 | Widget | iCUE `<iframe>` Code (Copy & Paste) |
 |---|---|
 | 🤖 **AI Assistant** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/ai-assistant/"></iframe>` |
-| � News Radar | `<iframe src="https://stealthylabshq.github.io/iframe-edge/news-radar/"></iframe>` |
-| 🎵 Spotify Visualizer | `<iframe src="https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/"></iframe>` |
-| 🛰️ ISS Horizon | `<iframe src="https://stealthylabshq.github.io/iframe-edge/iss-horizon/"></iframe>` |
-| 📊 Claude Usage | `<iframe src="https://stealthylabshq.github.io/iframe-edge/claude-usage/"></iframe>` |
-| ⚔️ Conflict Tracker | `<iframe src="https://stealthylabshq.github.io/iframe-edge/conflict-tracker/"></iframe>` |
-| �💧 Hydration | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>` |
-| 💰 Budget | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/budget/"></iframe>` |
-| 🍅 Pomodoro | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/pomodoro/"></iframe>` |
-| ⏱️ Timer & Countdown | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/timer/"></iframe>` |
-| 📝 Quick Notes | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/notes/"></iframe>` |
-| 🎯 Daily Focus | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/daily-focus/"></iframe>` |
-| ✅ Habit Tracker | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/habit-tracker/"></iframe>` |
-| 🧘 Posture & Blink | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/posture-reminder/"></iframe>` |
-| 📋 Quick Clipboard | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/quick-clipboard/"></iframe>` |
+| 🎵 **Spotify Visualizer** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/"></iframe>` |
+| 🛰️ **ISS Horizon** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/iss-horizon/"></iframe>` |
+| 💧 **Hydration** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>` |
+| 💰 **Budget** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/budget/"></iframe>` |
+| 🍅 **Pomodoro** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/pomodoro/"></iframe>` |
+| ⏱️ **Timer & Countdown** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/timer/"></iframe>` |
+| 📝 **Quick Notes** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/notes/"></iframe>` |
+| 🎯 **Daily Focus** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/daily-focus/"></iframe>` |
+| ✅ **Habit Tracker** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/habit-tracker/"></iframe>` |
+| 🧘 **Posture & Blink** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/posture-reminder/"></iframe>` |
+| 📋 **Quick Clipboard** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/quick-clipboard/"></iframe>` |
 
 
 ---
@@ -64,6 +63,23 @@ To use these widgets on your Corsair setup, you will need:
    *(Example: `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>`)*
 
 > **🎉 Done!** The widget will load live from GitHub Pages.
+
+### 📐 Size Variants
+
+Most widgets support three sizes via the `?size=` URL parameter:
+
+| Size | Dimensions | URL |
+|---|---|---|
+| **M** | ~300 × 200 px | `…/pomodoro/?size=m` |
+| **L** | ~400 × 280 px | `…/pomodoro/` *(default)* |
+| **XL** | ~560 × 380 px | `…/pomodoro/?size=xl` |
+
+Example — Pomodoro in XL:
+```html
+<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/pomodoro/?size=xl"></iframe>
+```
+
+> ISS Horizon uses iCUE's native body-class injection (`sz-m` / `sz-l` / `sz-xl`) and does not need the `?size=` param.
 
 ### 🤖 AI Assistant
 
@@ -123,6 +139,23 @@ Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
    *(Exemple : `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>`)*
 
 > **🎉 Et voilà !** Le widget se chargera directement depuis GitHub Pages.
+
+### 📐 Variantes de taille
+
+La plupart des widgets supportent trois tailles via le paramètre URL `?size=` :
+
+| Taille | Dimensions | URL |
+|---|---|---|
+| **M** | ~300 × 200 px | `…/pomodoro/?size=m` |
+| **L** | ~400 × 280 px | `…/pomodoro/` *(défaut)* |
+| **XL** | ~560 × 380 px | `…/pomodoro/?size=xl` |
+
+Exemple — Pomodoro en XL :
+```html
+<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/pomodoro/?size=xl"></iframe>
+```
+
+> ISS Horizon utilise l'injection de classe iCUE native (`sz-m` / `sz-l` / `sz-xl`) et n'a pas besoin du paramètre `?size=`.
 
 ### 🤖 Assistant IA
 

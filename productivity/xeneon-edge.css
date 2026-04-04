@@ -1,0 +1,448 @@
+/* ═══════════════════════════════════════════════════════════════
+   XENEON EDGE WIDGET SYSTEM — Design System v2.0
+   Corsair Xeneon Edge Secondary Display (12.7")
+
+   USAGE
+   ─────
+   <link rel="stylesheet" href="../xeneon-edge.css" />
+   <link rel="stylesheet" href="./style.css" />
+   <script src="../size-loader.js"></script>   ← in <head>
+
+   SIZES via URL param  ?size=m | ?size=l (default) | ?size=xl
+   ─────────────────────────────────────────────────────────────
+   M   300 × 200 px   compact, single-metric, digital display
+   L   400 × 280 px   standard widget with ring   (DEFAULT)
+   XL  560 × 380 px   full-featured, stats row, large ring
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  background: none;
+}
+
+/* ── Design Tokens — Dark (default / AMOLED) ────────────────── */
+:root,
+:root[data-theme="dark"] {
+  /* Backgrounds */
+  --bg:           #000000;
+  --surface:      rgba(255, 255, 255, 0.04);
+  --surface-h:    rgba(255, 255, 255, 0.07);
+
+  /* Borders */
+  --border:       rgba(255, 255, 255, 0.08);
+  --border-h:     rgba(255, 255, 255, 0.18);
+
+  /* Text */
+  --text-1:       #ffffff;
+  --text-2:       rgba(255, 255, 255, 0.60);
+  --text-3:       rgba(255, 255, 255, 0.35);
+
+  /* Corsair Cyan — interactive & active states */
+  --accent:       #00c8ff;
+  --accent-d:     rgba(0, 200, 255, 0.12);
+  --accent-b:     rgba(0, 200, 255, 0.28);
+  --accent-glow:  rgba(0, 200, 255, 0.22);
+
+  /* Gold — KPI digits & key values */
+  --gold:         #f9ca24;
+  --gold-d:       rgba(249, 202, 36, 0.14);
+
+  /* Break / Teal */
+  --break-c:      #4ecdc4;
+  --break-d:      rgba(78, 205, 196, 0.12);
+  --break-b:      rgba(78, 205, 196, 0.28);
+
+  /* Semantic */
+  --green:        #34d399;
+  --red:          #ff6b6b;
+
+  /* Overlays */
+  --overlay-2:    rgba(255, 255, 255, 0.025);
+  --overlay-5:    rgba(255, 255, 255, 0.05);
+  --overlay-8:    rgba(255, 255, 255, 0.08);
+  --overlay-10:   rgba(255, 255, 255, 0.10);
+  --overlay-15:   rgba(255, 255, 255, 0.15);
+
+  /* Misc */
+  --toast-bg:     #141414;
+  --tr:           0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  --tr-b:         0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --font-h:       'Space Grotesk', 'Inter', sans-serif;
+  --font-b:       'IBM Plex Sans', 'Inter', sans-serif;
+  --font-m:       'JetBrains Mono', monospace;
+}
+
+/* ── Design Tokens — Light ──────────────────────────────────── */
+:root[data-theme="light"] {
+  --bg:           #efefef;
+  --surface:      #ffffff;
+  --surface-h:    #f5f5f7;
+  --border:       rgba(0, 0, 0, 0.09);
+  --border-h:     rgba(0, 0, 0, 0.18);
+  --text-1:       #080810;
+  --text-2:       rgba(8, 8, 16, 0.56);
+  --text-3:       rgba(8, 8, 16, 0.36);
+
+  --accent:       #0099cc;
+  --accent-d:     rgba(0, 153, 204, 0.10);
+  --accent-b:     rgba(0, 153, 204, 0.22);
+  --accent-glow:  rgba(0, 153, 204, 0.16);
+
+  --gold:         #b8860b;
+  --gold-d:       rgba(184, 134, 11, 0.10);
+
+  --break-c:      #0d9488;
+  --break-d:      rgba(13, 148, 136, 0.10);
+  --break-b:      rgba(13, 148, 136, 0.22);
+
+  --green:        #059669;
+  --red:          #dc2626;
+
+  --overlay-2:    rgba(0, 0, 0, 0.025);
+  --overlay-5:    rgba(0, 0, 0, 0.05);
+  --overlay-8:    rgba(0, 0, 0, 0.08);
+  --overlay-10:   rgba(0, 0, 0, 0.10);
+  --overlay-15:   rgba(0, 0, 0, 0.15);
+
+  --toast-bg:     #ffffff;
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+html,
+body {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font-b);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scanline grid overlay — subtle CRT texture */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent      0px,
+    transparent      3px,
+    rgba(255, 255, 255, 0.014) 3px,
+    rgba(255, 255, 255, 0.014) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Widget Container ───────────────────────────────────────── */
+.widget {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color var(--tr),
+    box-shadow   var(--tr);
+}
+
+/* Accent bar — top edge, visible when running */
+.widget::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    var(--accent) 60%,
+    transparent   100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+/* Running — focus */
+.widget.is-running {
+  border-color: var(--accent-b);
+  box-shadow:
+    0 0 40px rgba(0, 200, 255, 0.07),
+    inset 0 0 60px rgba(0, 200, 255, 0.015);
+}
+.widget.is-running::before { opacity: 1; }
+
+/* Running — break */
+.widget.is-break.is-running {
+  border-color: var(--break-b);
+  box-shadow:
+    0 0 40px rgba(78, 205, 196, 0.07),
+    inset 0 0 60px rgba(78, 205, 196, 0.015);
+}
+.widget.is-break.is-running::before {
+  background: linear-gradient(
+    90deg,
+    var(--break-c) 0%,
+    var(--break-c) 60%,
+    transparent    100%
+  );
+}
+
+/* ── Module Header ──────────────────────────────────────────── */
+.mod-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px 10px;
+  flex-shrink: 0;
+}
+
+.mod-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-d);
+  border: 1px solid var(--accent-b);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color var(--tr);
+}
+
+.widget.is-break .mod-icon {
+  background: var(--break-d);
+  border-color: var(--break-b);
+  color: var(--break-c);
+}
+
+.mod-title {
+  font-family: var(--font-h);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-2);
+  flex: 1;
+}
+
+/* Header control toggles */
+.lang-toggle {
+  font-family: var(--font-h);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  color: var(--text-2);
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: var(--overlay-5);
+  border: 1px solid var(--border);
+  transition: all var(--tr);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 28px;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lang-toggle:hover {
+  background: var(--overlay-10);
+  color: var(--text-1);
+  border-color: var(--border-h);
+}
+
+/* ── Stats Row — XL only ────────────────────────────────────── */
+.stats-row {
+  display: none;       /* enabled by [data-size="xl"] */
+  gap: 8px;
+  padding: 0 18px 10px;
+  flex-shrink: 0;
+}
+
+.stat-chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 10px 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  gap: 3px;
+  transition: all var(--tr);
+}
+
+.stat-chip:hover {
+  background: var(--surface-h);
+  border-color: var(--border-h);
+}
+
+.stat-label {
+  font-family: var(--font-h);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.stat-value {
+  font-family: var(--font-m);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
+  letter-spacing: -0.5px;
+}
+
+/* ── Shared Buttons ─────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-family: var(--font-h);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  transition: all var(--tr);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:active { transform: scale(0.96); }
+
+.btn-ghost {
+  min-width: 38px;
+  background: var(--overlay-5);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover {
+  background: var(--overlay-10);
+  color: var(--text-1);
+  border-color: var(--border-h);
+}
+
+/* ── Toast ──────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%) translateY(14px);
+  background: var(--toast-bg);
+  border: 1px solid var(--border-h);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: var(--font-b);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-1);
+  opacity: 0;
+  transition: all 0.3s var(--tr-b);
+  z-index: 1000;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SIZE SYSTEM
+   Applied via data-size attribute on :root
+   Set by size-loader.js reading URL param ?size=m|l|xl
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─ XL: reveal stats row ─ */
+:root[data-size="xl"] .stats-row {
+  display: flex;
+}
+
+:root[data-size="xl"] .mod-header {
+  padding: 16px 22px 10px;
+}
+
+:root[data-size="xl"] .lang-toggle {
+  min-width: 36px;
+  min-height: 32px;
+  padding: 6px 10px;
+}
+
+:root[data-size="xl"] .btn {
+  height: 42px;
+  font-size: 12px;
+  border-radius: 9px;
+}
+
+:root[data-size="xl"] .btn-ghost {
+  min-width: 42px;
+}
+
+/* ─ M: compact header ─ */
+:root[data-size="m"] .mod-header {
+  padding: 10px 14px 6px;
+  gap: 8px;
+}
+
+:root[data-size="m"] .mod-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+:root[data-size="m"] .mod-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+:root[data-size="m"] .lang-toggle {
+  min-width: 26px;
+  min-height: 24px;
+  padding: 3px 6px;
+  font-size: 10px;
+  border-radius: 5px;
+}
+
+:root[data-size="m"] .btn {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+:root[data-size="m"] .btn-ghost {
+  min-width: 30px;
+}

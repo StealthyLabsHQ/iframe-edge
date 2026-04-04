@@ -13,38 +13,45 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&display=swap"
         rel="stylesheet" />
+    <!-- Xeneon Edge Design System — shared tokens & base styles -->
+    <link rel="stylesheet" href="../productivity/xeneon-edge.css" />
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
 
     <style>
-        /* ── Base & Theme (OLED Dark) ────────────────────────────── */
+        /* ── Base & Theme (OLED Dark — Xeneon Edge) ─────────────── */
+        /* Widget-specific tokens bridge to xeneon-edge.css base.
+           Size is injected by iCUE as body class: sz-m / sz-l / sz-xl */
         :root {
-            --bg-base: #000000;
-            --bg-panel: #0a0a0c;
-            --bg-overlay: rgba(10, 10, 12, 0.7);
+            /* Bridge — map ISS local names to xeneon-edge tokens */
+            --bg-base:        var(--bg);             /* #000000 */
+            --bg-panel:       rgba(255,255,255,0.04); /* xeneon surface */
+            --bg-overlay:     rgba(0, 0, 0, 0.72);
 
-            --text-main: #fcfcfc;
-            --text-dim: #9aa0a6;
-            --text-muted: #5f6368;
+            --text-main:      var(--text-1);          /* #ffffff */
+            --text-dim:       var(--text-2);          /* rgba(255,255,255,0.60) */
+            --text-muted:     var(--text-3);          /* rgba(255,255,255,0.35) */
 
-            --accent-blue: #0b57d0;
-            --accent-blue-dim: rgba(11, 87, 208, 0.15);
-            --accent-nasa: #fc3d21;
+            /* ISS-specific accents (not overriding xeneon --accent) */
+            --accent-blue:    #00c8ff;                /* Xeneon cyan for data/map */
+            --accent-blue-dim: rgba(0, 200, 255, 0.14);
+            --accent-nasa:    #fc3d21;                /* NASA red — live / alerts */
 
-            --border-subtle: rgba(255, 255, 255, 0.06);
-            --border-focus: rgba(255, 255, 255, 0.12);
+            --border-subtle:  var(--border);          /* rgba(255,255,255,0.08) */
+            --border-focus:   var(--border-h);        /* rgba(255,255,255,0.18) */
 
-            --font-ui: 'Inter', system-ui, sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
+            /* Fonts — now using xeneon-edge Space Grotesk + JetBrains Mono */
+            --font-ui:        var(--font-h);          /* 'Space Grotesk' */
+            --font-mono:      var(--font-m);          /* 'JetBrains Mono' */
 
-            --radius-md: 12px;
-            --radius-sm: 8px;
+            --radius-md:      10px;
+            --radius-sm:      6px;
 
-            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition:     var(--tr);              /* 0.18s cubic-bezier */
         }
 
         * {

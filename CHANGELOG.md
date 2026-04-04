@@ -6,6 +6,41 @@ All notable changes to **iframe-edge** are documented here.
 
 ## [Unreleased]
 
+### Added - Xeneon Edge Design System
+- `productivity/xeneon-edge.css`: Shared design system for all widgets — CSS tokens (dark/light), AMOLED `#000` base, scanline grid overlay, base components (`.mod-header`, `.mod-icon`, `.mod-title`, `.lang-toggle`, `.stat-chip`, `.stats-row`, `.btn`, `.btn-ghost`, `.toast`), M/L/XL size utilities via `data-size` attribute
+- `productivity/size-loader.js`: Flash-free size detection — reads `?size=m|l|xl` from URL param, sets `data-size` on `<html>` before render; mirrors `theme-loader.js` pattern
+
+### Changed - Pomodoro (reference implementation)
+- Complete visual refonte to Xeneon Edge: Corsair cyan `#00c8ff` accent, gold `#f9ca24` timer digits, Space Grotesk + IBM Plex Sans + JetBrains Mono fonts
+- **Size M** (`?size=m`): SVG ring hidden, large digital display 52px, phase label in cyan, 3px linear progress bar at bottom
+- **Size L** (default): ring 170px, refined phase badge, glow effect on ring progress arc
+- **Size XL** (`?size=xl`): ring 200px, stats row (Session / Focused / Done chips), expanded spacing and controls
+- Added real-time stats tracking: focused-time accumulation per session, session counter display
+- Added `is-break` class on `.widget` for teal break-mode visual state (border, accent line, icon, digits, controls)
+- `btn-timer` now uses cyan/teal outline style (not solid fill) — activates solid on running state
+- `m-progress-fill` synchronized with timer tick (elapsed indicator, 0 → 100%)
+
+### Changed - AI Assistant
+- Fonts: Inter replaced by Space Grotesk (UI/labels) + IBM Plex Sans (body), JetBrains Mono retained for code; Inter kept as fallback
+- `xeneon-edge.css` linked: scanline overlay and shared components available
+- `size-loader.js` linked: M/L/XL URL param support
+- Token block expanded: added `--surface-h`, `--overlay-10/15`, `--tr-b`, `--font-h/b/m`, `--accent-d/b/glow`; purple AI accent `#a78bfa` preserved
+
+### Changed - Spotify Visualizer
+- Fonts: same Inter → Space Grotesk + IBM Plex Sans migration
+- `xeneon-edge.css` + `size-loader.js` linked
+- Token block expanded: added `--surface-h`, `--overlay-10/15`, `--tr-b`, `--font-h/b/m`, `--accent-d/b/glow`; Spotify green `#1DB954` preserved across dark/light/blur themes
+- Blur theme tokens refined: `--text-2/3` use rgba for better legibility over album art
+
+### Changed - ISS Horizon
+- Fonts: Inter → Space Grotesk (UI) + JetBrains Mono; added IBM Plex Sans to Google Fonts import
+- `xeneon-edge.css` linked; iCUE body-class size system (`sz-m/l/xl`) unchanged
+- Inline `:root` refactored as a token bridge: `--bg-base`, `--text-main/dim/muted`, `--border-subtle/focus`, `--font-ui`, `--font-mono`, `--transition` now reference xeneon-edge tokens
+- `--accent-blue` updated to Xeneon cyan `#00c8ff` for map/telemetry highlights; `--accent-nasa` `#fc3d21` retained for live indicators
+
+### Removed
+- **News Radar**, **Claude Usage**, **Conflict Tracker**: removed from active widget set and documentation
+
 ---
 
 ## [1.1.0] - 2026-04-04
