@@ -65,7 +65,14 @@
       <!-- Row 2: description + category + add button -->
       <div class="form-row">
         <input class="form-input" type="text" id="inputDesc" placeholder="Description…" maxlength="60" />
-        <select class="form-select" id="selectCat"></select>
+        <div class="custom-select" id="customSelect">
+          <button class="custom-select-btn" id="customSelectBtn" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span id="customSelectLabel"></span>
+            <svg class="custom-select-arrow" width="10" height="10" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <ul class="custom-select-list" id="customSelectList" role="listbox"></ul>
+        </div>
         <button class="btn-add" id="btnAdd" aria-label="Add transaction">+</button>
       </div>
       <!-- Row 3: recurring toggle (expense only) -->

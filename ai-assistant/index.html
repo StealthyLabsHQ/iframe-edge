@@ -214,6 +214,120 @@
                     <input type="text" id="inputGeminiCustomModel" class="custom-model-input ui-hidden"
                         placeholder="e.g. gemini-exp-1206" autocomplete="off" spellcheck="false" />
                 </div>
+
+                <!-- Temperature -->
+                <div class="field">
+                    <label id="t-gemini-temp-lbl">Temperature</label>
+                    <div class="slider-row">
+                        <input type="range" class="styled-range" id="geminiTemp" min="0" max="2" step="0.01"
+                            value="1" />
+                        <input type="number" class="slider-num" id="geminiTempVal" min="0" max="2" step="0.01"
+                            value="1" />
+                    </div>
+                </div>
+
+                <!-- Media resolution -->
+                <div class="field">
+                    <label id="t-gemini-media-lbl">Media resolution</label>
+                    <select id="selectGeminiMedia">
+                        <option value="default" selected>Default</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+
+                <!-- Thinking level -->
+                <div class="field">
+                    <label id="t-gemini-thinking-lbl">Thinking level</label>
+                    <select id="selectGeminiThinking">
+                        <option value="none">None</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high" selected>High</option>
+                    </select>
+                </div>
+
+                <!-- Tools (collapsible) -->
+                <div class="settings-section" id="sectionGeminiTools">
+                    <button class="section-toggle" type="button" aria-expanded="true">
+                        <span id="t-gemini-tools-lbl">Tools</span>
+                        <svg class="section-arrow" width="10" height="10" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </button>
+                    <div class="section-body open">
+                        <div class="toggle-row">
+                            <span id="t-gemini-structured">Structured outputs</span>
+                            <span class="spacer"></span>
+                            <label class="toggle-switch"><input type="checkbox" id="chkStructured" /><span
+                                    class="toggle-track"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <span id="t-gemini-code-exec">Code execution</span>
+                            <span class="spacer"></span>
+                            <label class="toggle-switch"><input type="checkbox" id="chkCodeExec" /><span
+                                    class="toggle-track"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <span id="t-gemini-func-call">Function calling</span>
+                            <span class="spacer"></span>
+                            <label class="toggle-switch"><input type="checkbox" id="chkFuncCall" /><span
+                                    class="toggle-track"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <span id="t-gemini-search">Grounding with Google Search</span>
+                            <span class="spacer"></span>
+                            <label class="toggle-switch"><input type="checkbox" id="chkGoogleSearch" /><span
+                                    class="toggle-track"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <span id="t-gemini-maps">Grounding with Google Maps</span>
+                            <span class="spacer"></span>
+                            <label class="toggle-switch"><input type="checkbox" id="chkGoogleMaps" /><span
+                                    class="toggle-track"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <span id="t-gemini-url">URL context</span>
+                            <span class="spacer"></span>
+                            <label class="toggle-switch"><input type="checkbox" id="chkUrlContext" /><span
+                                    class="toggle-track"></span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced settings (collapsible) -->
+                <div class="settings-section" id="sectionGeminiAdvanced">
+                    <button class="section-toggle" type="button" aria-expanded="true">
+                        <span id="t-gemini-advanced-lbl">Advanced settings</span>
+                        <svg class="section-arrow" width="10" height="10" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </button>
+                    <div class="section-body open">
+                        <div class="field-inline">
+                            <label id="t-gemini-stop-lbl">Add stop sequence</label>
+                            <input type="text" class="inline-input" id="inputGeminiStop" placeholder="Add stop..."
+                                autocomplete="off" />
+                        </div>
+                        <div class="field-inline">
+                            <label id="t-gemini-output-lbl">Output length</label>
+                            <input type="number" class="inline-input" id="inputGeminiOutputLen" min="1" max="65536"
+                                value="65536" />
+                        </div>
+                        <div class="field-inline">
+                            <label id="t-gemini-topp-lbl">Top P</label>
+                            <div class="slider-row">
+                                <input type="range" class="styled-range" id="geminiTopP" min="0" max="1" step="0.01"
+                                    value="0.95" />
+                                <input type="number" class="slider-num" id="geminiTopPVal" min="0" max="1" step="0.01"
+                                    value="0.95" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- OpenAI fields -->

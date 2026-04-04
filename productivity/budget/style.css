@@ -316,8 +316,7 @@ body::after {
   background: var(--overlay-3);
 }
 
-.form-input,
-.form-select {
+.form-input {
   flex: 1;
   min-width: 0;
   background: var(--overlay-5);
@@ -333,19 +332,112 @@ body::after {
   color: var(--text-3);
 }
 
-.form-input:focus,
-.form-select:focus {
+.form-input:focus {
   border-color: rgba(249, 202, 36, 0.45);
 }
 
-.form-select {
-  cursor: pointer;
+/* ── Custom select ──────────────────────────────────────── */
+.custom-select {
+  position: relative;
   max-width: 140px;
+  flex: 1;
+  min-width: 0;
 }
 
-.form-select option {
-  background: var(--surface);
+.custom-select-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  background: var(--overlay-5);
+  border: 1px solid var(--border);
+  border-radius: 7px;
   color: var(--text-1);
+  font-size: 12px;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: border-color var(--tr);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-select-btn:hover {
+  border-color: var(--border-h);
+}
+
+.custom-select.open .custom-select-btn {
+  border-color: rgba(249, 202, 36, 0.45);
+}
+
+.custom-select-arrow {
+  flex-shrink: 0;
+  color: var(--text-3);
+  transition: transform var(--tr);
+}
+
+.custom-select.open .custom-select-arrow {
+  transform: rotate(180deg);
+}
+
+.custom-select-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-h);
+  border-radius: 10px;
+  padding: 4px;
+  list-style: none;
+  z-index: 100;
+  display: none;
+  overflow-y: auto;
+  max-height: 220px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--overlay-5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.custom-select-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-select-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-select-list::-webkit-scrollbar-thumb {
+  background: var(--overlay-10);
+  border-radius: 4px;
+}
+
+.custom-select.open .custom-select-list {
+  display: block;
+}
+
+.custom-select-option {
+  padding: 6px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-2);
+  transition: all var(--tr);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-select-option:hover {
+  background: var(--overlay-8);
+  color: var(--text-1);
+}
+
+.custom-select-option.selected {
+  background: rgba(249, 202, 36, 0.12);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .btn-add {

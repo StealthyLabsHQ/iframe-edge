@@ -1260,6 +1260,239 @@ html.sz-l #widget.sidebar-open #sidebarBackdrop {
     border-color: rgba(239, 68, 68, 0.5);
 }
 
+/* ── Slider row ─────────────────────────────────────────────────── */
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.styled-range {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--overlay-10);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+
+.styled-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text-2);
+    border: none;
+    cursor: pointer;
+    transition: background var(--tr);
+}
+
+.styled-range::-webkit-slider-thumb:hover {
+    background: var(--text-1);
+}
+
+.styled-range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text-2);
+    border: none;
+    cursor: pointer;
+}
+
+.slider-num {
+    width: 54px;
+    flex-shrink: 0;
+    background: var(--overlay-5);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-1);
+    font-size: 0.78rem;
+    padding: 5px 6px;
+    text-align: center;
+    outline: none;
+    font-family: 'JetBrains Mono', monospace;
+    -moz-appearance: textfield;
+}
+
+.slider-num::-webkit-inner-spin-button,
+.slider-num::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.slider-num:focus {
+    border-color: var(--accent-border);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+/* ── Collapsible settings sections ──────────────────────────────── */
+.settings-section {
+    margin: 6px 14px 0;
+}
+
+.section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text-2);
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 8px 0;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: color var(--tr);
+}
+
+.section-toggle:hover {
+    color: var(--text-1);
+}
+
+.section-arrow {
+    flex-shrink: 0;
+    color: var(--text-3);
+    transition: transform var(--tr);
+}
+
+.section-toggle[aria-expanded="false"] .section-arrow {
+    transform: rotate(-90deg);
+}
+
+.section-body {
+    display: none;
+    padding: 4px 0 2px;
+}
+
+.section-body.open {
+    display: block;
+}
+
+/* ── Toggle rows ────────────────────────────────────────────────── */
+.toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    font-size: 0.8rem;
+    color: var(--text-1);
+}
+
+.toggle-row .spacer {
+    flex: 1;
+}
+
+.toggle-row .edit-link {
+    font-size: 0.72rem;
+    color: var(--text-3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    transition: color var(--tr);
+}
+
+.toggle-row .edit-link:hover {
+    color: var(--text-1);
+}
+
+/* ── Toggle switch ──────────────────────────────────────────────── */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.toggle-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--overlay-10);
+    border-radius: 10px;
+    transition: background 0.2s ease;
+}
+
+.toggle-track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: var(--text-3);
+    border-radius: 50%;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.toggle-switch input:checked + .toggle-track {
+    background: var(--accent-dim);
+}
+
+.toggle-switch input:checked + .toggle-track::after {
+    transform: translateX(16px);
+    background: var(--accent);
+}
+
+/* ── Inline fields (within collapsible sections) ────────────────── */
+.field-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 7px 0;
+}
+
+.field-inline label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-2);
+}
+
+.inline-input {
+    background: var(--overlay-5);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-1);
+    font-size: 0.8rem;
+    padding: 7px 10px;
+    outline: none;
+    width: 100%;
+    transition: border-color var(--tr), box-shadow var(--tr);
+    font-family: inherit;
+}
+
+.inline-input:focus {
+    border-color: var(--accent-border);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.inline-input::placeholder {
+    color: var(--text-3);
+}
+
+.inline-input[type="number"] {
+    font-family: 'JetBrains Mono', monospace;
+    -moz-appearance: textfield;
+}
+
+.inline-input[type="number"]::-webkit-inner-spin-button,
+.inline-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 /* ── Toast ───────────────────────────────────────────────────────── */
 .toast {
     position: fixed;

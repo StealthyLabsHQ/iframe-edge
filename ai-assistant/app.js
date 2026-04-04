@@ -17,6 +17,18 @@
         PROXY: "pa_ai_proxy_url",
         SYSTEM: "pa_ai_system_prompt",
         CONVS: "pa_ai_conversations",
+        GEMINI_TEMP: "pa_ai_gemini_temp",
+        GEMINI_TOPP: "pa_ai_gemini_topp",
+        GEMINI_OUTPUT_LEN: "pa_ai_gemini_output_len",
+        GEMINI_STOP: "pa_ai_gemini_stop",
+        GEMINI_MEDIA: "pa_ai_gemini_media",
+        GEMINI_THINKING: "pa_ai_gemini_thinking",
+        GEMINI_CODE_EXEC: "pa_ai_gemini_code_exec",
+        GEMINI_SEARCH: "pa_ai_gemini_search",
+        GEMINI_MAPS: "pa_ai_gemini_maps",
+        GEMINI_URL_CTX: "pa_ai_gemini_url_ctx",
+        GEMINI_STRUCTURED: "pa_ai_gemini_structured",
+        GEMINI_FUNC_CALL: "pa_ai_gemini_func_call",
     };
     const SS = {
         KEY_GEMINI: "pa_ai_key_gemini_session",
@@ -180,6 +192,29 @@
             s2: "Aide-moi à rédiger un email professionnel",
             s3: "Analyse et améliore ce code",
             s4: "Écris un court poème créatif",
+            geminiTemp: "Temperature",
+            geminiMedia: "Résolution média",
+            geminiThinking: "Niveau de réflexion",
+            geminiTools: "Outils",
+            geminiStructured: "Sorties structurées",
+            geminiCodeExec: "Exécution de code",
+            geminiFuncCall: "Appels de fonctions",
+            geminiSearch: "Grounding avec Google Search",
+            geminiMaps: "Grounding avec Google Maps",
+            geminiUrl: "Contexte URL",
+            geminiAdvanced: "Paramètres avancés",
+            geminiStop: "Séquence d'arrêt",
+            geminiStopPh: "Ajouter stop...",
+            geminiOutputLen: "Longueur de sortie",
+            geminiTopP: "Top P",
+            mediaDefault: "Par défaut",
+            mediaLow: "Basse",
+            mediaMedium: "Moyenne",
+            mediaHigh: "Haute",
+            thinkingNone: "Aucun",
+            thinkingLow: "Bas",
+            thinkingMedium: "Moyen",
+            thinkingHigh: "Élevé",
         },
         en: {
             title: "AI Assistant",
@@ -222,6 +257,29 @@
             s2: "Help me write a professional email",
             s3: "Analyze and improve this code",
             s4: "Write a short creative poem",
+            geminiTemp: "Temperature",
+            geminiMedia: "Media resolution",
+            geminiThinking: "Thinking level",
+            geminiTools: "Tools",
+            geminiStructured: "Structured outputs",
+            geminiCodeExec: "Code execution",
+            geminiFuncCall: "Function calling",
+            geminiSearch: "Grounding with Google Search",
+            geminiMaps: "Grounding with Google Maps",
+            geminiUrl: "URL context",
+            geminiAdvanced: "Advanced settings",
+            geminiStop: "Add stop sequence",
+            geminiStopPh: "Add stop...",
+            geminiOutputLen: "Output length",
+            geminiTopP: "Top P",
+            mediaDefault: "Default",
+            mediaLow: "Low",
+            mediaMedium: "Medium",
+            mediaHigh: "High",
+            thinkingNone: "None",
+            thinkingLow: "Low",
+            thinkingMedium: "Medium",
+            thinkingHigh: "High",
         },
     };
 
@@ -287,6 +345,26 @@
         el("t-save", "save");
         el("t-clear", "clear");
         el("t-welcome-title", "welcomeTitle");
+
+        // Gemini settings labels
+        el("t-gemini-temp-lbl", "geminiTemp");
+        el("t-gemini-media-lbl", "geminiMedia");
+        el("t-gemini-thinking-lbl", "geminiThinking");
+        el("t-gemini-tools-lbl", "geminiTools");
+        el("t-gemini-structured", "geminiStructured");
+        el("t-gemini-code-exec", "geminiCodeExec");
+        el("t-gemini-func-call", "geminiFuncCall");
+        el("t-gemini-search", "geminiSearch");
+        el("t-gemini-maps", "geminiMaps");
+        el("t-gemini-url", "geminiUrl");
+        el("t-gemini-advanced-lbl", "geminiAdvanced");
+        el("t-gemini-stop-lbl", "geminiStop");
+        el("t-gemini-output-lbl", "geminiOutputLen");
+        el("t-gemini-topp-lbl", "geminiTopP");
+
+        // Gemini placeholders
+        const stopInput = $("inputGeminiStop");
+        if (stopInput) stopInput.placeholder = t("geminiStopPh");
 
         // Placeholders (language-sensitive)
         const sysArea = $("inputSystem");
@@ -656,13 +734,62 @@
     /* ─────────────────────────────────────────────────────────────────
      *  GEMINI API (streaming via SSE)
      * ────────────────────────────────────────────────────────────────*/
+    function readGeminiConfig() {
+        const temperature = parseFloat(localStorage.getItem(LS.GEMINI_TEMP)) || 1;
+        const topP = parseFloat(localStorage.getItem(LS.GEMINI_TOPP) ?? "0.95");
+        const maxOutputTokens = parseInt(localStorage.getItem(LS.GEMINI_OUTPUT_LEN), 10) || 65536;
+        const stopRaw = (localStorage.getItem(LS.GEMINI_STOP) || "").trim();
+        const stopSequences = stopRaw ? stopRaw.split(",").map(s => s.trim()).filter(Boolean) : [];
+        const mediaResolution = localStorage.getItem(LS.GEMINI_MEDIA) || "default";
+        const thinkingLevel = localStorage.getItem(LS.GEMINI_THINKING) || "high";
+        return {
+            temperature, topP, maxOutputTokens, stopSequences, mediaResolution, thinkingLevel,
+            codeExecution: localStorage.getItem(LS.GEMINI_CODE_EXEC) === "1",
+            googleSearch: localStorage.getItem(LS.GEMINI_SEARCH) === "1",
+            googleMaps: localStorage.getItem(LS.GEMINI_MAPS) === "1",
+            urlContext: localStorage.getItem(LS.GEMINI_URL_CTX) === "1",
+            structuredOutputs: localStorage.getItem(LS.GEMINI_STRUCTURED) === "1",
+            functionCalling: localStorage.getItem(LS.GEMINI_FUNC_CALL) === "1",
+        };
+    }
+
     async function streamGemini(contents, systemPrompt, model, key, signal, onChunk) {
         const safeModel = encodeURIComponent(model);
         const url = `${GEMINI_BASE}/${safeModel}:streamGenerateContent?alt=sse`;
-        const body = {
-            contents,
-            generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
+        const cfg = readGeminiConfig();
+
+        const generationConfig = {
+            maxOutputTokens: cfg.maxOutputTokens,
+            temperature: cfg.temperature,
+            topP: cfg.topP,
         };
+        if (cfg.stopSequences.length > 0) {
+            generationConfig.stopSequences = cfg.stopSequences;
+        }
+        if (cfg.mediaResolution !== "default") {
+            const mediaMap = { low: "MEDIA_RESOLUTION_LOW", medium: "MEDIA_RESOLUTION_MEDIUM", high: "MEDIA_RESOLUTION_HIGH" };
+            generationConfig.mediaResolution = mediaMap[cfg.mediaResolution];
+        }
+        if (cfg.structuredOutputs) {
+            generationConfig.responseMimeType = "application/json";
+        }
+
+        // Thinking config
+        const thinkingBudgets = { none: 0, low: 1024, medium: 8192, high: 24576 };
+        if (cfg.thinkingLevel in thinkingBudgets) {
+            generationConfig.thinkingConfig = { thinkingBudget: thinkingBudgets[cfg.thinkingLevel] };
+        }
+
+        const body = { contents, generationConfig };
+
+        // Tools
+        const tools = [];
+        if (cfg.codeExecution) tools.push({ codeExecution: {} });
+        if (cfg.googleSearch) tools.push({ googleSearch: {} });
+        if (cfg.googleMaps) tools.push({ googleSearch: { dynamicRetrievalConfig: { mode: "MODE_DYNAMIC" } } });
+        if (cfg.urlContext) tools.push({ urlContext: {} });
+        if (tools.length > 0) body.tools = tools;
+
         if (systemPrompt) {
             body.systemInstruction = { parts: [{ text: systemPrompt }] };
         }
@@ -1093,10 +1220,30 @@
         $("selectClaudeModel").value = localStorage.getItem(LS.MODEL_CLAUDE) || "claude-sonnet-4-6";
         $("selectOpenAIModel").value = localStorage.getItem(LS.MODEL_OPENAI) || "gpt-4o";
 
+        // Gemini settings
+        const gTemp = parseFloat(localStorage.getItem(LS.GEMINI_TEMP)) || 1;
+        $("geminiTemp").value = gTemp;
+        $("geminiTempVal").value = gTemp;
+        const gTopP = parseFloat(localStorage.getItem(LS.GEMINI_TOPP) ?? "0.95");
+        $("geminiTopP").value = gTopP;
+        $("geminiTopPVal").value = gTopP;
+        $("inputGeminiOutputLen").value = localStorage.getItem(LS.GEMINI_OUTPUT_LEN) || "65536";
+        $("inputGeminiStop").value = localStorage.getItem(LS.GEMINI_STOP) || "";
+        $("selectGeminiMedia").value = localStorage.getItem(LS.GEMINI_MEDIA) || "default";
+        $("selectGeminiThinking").value = localStorage.getItem(LS.GEMINI_THINKING) || "high";
+        $("chkCodeExec").checked = localStorage.getItem(LS.GEMINI_CODE_EXEC) === "1";
+        $("chkGoogleSearch").checked = localStorage.getItem(LS.GEMINI_SEARCH) === "1";
+        $("chkGoogleMaps").checked = localStorage.getItem(LS.GEMINI_MAPS) === "1";
+        $("chkUrlContext").checked = localStorage.getItem(LS.GEMINI_URL_CTX) === "1";
+        $("chkStructured").checked = localStorage.getItem(LS.GEMINI_STRUCTURED) === "1";
+        $("chkFuncCall").checked = localStorage.getItem(LS.GEMINI_FUNC_CALL) === "1";
+
         // Sync custom dropdowns to the values above
         syncCustomSelect($("selectGeminiModel"));
         syncCustomSelect($("selectClaudeModel"));
         syncCustomSelect($("selectOpenAIModel"));
+        syncCustomSelect($("selectGeminiMedia"));
+        syncCustomSelect($("selectGeminiThinking"));
 
         activateProviderTab(state.provider);
     }
@@ -1161,6 +1308,20 @@
         localStorage.setItem(LS.MODEL_GEMINI, geminiModel);
         localStorage.setItem(LS.MODEL_CLAUDE, claudeModel);
         localStorage.setItem(LS.MODEL_OPENAI, openaiModel);
+
+        // Gemini settings
+        localStorage.setItem(LS.GEMINI_TEMP, $("geminiTempVal").value);
+        localStorage.setItem(LS.GEMINI_TOPP, $("geminiTopPVal").value);
+        localStorage.setItem(LS.GEMINI_OUTPUT_LEN, $("inputGeminiOutputLen").value);
+        localStorage.setItem(LS.GEMINI_STOP, $("inputGeminiStop").value.trim());
+        localStorage.setItem(LS.GEMINI_MEDIA, $("selectGeminiMedia").value);
+        localStorage.setItem(LS.GEMINI_THINKING, $("selectGeminiThinking").value);
+        localStorage.setItem(LS.GEMINI_CODE_EXEC, $("chkCodeExec").checked ? "1" : "0");
+        localStorage.setItem(LS.GEMINI_SEARCH, $("chkGoogleSearch").checked ? "1" : "0");
+        localStorage.setItem(LS.GEMINI_MAPS, $("chkGoogleMaps").checked ? "1" : "0");
+        localStorage.setItem(LS.GEMINI_URL_CTX, $("chkUrlContext").checked ? "1" : "0");
+        localStorage.setItem(LS.GEMINI_STRUCTURED, $("chkStructured").checked ? "1" : "0");
+        localStorage.setItem(LS.GEMINI_FUNC_CALL, $("chkFuncCall").checked ? "1" : "0");
 
         state.provider = provider;
         updateModelBadge();
@@ -1236,6 +1397,34 @@
             overlay.classList.add("hidden");
         }
     }
+
+    /* ─────────────────────────────────────────────────────────────────
+     *  SLIDER SYNC (range ↔ number input)
+     * ────────────────────────────────────────────────────────────────*/
+    function linkSlider(rangeId, numId) {
+        const range = $(rangeId);
+        const num = $(numId);
+        if (!range || !num) return;
+        range.addEventListener("input", () => { num.value = range.value; });
+        num.addEventListener("input", () => {
+            const v = parseFloat(num.value);
+            if (!isNaN(v)) range.value = Math.min(Math.max(v, parseFloat(range.min)), parseFloat(range.max));
+        });
+    }
+    linkSlider("geminiTemp", "geminiTempVal");
+    linkSlider("geminiTopP", "geminiTopPVal");
+
+    /* ─────────────────────────────────────────────────────────────────
+     *  COLLAPSIBLE SECTIONS
+     * ────────────────────────────────────────────────────────────────*/
+    document.querySelectorAll(".section-toggle").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const body = btn.nextElementSibling;
+            const isOpen = body.classList.contains("open");
+            body.classList.toggle("open", !isOpen);
+            btn.setAttribute("aria-expanded", !isOpen);
+        });
+    });
 
     /* ─────────────────────────────────────────────────────────────────
      *  CUSTOM SELECT — WebView-safe dropdown replacement

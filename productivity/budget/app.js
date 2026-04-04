@@ -343,28 +343,53 @@
     updateLangUI();
   }
 
+  // ── Custom select helpers ──────────────────────────────────────────────────────
+  let selectedCat = "";
+
+  function openCatSelect() {
+    $("customSelect").classList.add("open");
+    $("customSelectBtn").setAttribute("aria-expanded", "true");
+  }
+
+  function closeCatSelect() {
+    $("customSelect").classList.remove("open");
+    $("customSelectBtn").setAttribute("aria-expanded", "false");
+  }
+
+  function selectCat(cat) {
+    selectedCat = cat;
+    $("customSelectLabel").textContent = CAT_EMOJI[cat] + " " + t(CAT_KEY[cat]);
+    const list = $("customSelectList");
+    list.querySelectorAll(".custom-select-option").forEach(li => {
+      li.classList.toggle("selected", li.dataset.value === cat);
+    });
+    closeCatSelect();
+  }
+
   // ── Category select ───────────────────────────────────────────────────────────
   function populateCats() {
-    const select  = $("selectCat");
-    const prevVal = select.value;
+    const prevVal = selectedCat;
     const cats    = selectedType === "expense" ? EXPENSE_CATS : INCOME_CATS;
+    const list    = $("customSelectList");
 
-    select.replaceChildren();
+    list.replaceChildren();
     cats.forEach(cat => {
-      const opt = document.createElement("option");
-      opt.value = cat;
-      opt.textContent = CAT_EMOJI[cat] + " " + t(CAT_KEY[cat]);
-      select.appendChild(opt);
+      const li = document.createElement("li");
+      li.className = "custom-select-option";
+      li.dataset.value = cat;
+      li.setAttribute("role", "option");
+      li.textContent = CAT_EMOJI[cat] + " " + t(CAT_KEY[cat]);
+      list.appendChild(li);
     });
 
-    if (cats.includes(prevVal)) select.value = prevVal;
+    selectCat(cats.includes(prevVal) ? prevVal : cats[0]);
   }
 
   // ── Add transaction ───────────────────────────────────────────────────────────
   function addTransaction() {
     const amount      = parseFloat($("inputAmount").value);
     const description = $("inputDesc").value.trim();
-    const category    = $("selectCat").value;
+    const category    = selectedCat;
     const isRecurring = $("chkRecurring").checked;
     const debitDay    = isRecurring ? parseInt($("inputDebitDay").value, 10) : null;
 
@@ -495,6 +520,21 @@
 
   $("btnExpense").addEventListener("click", () => setType("expense"));
   $("btnIncome").addEventListener("click",  () => setType("income"));
+
+  // Custom select: toggle
+  $("customSelectBtn").addEventListener("click", e => {
+    e.stopPropagation();
+    $("customSelect").classList.contains("open") ? closeCatSelect() : openCatSelect();
+  });
+
+  // Custom select: pick option
+  $("customSelectList").addEventListener("click", e => {
+    const li = e.target.closest(".custom-select-option");
+    if (li) selectCat(li.dataset.value);
+  });
+
+  // Custom select: close on outside click
+  document.addEventListener("click", () => closeCatSelect());
 
   // Recurring checkbox: show/hide debit day input
   $("chkRecurring").addEventListener("change", () => {
