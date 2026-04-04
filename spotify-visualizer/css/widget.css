@@ -206,31 +206,47 @@ body {
 .hdr {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 14px 8px;
+    gap: 10px;
+    padding: 12px 16px 8px;
     flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
 }
 
 .hdr-icon {
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    background: var(--accent-dim);
+    background: var(--accent-d);
+    border: 1px solid var(--accent-b);
     color: var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    transition: border-color var(--tr);
 }
 
-.hdr-spacer {
+/* Title label — new element added in HTML */
+.hdr-title {
+    font-family: var(--font-h);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-2);
     flex: 1;
 }
 
+/* Controls — lang-toggle style (from xeneon-edge pattern) */
 .icon-btn {
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
+    font-family: var(--font-h);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    min-width: 30px;
+    height: 28px;
+    padding: 4px 8px;
+    border-radius: 6px;
     background: var(--overlay-5);
     border: 1px solid var(--border);
     color: var(--text-2);
@@ -239,10 +255,11 @@ body {
     justify-content: center;
     transition: all var(--tr);
     flex-shrink: 0;
+    user-select: none;
 }
 
 .icon-btn:hover {
-    background: var(--overlay-8);
+    background: var(--overlay-10);
     color: var(--text-1);
     border-color: var(--border-h);
 }
@@ -265,14 +282,41 @@ body {
     flex-shrink: 0;
 }
 
+/* ── Widget playing state ───────────────────────────────── */
+#widget::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 55%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 2;
+}
+
+#widget.is-playing {
+    border-color: var(--accent-b);
+    box-shadow: 0 0 40px rgba(29, 185, 84, 0.06), inset 0 0 60px rgba(29, 185, 84, 0.01);
+}
+
+#widget.is-playing::before {
+    opacity: 1;
+}
+
 /* ── Album art ──────────────────────────────────────────── */
 .album-wrap {
     position: relative;
     flex-shrink: 0;
-    border-radius: 14px;
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-    transition: width var(--tr), height var(--tr);
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border);
+    transition: width var(--tr), height var(--tr), box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+#widget.is-playing .album-wrap {
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(29, 185, 84, 0.15);
+    border-color: var(--accent-b);
 }
 
 .album-wrap img {
@@ -303,10 +347,12 @@ body {
 }
 
 .track-name {
+    font-family: var(--font-h);
     font-size: 14px;
     font-weight: 700;
     color: var(--text-1);
-    line-height: 1.3;
+    line-height: 1.25;
+    letter-spacing: -0.2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -314,9 +360,11 @@ body {
 }
 
 .track-artist {
+    font-family: var(--font-b);
     font-size: 11px;
+    font-weight: 500;
     color: var(--text-2);
-    margin-top: 2px;
+    margin-top: 3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -324,13 +372,16 @@ body {
 }
 
 .track-album {
+    font-family: var(--font-b);
     font-size: 10px;
+    font-weight: 400;
     color: var(--text-3);
     margin-top: 2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    letter-spacing: 0.2px;
 }
 
 /* ── Progress bar ───────────────────────────────────────── */
@@ -340,20 +391,26 @@ body {
 
 .progress-bar {
     height: 3px;
-    border-radius: 2px;
+    border-radius: 3px;
     background: var(--overlay-8);
     overflow: hidden;
     cursor: pointer;
     position: relative;
+    transition: height var(--tr);
+}
+
+.progress-bar:hover {
+    height: 5px;
 }
 
 .progress-fill {
     height: 100%;
-    border-radius: 2px;
+    border-radius: 3px;
     background: var(--accent);
     width: 0%;
     transition: width 1s linear;
     pointer-events: none;
+    box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .progress-times {
@@ -361,11 +418,11 @@ body {
     justify-content: space-between;
     margin-top: 5px;
     font-size: 9px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-m);
     color: var(--text-3);
-    /* FIX: tabular-nums prevents digit-width jitter / glitch */
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
+    letter-spacing: 0.3px;
 }
 
 .progress-times span {
@@ -376,78 +433,88 @@ body {
 .controls {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
 }
 
-/* Slightly smaller to let controls breathe */
+/* Ghost prev/next — borderless, minimal */
 .ctrl-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: var(--overlay-5);
-    border: 1px solid var(--border);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid transparent;
     color: var(--text-2);
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all var(--tr);
+    flex-shrink: 0;
 }
 
-/* Secondary (shuffle/repeat) — slimmer */
+/* Secondary (shuffle/repeat) */
 .ctrl-btn.ctrl-sm {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    color: var(--text-3);
 }
 
 .ctrl-btn:hover {
     background: var(--overlay-8);
     color: var(--text-1);
-    border-color: var(--border-h);
+    border-color: var(--border);
 }
 
 .ctrl-btn:active {
-    transform: scale(0.93);
+    transform: scale(0.92);
 }
 
+/* Play/Pause — circular, green glow */
 .ctrl-btn.play {
-    width: 44px;
-    height: 44px;
-    border-radius: 13px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
     background: var(--accent);
     border-color: transparent;
     color: #000;
+    box-shadow: 0 0 14px var(--accent-glow);
+    flex-shrink: 0;
 }
 
 .ctrl-btn.play:hover {
     filter: brightness(1.1);
+    box-shadow: 0 0 22px var(--accent-glow);
 }
 
-/* Shuffle ON / Repeat ON */
+.ctrl-btn.play:active {
+    transform: scale(0.94);
+}
+
+/* Shuffle ON / Repeat ON — chip style */
 .ctrl-btn.shuffle-on,
 .ctrl-btn.repeat-on {
     color: var(--accent);
-    background: var(--accent-dim);
-    border-color: rgba(29, 185, 84, 0.3);
+    background: var(--accent-d);
+    border-color: var(--accent-b);
 }
 
-/* Repeat ONE (track loop) — slightly stronger */
+/* Repeat ONE */
 .ctrl-btn[data-mode="track"] {
     color: var(--accent);
-    background: rgba(29, 185, 84, 0.28);
-    border-color: rgba(29, 185, 84, 0.4);
+    background: var(--accent-d);
+    border-color: var(--accent-b);
     position: relative;
 }
 
-/* Show "1" badge over SVG icon when looping a single track */
 .ctrl-btn[data-mode="track"]::after {
     content: "1";
     position: absolute;
-    bottom: 5px;
-    right: 6px;
-    font-size: 8px;
+    bottom: 4px;
+    right: 5px;
+    font-size: 7px;
     font-weight: 800;
     line-height: 1;
+    font-family: var(--font-h);
     color: var(--accent);
     pointer-events: none;
 }
@@ -1156,36 +1223,36 @@ html.sz-l #volumeSlider::-moz-range-thumb {
 }
 
 html.sz-l .controls .ctrl-btn {
-    width: 58px;
-    height: 58px;
-    border-radius: 15px;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
 }
 
 html.sz-l .controls .ctrl-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
 }
 
 html.sz-l .controls .ctrl-btn.play {
-    width: 76px;
-    height: 76px;
-    border-radius: 20px;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
 }
 
 html.sz-l .controls .ctrl-btn.play svg {
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
 }
 
 html.sz-l .controls .ctrl-btn.ctrl-sm {
-    width: 50px;
-    height: 50px;
-    border-radius: 13px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
 }
 
 html.sz-l .controls .ctrl-btn.ctrl-sm svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
 }
 
 html.sz-l .col-right {
@@ -1302,36 +1369,36 @@ html.sz-xl #volumeSlider::-moz-range-thumb {
 }
 
 html.sz-xl .controls .ctrl-btn {
-    width: 54px;
-    height: 54px;
-    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 9px;
 }
 
 html.sz-xl .controls .ctrl-btn svg {
-    width: 19px;
-    height: 19px;
+    width: 17px;
+    height: 17px;
 }
 
 html.sz-xl .controls .ctrl-btn.play {
-    width: 70px;
-    height: 70px;
-    border-radius: 18px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
 }
 
 html.sz-xl .controls .ctrl-btn.play svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 }
 
 html.sz-xl .controls .ctrl-btn.ctrl-sm {
-    width: 46px;
-    height: 46px;
-    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 7px;
 }
 
 html.sz-xl .controls .ctrl-btn.ctrl-sm svg {
-    width: 17px;
-    height: 17px;
+    width: 15px;
+    height: 15px;
 }
 
 html.sz-xl .col-right {
