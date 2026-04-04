@@ -457,8 +457,8 @@
             noRelatedNews: "No related news detected."
         },
     };
-    let lang = localStorage.getItem(LANG_KEY) || "fr";
-    if (lang !== "fr" && lang !== "en") lang = "fr";
+    let lang = localStorage.getItem(LANG_KEY) || "en";
+    if (lang !== "fr" && lang !== "en") lang = "en";
     let theme = localStorage.getItem(THEME_KEY) || "dark";
     if (theme !== "dark" && theme !== "light") theme = "dark";
     const t = k => (i18n[lang] || i18n.en)[k] || k;
@@ -471,7 +471,7 @@
         $("themeToggle").textContent = theme === "dark" ? "🌙" : "☀️";
     }
     function applyLang(l) {
-        lang = l === "en" ? "en" : "fr";
+        lang = l === "fr" ? "fr" : "en";
         $("langToggle").textContent = lang.toUpperCase();
         const s = (id, k) => { const e = $(id); if (e) e.textContent = t(k); };
         s("t-title", "title"); s("t-breaking", "breaking"); s("t-legend", "legend");

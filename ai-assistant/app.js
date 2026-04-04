@@ -50,7 +50,7 @@
      * ────────────────────────────────────────────────────────────────*/
     let state = {
         theme: localStorage.getItem(LS.THEME) || "dark",
-        lang: localStorage.getItem(LS.LANG) || "fr",
+        lang: localStorage.getItem(LS.LANG) || "en",
         provider: localStorage.getItem(LS.PROVIDER) || "gemini",
         sizeClass: "",
         conversations: [],
@@ -259,7 +259,7 @@
      *  LANGUAGE
      * ────────────────────────────────────────────────────────────────*/
     function applyLang(lang) {
-        state.lang = lang === "en" ? "en" : "fr";
+        state.lang = lang === "fr" ? "fr" : "en";
         $("langToggle").textContent = state.lang.toUpperCase();
         updateStaticStrings();
     }

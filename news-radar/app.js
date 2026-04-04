@@ -11,7 +11,7 @@
     }
 
     function normalizeLang(value) {
-        return VALID_LANGS.has(value) ? value : "fr";
+        return VALID_LANGS.has(value) ? value : "en";
     }
 
     function isPrivateOrLoopbackHost(hostname) {

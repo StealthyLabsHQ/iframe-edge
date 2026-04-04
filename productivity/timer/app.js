@@ -136,7 +136,7 @@
   };
 
   let timerInterval = null;
-  let currentLang   = localStorage.getItem("pa_lang")   || "fr";
+  let currentLang   = localStorage.getItem("pa_lang")   || "en";
   let currentTheme  = localStorage.getItem("pa_theme")  || "dark";
 
   function t(key, ...args) {

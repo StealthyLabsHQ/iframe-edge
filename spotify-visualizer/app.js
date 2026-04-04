@@ -39,7 +39,7 @@
         autoScrollResumeTimer: null,
         sizeClass: '',             // 'sz-m' | 'sz-l' | 'sz-xl'
         theme: localStorage.getItem(LS.THEME) || "dark", // "dark" | "light" | "blur"
-        lang: localStorage.getItem(LS.LANG) || "fr",
+        lang: localStorage.getItem(LS.LANG) || "en",
         volume: 100,
         volumeBeforeMute: 100,     // last non-zero volume for mute toggle
         volumeDebounce: null,
@@ -239,7 +239,7 @@
      *  LANGUAGE
      * ────────────────────────────────────────────────────────────────────────*/
     function applyLang(lang) {
-        state.lang = (lang === "en") ? "en" : "fr";
+        state.lang = (lang === "fr") ? "fr" : "en";
         $("langToggle").textContent = state.lang.toUpperCase();
         updateStaticStrings();
     }

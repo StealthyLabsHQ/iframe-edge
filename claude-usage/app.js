@@ -48,8 +48,8 @@
         },
     };
 
-    let currentLang = localStorage.getItem(LANG_KEY) || "fr";
-    if (currentLang !== "fr" && currentLang !== "en") currentLang = "fr";
+    let currentLang = localStorage.getItem(LANG_KEY) || "en";
+    if (currentLang !== "fr" && currentLang !== "en") currentLang = "en";
 
     let currentTheme = localStorage.getItem(THEME_KEY) || "dark";
     if (currentTheme !== "dark" && currentTheme !== "light") currentTheme = "dark";
@@ -85,7 +85,7 @@
      *  LANGUAGE
      * ────────────────────────────────────────────────────────────────*/
     function applyLang(lang) {
-        currentLang = lang === "en" ? "en" : "fr";
+        currentLang = lang === "fr" ? "fr" : "en";
         $("langToggle").textContent = currentLang.toUpperCase();
         updateStaticStrings();
     }

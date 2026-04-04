@@ -10,7 +10,7 @@
 
   // ── State ────────────────────────────────────────────────────────────────────
   let theme        = localStorage.getItem(THEME_KEY) || "dark";
-  let lang         = localStorage.getItem(LANG_KEY)  || "fr";
+  let lang         = localStorage.getItem(LANG_KEY)  || "en";
   let txns         = [];
   let subs         = [];   // Subscription[]
   let viewMonth    = "";
@@ -468,7 +468,7 @@
   // ── Cross-tab storage sync ────────────────────────────────────────────────────
   window.addEventListener("storage", e => {
     if (e.key === THEME_KEY) { applyTheme(e.newValue); }
-    if (e.key === LANG_KEY)  { lang = e.newValue || "fr"; render(); }
+    if (e.key === LANG_KEY)  { lang = e.newValue || "en"; render(); }
     if (e.key === TXNS_KEY)  { loadTxns(); render(); }
     if (e.key === SUBS_KEY)  { loadSubs(); renderSubsSection(); }
   });

@@ -25,7 +25,7 @@
         });
 
         const LANG_KEY = "pa_lang";
-        let currentLang = localStorage.getItem(LANG_KEY) || "fr";
+        let currentLang = localStorage.getItem(LANG_KEY) || "en";
 
         const i18n = {
           fr: {
