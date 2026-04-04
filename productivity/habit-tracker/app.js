@@ -183,7 +183,7 @@
         // Init
         loadHabits();
         updateThemeUI();
-        renderHabits(); // rendering uses translation for placeholders
-        updateLangUI(); // calls update text again
+        updateLangUI();
+        renderHabits();
       })();
     

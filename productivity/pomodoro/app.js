@@ -23,13 +23,6 @@
           updateThemeUI();
         });
 
-        window.addEventListener("storage", (e) => {
-          if (e.key === THEME_KEY) {
-            currentTheme = e.newValue;
-            updateThemeUI();
-          }
-        });
-
         updateThemeUI();
 
         const LANG_KEY = "pa_lang";
@@ -88,6 +81,10 @@
         });
 
         window.addEventListener("storage", (e) => {
+          if (e.key === THEME_KEY) {
+            currentTheme = e.newValue;
+            updateThemeUI();
+          }
           if (e.key === LANG_KEY) {
             currentLang = e.newValue;
             updateLangUI();

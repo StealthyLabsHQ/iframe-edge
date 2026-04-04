@@ -883,7 +883,7 @@
         const allLiveEvents = deduplicateEvents([...osint, ...gdelt, ...rssEvents]);
         liveEvents = allLiveEvents;
 
-        console.log(`[CT] Sources: RSS=${rssEvents.length} GDELT=${gdelt.length} OSINT=${osint.length} ReliefWeb=${rwReports.length} → Fused=${allLiveEvents.length}`);
+        // Sources: RSS, GDELT, OSINT, ReliefWeb → Fused
         return unique;
     }
 
@@ -892,10 +892,11 @@
      * ═════════════════════════════════════════════════════════════════*/
     function updateTicker(items) {
         const ticker = $("tickerContent");
-        if (!items?.length) { ticker.innerHTML = `<span>${t("noNews")}</span>`; return; }
+        ticker.replaceChildren();
+        if (!items?.length) { const s = document.createElement("span"); s.textContent = t("noNews"); ticker.appendChild(s); return; }
         const headlines = items.slice(0, 25).map(i => stripHtml(i.title));
-        const html = headlines.map(h => `<span>${h}</span>`).join("");
-        ticker.innerHTML = html + html;
+        const appendAll = () => headlines.forEach(h => { const s = document.createElement("span"); s.textContent = h; ticker.appendChild(s); });
+        appendAll(); appendAll(); // duplicate for ticker loop
     }
 
     /* ══════════════════════════════════════════════════════════════════
@@ -969,11 +970,10 @@
 
         // Badges
         const badges = $("detailBadges");
-        badges.innerHTML = `
-            <span class="badge badge-${ev.s}">${ev.s.toUpperCase()}</span>
-            <span class="badge badge-${ev.t}">${tType(ev.t)}</span>
-            ${isLive ? '<span class="badge badge-live">LIVE</span>' : ''}
-        `;
+        badges.replaceChildren();
+        const sevBadge = document.createElement("span"); sevBadge.className = `badge badge-${ev.s}`; sevBadge.textContent = ev.s.toUpperCase(); badges.appendChild(sevBadge);
+        const typeBadge = document.createElement("span"); typeBadge.className = `badge badge-${ev.t}`; typeBadge.textContent = tType(ev.t); badges.appendChild(typeBadge);
+        if (isLive) { const liveBadge = document.createElement("span"); liveBadge.className = "badge badge-live"; liveBadge.textContent = "LIVE"; badges.appendChild(liveBadge); }
 
         // Title & Region
         $("detailTitle").textContent = ev.n;
@@ -1002,7 +1002,8 @@
             regionEvents.forEach(re => {
                 const chip = document.createElement("div");
                 chip.className = "event-chip";
-                chip.innerHTML = `<span class="ev-dot" style="background:${TYPES[re.t]?.color || '#888'}"></span>${re.n}`;
+                const dot = document.createElement("span"); dot.className = "ev-dot"; dot.style.background = TYPES[re.t]?.color || "#888"; chip.appendChild(dot);
+                chip.appendChild(document.createTextNode(re.n));
                 chip.addEventListener("click", () => {
                     if (map) map.flyTo([re.lat, re.lng], 8, { duration: 0.8 });
                     openDetailPanel(re, !!re.live);
@@ -1024,17 +1025,15 @@
                 div.className = "news-item";
                 const timeStr = item.pubDate ? new Date(item.pubDate).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" }) : "";
                 const dotColor = TYPES[geolocateHeadline(item.title)?.t]?.color || "#888";
-                div.innerHTML = `
-                    <span class="news-dot" style="background:${dotColor}"></span>
-                    <div>
-                        <div class="news-text">${stripHtml(item.title)}</div>
-                        ${timeStr ? `<div class="news-time">${timeStr}</div>` : ""}
-                    </div>
-                `;
+                const ndot = document.createElement("span"); ndot.className = "news-dot"; ndot.style.background = dotColor; div.appendChild(ndot);
+                const wrap = document.createElement("div");
+                const ntext = document.createElement("div"); ntext.className = "news-text"; ntext.textContent = stripHtml(item.title); wrap.appendChild(ntext);
+                if (timeStr) { const ntime = document.createElement("div"); ntime.className = "news-time"; ntime.textContent = timeStr; wrap.appendChild(ntime); }
+                div.appendChild(wrap);
                 newsContainer.appendChild(div);
             });
         } else {
-            newsContainer.innerHTML = `<div class="news-empty">${t("noRelatedNews")}</div>`;
+            const emptyDiv = document.createElement("div"); emptyDiv.className = "news-empty"; emptyDiv.textContent = t("noRelatedNews"); newsContainer.appendChild(emptyDiv);
         }
 
         // Open panel
@@ -1048,17 +1047,21 @@
      *  LEGEND
      * ═════════════════════════════════════════════════════════════════*/
     function renderLegend() {
-        const container = $("legendItems"); container.innerHTML = "";
+        const container = $("legendItems"); container.replaceChildren();
         for (const [type, cfg] of Object.entries(TYPES)) {
             const total = BASELINE.filter(e => e.t === type).length + liveEvents.filter(e => e.t === type).length;
             if (!total) continue;
             const item = document.createElement("div"); item.className = "legend-item" + (hiddenTypes.has(type) ? " dimmed" : "");
-            item.innerHTML = `<span class="legend-dot" style="background:${cfg.color}"></span><span>${lang === "fr" ? cfg.fr : cfg.en}</span><span class="legend-count">${total}</span>`;
+            const ldot = document.createElement("span"); ldot.className = "legend-dot"; ldot.style.background = cfg.color; item.appendChild(ldot);
+            const lbl = document.createElement("span"); lbl.textContent = lang === "fr" ? cfg.fr : cfg.en; item.appendChild(lbl);
+            const cnt = document.createElement("span"); cnt.className = "legend-count"; cnt.textContent = total; item.appendChild(cnt);
             item.addEventListener("click", () => toggleType(type)); container.appendChild(item);
         }
         const sep = document.createElement("div"); sep.className = "legend-sep"; container.appendChild(sep);
         const trajItem = document.createElement("div"); trajItem.className = "legend-traj";
-        trajItem.innerHTML = `<span class="legend-traj-line"></span><span>${t("trajectories")}</span><span class="legend-count">${TRAJECTORIES.length}</span>`;
+        const tline = document.createElement("span"); tline.className = "legend-traj-line"; trajItem.appendChild(tline);
+        const tlbl = document.createElement("span"); tlbl.textContent = t("trajectories"); trajItem.appendChild(tlbl);
+        const tcnt = document.createElement("span"); tcnt.className = "legend-count"; tcnt.textContent = TRAJECTORIES.length; trajItem.appendChild(tcnt);
         container.appendChild(trajItem);
     }
     function toggleType(type) {
@@ -1071,16 +1074,18 @@
      *  STATS BAR
      * ═════════════════════════════════════════════════════════════════*/
     function renderStatsBar() {
-        const bar = $("statsBar"); bar.innerHTML = "";
+        const bar = $("statsBar"); bar.replaceChildren();
         const chip0 = document.createElement("div"); chip0.className = "stat-chip";
-        chip0.innerHTML = `<span class="cnt">${BASELINE.length + liveEvents.length}</span> ${t("events")}`;
+        const cnt0 = document.createElement("span"); cnt0.className = "cnt"; cnt0.textContent = BASELINE.length + liveEvents.length; chip0.appendChild(cnt0);
+        chip0.appendChild(document.createTextNode(" " + t("events")));
         bar.appendChild(chip0);
-        if (liveEvents.length) { const c = document.createElement("div"); c.className = "stat-chip"; c.innerHTML = `<span class="stat-live">${liveEvents.length}</span> ${t("liveEvents")}`; bar.appendChild(c); }
+        if (liveEvents.length) { const c = document.createElement("div"); c.className = "stat-chip"; const sl = document.createElement("span"); sl.className = "stat-live"; sl.textContent = liveEvents.length; c.appendChild(sl); c.appendChild(document.createTextNode(" " + t("liveEvents"))); bar.appendChild(c); }
         for (const [type, cfg] of Object.entries(TYPES)) {
             const count = BASELINE.filter(e => e.t === type).length + liveEvents.filter(e => e.t === type).length;
             if (!count) continue;
             const c = document.createElement("div"); c.className = "stat-chip"; c.style.opacity = hiddenTypes.has(type) ? "0.3" : "1";
-            c.innerHTML = `<span class="dot" style="background:${cfg.color}"></span><span class="cnt">${count}</span>`; bar.appendChild(c);
+            const sdot = document.createElement("span"); sdot.className = "dot"; sdot.style.background = cfg.color; c.appendChild(sdot);
+            const scnt = document.createElement("span"); scnt.className = "cnt"; scnt.textContent = count; c.appendChild(scnt); bar.appendChild(c);
         }
     }
 
@@ -1088,23 +1093,26 @@
      *  CONFLICT TAGS
      * ═════════════════════════════════════════════════════════════════*/
     function renderConflictTags() {
-        const list = $("conflictList"); list.innerHTML = "";
+        const list = $("conflictList"); list.replaceChildren();
         const all = [...BASELINE, ...liveEvents]; const regions = new Map();
         all.forEach(ev => {
             if (!regions.has(ev.r)) regions.set(ev.r, { lat: ev.lat, lng: ev.lng, s: ev.s, count: 1, hasLive: !!ev.live });
             else { regions.get(ev.r).count++; if (ev.live) regions.get(ev.r).hasLive = true; }
         });
         for (const [name, d] of regions) {
-            const tag = document.createElement("div"); tag.className = "conflict-tag";
+            const tag = document.createElement("div"); tag.className = "conflict-tag"; tag.setAttribute("role", "button"); tag.tabIndex = 0;
             const sc = d.s === "critical" ? "sev-critical" : d.s === "high" ? "sev-high" : "sev-moderate";
-            const li = d.hasLive ? ' <span style="color:var(--conflict);font-size:8px">●</span>' : '';
-            tag.innerHTML = `<span class="sev ${sc}"></span>${name}${li} <span style="color:var(--text2);font-size:9px;margin-left:2px">${d.count}</span>`;
-            tag.addEventListener("click", () => {
+            const sevSpan = document.createElement("span"); sevSpan.className = `sev ${sc}`; tag.appendChild(sevSpan);
+            tag.appendChild(document.createTextNode(name));
+            if (d.hasLive) { const liveInd = document.createElement("span"); liveInd.style.cssText = "color:var(--conflict);font-size:8px"; liveInd.textContent = " \u25CF"; tag.appendChild(liveInd); }
+            const countSpan = document.createElement("span"); countSpan.style.cssText = "color:var(--text2);font-size:9px;margin-left:2px"; countSpan.textContent = " " + d.count; tag.appendChild(countSpan);
+            const flyTo = () => {
                 if (map) map.flyTo([d.lat, d.lng], 6, { duration: 1.2 });
-                // Also open detail panel for first event in this region
                 const firstEv = all.find(e => e.r === name);
                 if (firstEv) openDetailPanel(firstEv, !!firstEv.live);
-            });
+            };
+            tag.addEventListener("click", flyTo);
+            tag.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flyTo(); } });
             list.appendChild(tag);
         }
     }
@@ -1166,7 +1174,7 @@
                         if (match) {
                             const level = parseInt(match[1]);
                             if (level >= 1 && level <= 5) {
-                                console.log(`[CT] DEFCON ${level} fetched from ${url} via proxy`);
+                                // DEFCON level fetched successfully
                                 return level;
                             }
                         }
@@ -1185,13 +1193,13 @@
                 if (match) {
                     const level = parseInt(match[1]);
                     if (level >= 1 && level <= 5) {
-                        console.log(`[CT] DEFCON ${level} from Google cache`);
+                        // DEFCON level from Google cache
                         return level;
                     }
                 }
             }
         } catch { /* Google cache also failed */ }
-        console.log("[CT] DEFCON: all proxies failed, using local calculation");
+        // DEFCON: all proxies failed, using local calculation
         return null;
     }
 

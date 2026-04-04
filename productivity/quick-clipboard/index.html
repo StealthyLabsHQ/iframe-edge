@@ -154,15 +154,7 @@
                 }, 300);
             });
 
-            $("copyBtn").addEventListener("click", () => {
-                const text = clipArea.value;
-                if (!text.trim()) {
-                    showToast(t("toastEmpty"));
-                    return;
-                }
-
-                // Create a temporary off-screen textarea, write text, copy, remove.
-                // This bypasses navigator.clipboard restrictions in the iCUE iframe.
+            function fallbackCopy(text) {
                 const tmp = document.createElement("textarea");
                 tmp.value = text;
                 tmp.style.position = "fixed";
@@ -175,11 +167,28 @@
                 tmp.setSelectionRange(0, 99999);
                 try {
                     const ok = document.execCommand("copy");
-                    showToast(ok ? t("toastCopied") : "❌ Copie échouée.");
-                } catch (e) {
-                    showToast("❌ Copie échouée.");
+                    showToast(ok ? t("toastCopied") : t("toastEmpty"));
+                } catch (_) {
+                    showToast(t("toastEmpty"));
                 }
                 document.body.removeChild(tmp);
+            }
+
+            $("copyBtn").addEventListener("click", () => {
+                const text = clipArea.value;
+                if (!text.trim()) {
+                    showToast(t("toastEmpty"));
+                    return;
+                }
+
+                // Try modern Clipboard API first, fall back to execCommand for iframe restrictions
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text)
+                        .then(() => showToast(t("toastCopied")))
+                        .catch(() => fallbackCopy(text));
+                } else {
+                    fallbackCopy(text);
+                }
             });
 
             $("clearBtn").addEventListener("click", () => {

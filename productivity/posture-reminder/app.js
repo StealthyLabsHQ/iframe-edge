@@ -44,6 +44,15 @@
           return i18n[currentLang][key];
         }
 
+        function showToast(msg, duration = 3000) {
+          const el = $("toast");
+          if (!el) return;
+          el.textContent = msg;
+          el.classList.add("visible");
+          clearTimeout(el._t);
+          el._t = setTimeout(() => el.classList.remove("visible"), duration);
+        }
+
         const INTERVAL_S = 20 * 60; // 20 minutes
         let timeLeft = INTERVAL_S;
         let isAlert = false;
@@ -77,12 +86,26 @@
           updateLangUI();
         }
 
+        function startTimer() {
+          clearInterval(timer);
+          timer = setInterval(() => {
+            if (!isAlert) {
+              timeLeft--;
+              renderTimer();
+              if (timeLeft <= 0) {
+                triggerAlert();
+              }
+            }
+          }, 1000);
+        }
+
         function resetTimer() {
           isAlert = false;
           timeLeft = INTERVAL_S;
           $("widget").classList.remove("alert-mode");
           updateLangUI();
           renderTimer();
+          startTimer();
         }
 
         $("actionBtn").addEventListener("click", () => {
@@ -107,15 +130,7 @@
         });
 
         // Initialize Loop
-        timer = setInterval(() => {
-          if (!isAlert) {
-            timeLeft--;
-            renderTimer();
-            if (timeLeft <= 0) {
-              triggerAlert();
-            }
-          }
-        }, 1000);
+        startTimer();
 
         updateThemeUI();
         updateLangUI();
