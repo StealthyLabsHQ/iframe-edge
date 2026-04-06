@@ -163,6 +163,8 @@
             icueHint: "L'URL ci-dessous contient votre Client ID. Collez-la dans iCUE — vous devrez ré-autoriser le token dans les paramètres du widget.",
             icueUrlPh: "Sauvegardez votre Client ID pour générer l'URL…",
             toastUrlCopied: "✓ URL copiée — collez-la dans iCUE",
+            toastUrlError: "⚠️ Impossible de copier — copiez manuellement",
+            missingClientId: "⚠️ Entrez d'abord votre Client ID",
         },
         en: {
             title: "Spotify",
@@ -192,6 +194,8 @@
             icueHint: "This URL contains your Client ID. Paste it in iCUE — you will need to re-authorize the token in the widget settings.",
             icueUrlPh: "Save your Client ID to generate the URL…",
             toastUrlCopied: "✓ URL copied — paste it in iCUE",
+            toastUrlError: "⚠️ Could not copy — copy manually",
+            missingClientId: "⚠️ Enter your Client ID first",
         },
     };
 
@@ -307,7 +311,7 @@
     $("authBtn").addEventListener("click", () => {
         const cid = $("inputClientId").value.trim();
         if (!cid) {
-            showToast("⚠️ Enter your Client ID first");
+            showToast(t("missingClientId"));
             $("inputClientId").focus();
             return;
         }
@@ -336,7 +340,7 @@
             btn.classList.add("copied");
             showToast(t("toastUrlCopied"));
             setTimeout(() => btn.classList.remove("copied"), 2500);
-        }).catch(() => showToast(t("toastUrlCopied")));
+        }).catch(() => showToast(t("toastUrlError")));
     });
 
     /* ─────────────────────────────────────────────────────────────────────────
