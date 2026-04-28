@@ -11,6 +11,11 @@ All notable changes to **iframe-edge** are documented here.
 - `scripts/package-icuewidgets.ps1`: validates and builds active widgets into `dist/icuewidgets/*.icuewidget`.
 
 ### Fixed - iCUE packages
+- Packaged HTML now adds a viewport meta tag before the iCUE title when source widgets omit one.
+- Fixed packaged `widget-polish.css` paths for productivity widgets.
+- Secondary packaged HTML files now receive the same iCUE title, CSP, and event metadata as `index.html`.
+- Packaged manifests now declare `dashboard_lcd` with `sensor-screen`, matching known importable Xeneon Edge widget packages.
+- Packaged HTML now keeps `viewport` before `<title>`, matching Corsair and Marketplace widget structure.
 - Packaged widgets now include a minimal global `icueEvents` bridge, removing the iCUE CLI validation warning across all widgets.
 - Generated packages now place translated `tr('...')` HTML titles at the top of `<head>` for the iCUE import validator.
 - Packaging now stages files in `icuewidget-build/` so the official iCUE Widget CLI includes the widget files instead of creating empty or invalid archives.

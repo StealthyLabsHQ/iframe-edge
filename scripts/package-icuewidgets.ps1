@@ -53,22 +53,36 @@ function New-IconSvg($path, $accent, $label) {
   [System.IO.File]::WriteAllText($path, $svg, [System.Text.UTF8Encoding]::new($false))
 }
 
-function Update-IndexForPackage($path, $title) {
+function Update-HtmlForPackage($path, $title, $updateAssetPaths) {
   $html = [System.IO.File]::ReadAllText($path, [System.Text.UTF8Encoding]::new($false))
-  $html = $html.Replace("../productivity/theme-loader.js", "./theme-loader.js")
-  $html = $html.Replace("../productivity/size-loader.js", "./size-loader.js")
-  $html = $html.Replace("../productivity/xeneon-edge.css", "./xeneon-edge.css")
-  $html = $html.Replace("../theme-loader.js", "./theme-loader.js")
-  $html = $html.Replace("../size-loader.js", "./size-loader.js")
-  $html = $html.Replace("../xeneon-edge.css", "./xeneon-edge.css")
-  $html = $html.Replace("../widget-polish.css", "./widget-polish.css")
-  $html = $html.Replace("../../widget-polish.css", "./widget-polish.css")
-  $html = [regex]::Replace($html, '<link rel="icon"[^>]*>', '<link rel="icon" type="image/svg+xml" href="resources/icon.svg" />')
+  if ($updateAssetPaths) {
+    $html = $html.Replace("../productivity/theme-loader.js", "./theme-loader.js")
+    $html = $html.Replace("../productivity/size-loader.js", "./size-loader.js")
+    $html = $html.Replace("../productivity/xeneon-edge.css", "./xeneon-edge.css")
+    $html = $html.Replace("../theme-loader.js", "./theme-loader.js")
+    $html = $html.Replace("../size-loader.js", "./size-loader.js")
+    $html = $html.Replace("../xeneon-edge.css", "./xeneon-edge.css")
+    $html = $html.Replace("../../widget-polish.css", "./widget-polish.css")
+    $html = $html.Replace("../widget-polish.css", "./widget-polish.css")
+    $html = [regex]::Replace($html, '<link rel="icon"[^>]*>', '<link rel="icon" type="image/svg+xml" href="resources/icon.svg" />')
+  }
   $html = [regex]::Replace($html, '<title>.*?</title>', "", 1)
+  $viewportPattern = '<meta\b(?=[^>]*\bname=["'']viewport["''])[^>]*>'
+  if ($html -notmatch $viewportPattern) {
+    $html = [regex]::Replace($html, '(<meta\s+charset=["''][^"'']+["'']\s*/?>)', "`$1`r`n    <meta name=`"viewport`" content=`"width=device-width, initial-scale=1.0`" />", 1)
+  }
   $titleKey = $title.Replace("'", "\'")
-  $html = [regex]::Replace($html, '(<meta\s+charset=["''][^"'']+["'']\s*/?>)', "`$1`r`n    <title>tr('$titleKey')</title>", 1)
+  $titleTag = "<title>tr('$titleKey')</title>"
+  if ($html -match $viewportPattern) {
+    $html = [regex]::Replace($html, "($viewportPattern)", "`$1`r`n    $titleTag", 1)
+  } else {
+    $html = [regex]::Replace($html, '(<meta\s+charset=["''][^"'']+["'']\s*/?>)', "`$1`r`n    $titleTag", 1)
+  }
   if ($html -match 'Content-Security-Policy' -and $html -notmatch "script-src[^;]*'unsafe-inline'") {
     $html = [regex]::Replace($html, "(script-src\s+'self')", "`$1 'unsafe-inline'", 1)
+  }
+  if ($html -match 'Content-Security-Policy' -and $html -notmatch "style-src[^;]*'unsafe-inline'") {
+    $html = [regex]::Replace($html, "(style-src\s+'self')", "`$1 'unsafe-inline'", 1)
   }
   if ($html -notmatch '\bicueEvents\s*=') {
     $icueEvents = @"
@@ -81,7 +95,7 @@ function Update-IndexForPackage($path, $title) {
 "@
     $html = [regex]::Replace($html, '</head>', "$icueEvents`r`n</head>", 1)
   }
-  if ($html -notmatch '<link rel="icon"') {
+  if ($updateAssetPaths -and $html -notmatch '<link rel="icon"') {
     $html = [regex]::Replace($html, '(<title>.*?</title>)', "`$1`r`n    <link rel=`"icon`" type=`"image/svg+xml`" href=`"resources/icon.svg`" />", 1)
   }
   [System.IO.File]::WriteAllText($path, $html, [System.Text.UTF8Encoding]::new($false))
@@ -159,7 +173,13 @@ foreach ($widget in $widgets) {
   }
 
   New-IconSvg (Join-Path $dst "resources\icon.svg") $widget.accent $widget.label
-  Update-IndexForPackage (Join-Path $dst "index.html") $widget.name
+  $indexPath = Join-Path $dst "index.html"
+  Update-HtmlForPackage $indexPath $widget.name $true
+  Get-ChildItem -LiteralPath $dst -Recurse -Filter *.html | Where-Object {
+    $_.FullName -ne $indexPath
+  } | ForEach-Object {
+    Update-HtmlForPackage $_.FullName $widget.name $false
+  }
 
   $manifest = [ordered]@{
     author = "StealthyLabsHQ"
@@ -170,7 +190,7 @@ foreach ($widget in $widgets) {
     preview_icon = "resources/icon.svg"
     min_framework_version = "1.0.0"
     os = @(@{ platform = "windows" })
-    supported_devices = @(@{ type = "dashboard_lcd" })
+    supported_devices = @([ordered]@{ type = "dashboard_lcd"; features = @("sensor-screen") })
     interactive = $true
   }
   $manifestJson = $manifest | ConvertTo-Json -Depth 6
