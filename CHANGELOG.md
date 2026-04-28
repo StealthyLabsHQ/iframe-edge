@@ -10,6 +10,9 @@ All notable changes to **iframe-edge** are documented here.
 - `widget-polish.css`: shared Huashu design finish layer for active widgets, with compact icon-only headers, tighter controls, restrained 8px surfaces, improved borders, focus states, and less title-heavy UI.
 - `scripts/package-icuewidgets.ps1`: validates and builds active widgets into `dist/icuewidgets/*.icuewidget`.
 
+### Fixed - iCUE packages
+- Generated packages now include iCUE-compatible `tr('Name')` HTML titles and English `translation.json` entries required by the iCUE import validator.
+
 ### Changed - Active widgets
 - Removed visible header titles across active widgets while preserving DOM ids for runtime copy updates.
 - Standardized active widget UI to English-only copy and removed French language toggles/dictionaries.
