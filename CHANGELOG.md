@@ -11,7 +11,7 @@ All notable changes to **iframe-edge** are documented here.
 - `scripts/package-icuewidgets.ps1`: validates and builds active widgets into `dist/icuewidgets/*.icuewidget`.
 
 ### Fixed - iCUE packages
-- Generated packages now include iCUE-compatible `tr('Name')` HTML titles and English `translation.json` entries required by the iCUE import validator.
+- Generated packages now place plain HTML titles at the top of `<head>` for the iCUE import validator.
 
 ### Changed - Active widgets
 - Removed visible header titles across active widgets while preserving DOM ids for runtime copy updates.

@@ -64,7 +64,8 @@ function Update-IndexForPackage($path, $title) {
   $html = $html.Replace("../widget-polish.css", "./widget-polish.css")
   $html = $html.Replace("../../widget-polish.css", "./widget-polish.css")
   $html = [regex]::Replace($html, '<link rel="icon"[^>]*>', '<link rel="icon" type="image/svg+xml" href="resources/icon.svg" />')
-  $html = [regex]::Replace($html, '<title>.*?</title>', "<title>tr('$title')</title>", 1)
+  $html = [regex]::Replace($html, '<title>.*?</title>', "", 1)
+  $html = [regex]::Replace($html, '(<meta\s+charset=["''][^"'']+["'']\s*/?>)', "`$1`r`n    <title>$title</title>", 1)
   if ($html -notmatch '<link rel="icon"') {
     $html = [regex]::Replace($html, '(<title>.*?</title>)', "`$1`r`n    <link rel=`"icon`" type=`"image/svg+xml`" href=`"resources/icon.svg`" />", 1)
   }

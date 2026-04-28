@@ -73,7 +73,7 @@ powershell -ExecutionPolicy Bypass -File scripts\package-icuewidgets.ps1
 ```
 
 Packaged widgets are written to `dist/icuewidgets/*.icuewidget`.
-Packages include iCUE title translations required by the import validator.
+Packages include plain HTML titles required by the iCUE import validator.
 
 ### 📐 Size Variants
 
