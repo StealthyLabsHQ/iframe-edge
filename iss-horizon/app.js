@@ -83,7 +83,7 @@
         const origin = (location.origin && location.origin !== 'null') ? location.origin : EMBED_ORIGIN_FALLBACK;
         const widgetReferrer = location.href && /^https?:\/\//.test(location.href)
             ? location.href
-            : `${EMBED_ORIGIN_FALLBACK}/iframe-edge/iss-horizon/`;
+            : `${EMBED_ORIGIN_FALLBACK}/icue-edge-widgets/iss-horizon/`;
         return { origin, widgetReferrer };
     }
 

@@ -2,7 +2,7 @@
 (function () {
     'use strict';
 
-    const REDIRECT_URI = 'https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/auth/callback.html';
+    const REDIRECT_URI = 'https://stealthylabshq.github.io/icue-edge-widgets/spotify-visualizer/auth/callback.html';
     const OAUTH_STATE_KEY = 'oauth_state';
 
     function setStatus(iconChar, iconClass, title, subtitle) {

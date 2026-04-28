@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **iframe-edge** are documented here.
+All notable changes to **icue-edge-widgets** are documented here.
 
 ---
 
