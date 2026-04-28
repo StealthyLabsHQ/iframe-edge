@@ -67,6 +67,20 @@ function Update-IndexForPackage($path, $title) {
   $html = [regex]::Replace($html, '<title>.*?</title>', "", 1)
   $titleKey = $title.Replace("'", "\'")
   $html = [regex]::Replace($html, '(<meta\s+charset=["''][^"'']+["'']\s*/?>)', "`$1`r`n    <title>tr('$titleKey')</title>", 1)
+  if ($html -match 'Content-Security-Policy' -and $html -notmatch "script-src[^;]*'unsafe-inline'") {
+    $html = [regex]::Replace($html, "(script-src\s+'self')", "`$1 'unsafe-inline'", 1)
+  }
+  if ($html -notmatch '\bicueEvents\s*=') {
+    $icueEvents = @"
+    <script>
+      icueEvents = {
+        onDataUpdated: function () {},
+        onICUEInitialized: function () {}
+      };
+    </script>
+"@
+    $html = [regex]::Replace($html, '</head>', "$icueEvents`r`n</head>", 1)
+  }
   if ($html -notmatch '<link rel="icon"') {
     $html = [regex]::Replace($html, '(<title>.*?</title>)', "`$1`r`n    <link rel=`"icon`" type=`"image/svg+xml`" href=`"resources/icon.svg`" />", 1)
   }

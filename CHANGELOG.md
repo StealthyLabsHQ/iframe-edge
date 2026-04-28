@@ -11,6 +11,7 @@ All notable changes to **iframe-edge** are documented here.
 - `scripts/package-icuewidgets.ps1`: validates and builds active widgets into `dist/icuewidgets/*.icuewidget`.
 
 ### Fixed - iCUE packages
+- Packaged widgets now include a minimal global `icueEvents` bridge, removing the iCUE CLI validation warning across all widgets.
 - Generated packages now place translated `tr('...')` HTML titles at the top of `<head>` for the iCUE import validator.
 - Packaging now stages files in `icuewidget-build/` so the official iCUE Widget CLI includes the widget files instead of creating empty or invalid archives.
 
