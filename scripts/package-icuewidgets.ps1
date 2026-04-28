@@ -5,7 +5,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
-$buildRoot = Join-Path $root ".icuewidget-build"
+$buildRoot = Join-Path $root "icuewidget-build"
 $outRoot = Join-Path $root "dist\icuewidgets"
 
 if (-not $CliPath) {

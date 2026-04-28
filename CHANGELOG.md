@@ -12,6 +12,7 @@ All notable changes to **iframe-edge** are documented here.
 
 ### Fixed - iCUE packages
 - Generated packages now place plain HTML titles at the top of `<head>` for the iCUE import validator.
+- Packaging now stages files in `icuewidget-build/` so the official iCUE Widget CLI includes the widget files instead of creating empty or invalid archives.
 
 ### Changed - Active widgets
 - Removed visible header titles across active widgets while preserving DOM ids for runtime copy updates.
