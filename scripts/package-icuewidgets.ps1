@@ -179,7 +179,7 @@ foreach ($widget in $widgets) {
   Get-ChildItem -LiteralPath $dst -Recurse -Filter *.html | Where-Object {
     $_.FullName -ne $indexPath
   } | ForEach-Object {
-    Update-HtmlForPackage $_.FullName $widget.name $false
+    Remove-Item -LiteralPath $_.FullName -Force
   }
 
   $manifest = [ordered]@{
