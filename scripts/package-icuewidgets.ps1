@@ -70,12 +70,28 @@ function Update-IndexForPackage($path) {
 }
 
 function New-IcueWidgetArchive($source, $output) {
+  Add-Type -AssemblyName System.IO.Compression
   Add-Type -AssemblyName System.IO.Compression.FileSystem
-  $zipPath = "$output.zip"
-  if (Test-Path $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
   if (Test-Path $output) { Remove-Item -LiteralPath $output -Force }
-  [System.IO.Compression.ZipFile]::CreateFromDirectory($source, $zipPath)
-  Move-Item -LiteralPath $zipPath -Destination $output -Force
+
+  $zip = [System.IO.Compression.ZipFile]::Open($output, [System.IO.Compression.ZipArchiveMode]::Create)
+  try {
+    $sourceFull = [System.IO.Path]::GetFullPath($source).TrimEnd('\')
+    Get-ChildItem -LiteralPath $sourceFull -Recurse -File | ForEach-Object {
+      $relative = $_.FullName.Substring($sourceFull.Length + 1).Replace('\', '/')
+      $entry = $zip.CreateEntry($relative, [System.IO.Compression.CompressionLevel]::Optimal)
+      $entryStream = $entry.Open()
+      $fileStream = [System.IO.File]::OpenRead($_.FullName)
+      try {
+        $fileStream.CopyTo($entryStream)
+      } finally {
+        $fileStream.Dispose()
+        $entryStream.Dispose()
+      }
+    }
+  } finally {
+    $zip.Dispose()
+  }
 }
 
 $widgets = @(
