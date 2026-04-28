@@ -123,11 +123,22 @@ function New-IcueWidgetArchive($source, $output) {
   $zip = [System.IO.Compression.ZipFile]::Open($output, [System.IO.Compression.ZipArchiveMode]::Create)
   try {
     $sourceFull = [System.IO.Path]::GetFullPath($source).TrimEnd('\')
-    Get-ChildItem -LiteralPath $sourceFull -Recurse -File | ForEach-Object {
+    $files = Get-ChildItem -LiteralPath $sourceFull -Recurse -File | ForEach-Object {
       $relative = $_.FullName.Substring($sourceFull.Length + 1).Replace('\', '/')
+      [PSCustomObject]@{ File = $_; Relative = $relative }
+    }
+    $priority = @("index.html", "manifest.json", "translation.json", "resources/icon.svg")
+    $orderedFiles = @()
+    foreach ($name in $priority) {
+      $orderedFiles += $files | Where-Object { $_.Relative -eq $name }
+    }
+    $orderedFiles += $files | Where-Object { $priority -notcontains $_.Relative } | Sort-Object Relative
+
+    $orderedFiles | ForEach-Object {
+      $relative = $_.Relative
       $entry = $zip.CreateEntry($relative, [System.IO.Compression.CompressionLevel]::Optimal)
       $entryStream = $entry.Open()
-      $fileStream = [System.IO.File]::OpenRead($_.FullName)
+      $fileStream = [System.IO.File]::OpenRead($_.File.FullName)
       try {
         $fileStream.CopyTo($entryStream)
       } finally {
@@ -204,9 +215,7 @@ foreach ($widget in $widgets) {
   $output = Join-Path $outRoot ($widget.slug + ".icuewidget")
   & $CliPath package $dst --output $output
   if ($LASTEXITCODE -ne 0) { throw "Packaging failed for $($widget.slug)" }
-  if ((Get-Item -LiteralPath $output).Length -le 22) {
-    New-IcueWidgetArchive $dst $output
-  }
+  New-IcueWidgetArchive $dst $output
 }
 
 Write-Host "Packaged $($widgets.Count) widgets into $outRoot"

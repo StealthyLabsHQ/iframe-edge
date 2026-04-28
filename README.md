@@ -80,6 +80,7 @@ Packages include a viewport meta tag before the iCUE title.
 Packaged manifests target Xeneon Edge as `dashboard_lcd` with `sensor-screen` support.
 Translation files include Corsair locale keys, all mapped to English fallback text.
 The packaging script stages files in `icuewidget-build/`; do not switch it to a dot-prefixed folder because the official CLI skips hidden path segments.
+Final archives are written with `index.html` as the first ZIP entry to match importable Marketplace packages.
 
 ### 📐 Size Variants
 
