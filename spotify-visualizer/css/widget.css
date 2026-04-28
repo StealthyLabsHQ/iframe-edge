@@ -63,6 +63,9 @@ button {
     --font-m:       'JetBrains Mono', monospace;
     --layout-unit:  1vmin;
     --album-compact-size: clamp(160px, calc(var(--layout-unit) * 75), 420px);
+    --panel-ink:    rgba(255, 255, 255, 0.82);
+    --hairline:     rgba(255, 255, 255, 0.055);
+    --stage-pad:    28px;
 }
 
 :root[data-theme="light"] {
@@ -85,6 +88,8 @@ button {
     --overlay-8:    rgba(0, 0, 0, 0.08);
     --overlay-10:   rgba(0, 0, 0, 0.10);
     --overlay-15:   rgba(0, 0, 0, 0.18);
+    --panel-ink:    rgba(0, 0, 0, 0.82);
+    --hairline:     rgba(0, 0, 0, 0.08);
 }
 
 /* ── Blur theme: album art fills background ─────────────── */
@@ -151,7 +156,9 @@ body {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.7));
+    background:
+        radial-gradient(circle at 18% 45%, rgba(29, 185, 84, 0.10), transparent 28%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.90), rgba(0, 0, 0, 0.70) 34%, rgba(0, 0, 0, 0.94));
     pointer-events: none;
     transition: background 0.3s ease;
 }
@@ -205,22 +212,40 @@ body {
     transition: background var(--tr), border-color var(--tr);
 }
 
+#widget::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(var(--hairline) 1px, transparent 1px),
+        linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+    background-size: 100% 44px, 44px 100%;
+    opacity: 0.16;
+    mix-blend-mode: screen;
+    z-index: 1;
+}
+
 /* ── Header ─────────────────────────────────────────────── */
 .hdr {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 16px 8px;
+    gap: 12px;
+    min-height: 50px;
+    padding: 8px 16px;
     flex-shrink: 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--hairline);
+    background: rgba(0, 0, 0, 0.32);
+    position: relative;
+    z-index: 3;
 }
 
 .hdr-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: var(--accent-d);
-    border: 1px solid var(--accent-b);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(29, 185, 84, 0.15);
+    border: 1px solid rgba(29, 185, 84, 0.28);
     color: var(--accent);
     display: flex;
     align-items: center;
@@ -232,11 +257,11 @@ body {
 /* Title label — new element added in HTML */
 .hdr-title {
     font-family: var(--font-h);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 2.5px;
+    letter-spacing: 4px;
     text-transform: uppercase;
-    color: var(--text-2);
+    color: var(--panel-ink);
     flex: 1;
 }
 
@@ -249,9 +274,9 @@ body {
     min-width: 30px;
     height: 28px;
     padding: 4px 8px;
-    border-radius: 6px;
-    background: var(--overlay-5);
-    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--hairline);
     color: var(--text-2);
     display: flex;
     align-items: center;
@@ -272,8 +297,10 @@ body {
     flex: 1;
     display: flex;
     overflow: hidden;
-    padding: 0 14px 14px;
-    gap: 14px;
+    padding: 0;
+    gap: 0;
+    position: relative;
+    z-index: 2;
 }
 
 /* ── Left column ────────────────────────────────────────── */
@@ -298,8 +325,8 @@ body {
 }
 
 #widget.is-playing {
-    border-color: var(--accent-b);
-    box-shadow: 0 0 40px rgba(29, 185, 84, 0.06), inset 0 0 60px rgba(29, 185, 84, 0.01);
+    border-color: rgba(29, 185, 84, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(29, 185, 84, 0.05);
 }
 
 #widget.is-playing::before {
@@ -310,16 +337,16 @@ body {
 .album-wrap {
     position: relative;
     flex-shrink: 0;
-    border-radius: 10px;
+    border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--border);
+    box-shadow: 0 14px 46px rgba(0, 0, 0, 0.58);
+    border: 1px solid rgba(29, 185, 84, 0.22);
     transition: width var(--tr), height var(--tr), box-shadow 0.4s ease, border-color 0.4s ease;
 }
 
 #widget.is-playing .album-wrap {
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(29, 185, 84, 0.15);
-    border-color: var(--accent-b);
+    box-shadow: 0 16px 54px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(29, 185, 84, 0.18);
+    border-color: rgba(29, 185, 84, 0.34);
 }
 
 .album-wrap img {
@@ -352,10 +379,10 @@ body {
 .track-name {
     font-family: var(--font-h);
     font-size: 14px;
-    font-weight: 700;
-    color: var(--text-1);
+    font-weight: 650;
+    color: var(--panel-ink);
     line-height: 1.25;
-    letter-spacing: -0.2px;
+    letter-spacing: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -393,9 +420,9 @@ body {
 }
 
 .progress-bar {
-    height: 3px;
-    border-radius: 3px;
-    background: var(--overlay-8);
+    height: 4px;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.08);
     overflow: hidden;
     cursor: pointer;
     position: relative;
@@ -408,7 +435,7 @@ body {
 
 .progress-fill {
     height: 100%;
-    border-radius: 3px;
+    border-radius: 0;
     background: var(--accent);
     width: 0%;
     transition: width 1s linear;
@@ -443,9 +470,9 @@ body {
 .ctrl-btn {
     width: 34px;
     height: 34px;
-    border-radius: 8px;
-    background: transparent;
-    border: 1px solid transparent;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--hairline);
     color: var(--text-2);
     display: flex;
     align-items: center;
@@ -476,7 +503,7 @@ body {
 .ctrl-btn.play {
     width: 42px;
     height: 42px;
-    border-radius: 50%;
+    border-radius: 999px;
     background: var(--accent);
     border-color: transparent;
     color: #000;
@@ -588,6 +615,23 @@ body {
     min-width: 0;
     overflow: hidden;
     position: relative;
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025), transparent 28%),
+        rgba(0, 0, 0, 0.10);
+}
+
+.col-right::before {
+    content: "LYRICS";
+    position: absolute;
+    top: var(--stage-pad);
+    left: var(--stage-pad);
+    font-family: var(--font-m);
+    font-size: 9px;
+    letter-spacing: 0.38em;
+    color: var(--text-3);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    z-index: 2;
 }
 
 .lyrics-header {
@@ -607,17 +651,18 @@ body {
     scrollbar-width: thin;
     scrollbar-color: var(--overlay-8) transparent;
     scroll-behavior: smooth;
-    padding: 40px 8px;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-    mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+    padding: 54px 92px 54px 72px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
 }
 
 .lyric-line {
+    max-width: 980px;
     font-size: 12px;
-    line-height: 1.8;
-    padding: 1px 4px;
-    color: rgba(255, 255, 255, 0.38);
-    transition: color 0.35s ease, font-size 0.3s ease, font-weight 0.3s ease, opacity 0.35s ease;
+    line-height: 1.7;
+    padding: 3px 0;
+    color: rgba(255, 255, 255, 0.28);
+    transition: color 0.35s ease, font-size 0.3s ease, font-weight 0.3s ease, opacity 0.35s ease, transform 0.35s ease;
     cursor: default;
     border-radius: 4px;
 }
@@ -632,7 +677,7 @@ html.sz-xl .lyric-line {
 }
 
 .lyric-line.near {
-    color: rgba(255, 255, 255, 0.62);
+    color: rgba(255, 255, 255, 0.55);
     font-size: 13px;
 }
 
@@ -647,14 +692,28 @@ html.sz-xl .lyric-line.near {
 
 .lyric-line.active {
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 650;
     color: var(--text-1);
-    text-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
+    text-shadow: none;
+    transform: translateX(10px);
 }
 
 html.sz-l .lyric-line.active,
 html.sz-xl .lyric-line.active {
-    font-size: 23px;
+    font-size: 30px;
+    line-height: 1.18;
+    letter-spacing: 0;
+}
+
+.lyric-line.active::before {
+    content: "";
+    display: inline-block;
+    width: 28px;
+    height: 2px;
+    margin-right: 12px;
+    vertical-align: middle;
+    background: var(--accent);
+    box-shadow: 0 0 18px rgba(29, 185, 84, 0.48);
 }
 
 .no-lyrics {
@@ -1008,7 +1067,7 @@ html.sz-m .col-left-inner {
 html.sz-m .album-wrap {
     width: var(--album-compact-size) !important;
     height: var(--album-compact-size) !important;
-    border-radius: 12px;
+    border-radius: 6px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
     flex-shrink: 0;
 }
@@ -1032,7 +1091,7 @@ html.sz-m #trackInfo {
     right: 0;
     z-index: 3;
     padding: 28px 10px 6px;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.90));
     border-radius: 0;
 }
 
@@ -1089,7 +1148,7 @@ html.sz-m .controls {
 html.sz-m .controls .ctrl-btn {
     width: 38px;
     height: 38px;
-    border-radius: 10px;
+    border-radius: 6px;
     background: rgba(0, 0, 0, 0.45);
     border-color: rgba(255, 255, 255, 0.14);
     backdrop-filter: blur(4px);
@@ -1098,7 +1157,7 @@ html.sz-m .controls .ctrl-btn {
 html.sz-m .controls .ctrl-btn.play {
     width: 48px;
     height: 48px;
-    border-radius: 12px;
+    border-radius: 999px;
     background: var(--accent);
     border-color: transparent;
     color: #000;
@@ -1124,17 +1183,20 @@ html.sz-l #content {
     flex-direction: row;
     align-items: stretch;
     justify-content: flex-start;
-    padding: 0 12px 12px;
+    padding: 0;
 }
 
 html.sz-l .col-left {
-    width: 380px;
-    min-width: 320px;
+    width: 400px;
+    min-width: 360px;
     flex-shrink: 0;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
     gap: 14px;
+    padding: 16px 20px 18px;
+    border-right: 1px solid var(--hairline);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.010));
 }
 
 html.sz-l .col-left-inner {
@@ -1145,8 +1207,8 @@ html.sz-l .col-left-inner {
 }
 
 html.sz-l .album-wrap {
-    width: 136px;
-    height: 136px;
+    width: 142px;
+    height: 142px;
     flex-shrink: 0;
 }
 
@@ -1160,7 +1222,7 @@ html.sz-l #trackInfo {
 }
 
 html.sz-l .track-name {
-    font-size: 20px;
+    font-size: 21px;
     font-weight: 700;
 }
 
@@ -1228,7 +1290,7 @@ html.sz-l #volumeSlider::-moz-range-thumb {
 html.sz-l .controls .ctrl-btn {
     width: 48px;
     height: 48px;
-    border-radius: 10px;
+    border-radius: 6px;
 }
 
 html.sz-l .controls .ctrl-btn svg {
@@ -1250,7 +1312,7 @@ html.sz-l .controls .ctrl-btn.play svg {
 html.sz-l .controls .ctrl-btn.ctrl-sm {
     width: 40px;
     height: 40px;
-    border-radius: 8px;
+    border-radius: 5px;
 }
 
 html.sz-l .controls .ctrl-btn.ctrl-sm svg {
@@ -1263,9 +1325,9 @@ html.sz-l .col-right {
     flex: 1;
     min-width: 0;
     width: 0;
-    border-left: 1px solid var(--border);
-    padding-left: 14px;
-    margin-left: 10px;
+    border-left: 0;
+    padding-left: 0;
+    margin-left: 0;
 }
 
 /* ── XL : Two full columns ── */
@@ -1273,17 +1335,20 @@ html.sz-xl #content {
     flex-direction: row;
     align-items: stretch;
     justify-content: flex-start;
-    padding: 0 14px 14px;
+    padding: 0;
 }
 
 html.sz-xl .col-left {
-    width: 310px;
-    min-width: 310px;
+    width: 352px;
+    min-width: 352px;
     flex-shrink: 0;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
     gap: 12px;
+    padding: 16px 22px 18px;
+    border-right: 1px solid var(--hairline);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.010));
 }
 
 html.sz-xl .col-left-inner {
@@ -1294,7 +1359,8 @@ html.sz-xl .col-left-inner {
 
 html.sz-xl .album-wrap {
     width: 100%;
-    height: 285px;
+    height: min(276px, calc(100vh - 260px));
+    height: min(276px, calc(100dvh - 260px));
     flex-shrink: 0;
 }
 
@@ -1374,7 +1440,7 @@ html.sz-xl #volumeSlider::-moz-range-thumb {
 html.sz-xl .controls .ctrl-btn {
     width: 44px;
     height: 44px;
-    border-radius: 9px;
+    border-radius: 6px;
 }
 
 html.sz-xl .controls .ctrl-btn svg {
@@ -1396,7 +1462,7 @@ html.sz-xl .controls .ctrl-btn.play svg {
 html.sz-xl .controls .ctrl-btn.ctrl-sm {
     width: 36px;
     height: 36px;
-    border-radius: 7px;
+    border-radius: 5px;
 }
 
 html.sz-xl .controls .ctrl-btn.ctrl-sm svg {
@@ -1409,25 +1475,25 @@ html.sz-xl .col-right {
     flex: 1;
     min-width: 0;
     width: 0;
-    border-left: 1px solid var(--border);
-    padding-left: 14px;
-    margin-left: 10px;
+    border-left: 0;
+    padding-left: 0;
+    margin-left: 0;
 }
 
 /* ── Lyrics scroll controls ── */
 .lyrics-ctrl-bar {
     display: none;
     position: absolute;
-    right: 8px;
+    right: 16px;
     bottom: 20px;
     flex-direction: column;
     align-items: center;
     gap: 6px;
     padding: 8px 6px;
     flex-shrink: 0;
-    background: var(--glass-bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.36);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
     backdrop-filter: blur(10px);
     z-index: 10;
 }
@@ -1455,18 +1521,18 @@ html.sz-xl .lyrics-ctrl-bar {
 
 html.sz-l .lyrics-ctrl-bar,
 html.sz-xl .lyrics-ctrl-bar {
-    right: 10px;
-    bottom: 24px;
+    right: 20px;
+    bottom: 22px;
     gap: 8px;
     padding: 10px 8px;
-    border-radius: 14px;
+    border-radius: 999px;
 }
 
 html.sz-l .lyrics-ctrl-btn,
 html.sz-xl .lyrics-ctrl-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
 }
 
 #lyricsAutoBtn {
