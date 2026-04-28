@@ -11,6 +11,7 @@ All notable changes to **iframe-edge** are documented here.
 - `scripts/package-icuewidgets.ps1`: validates and builds active widgets into `dist/icuewidgets/*.icuewidget`.
 
 ### Fixed - iCUE packages
+- Translation files now include Corsair's expected locale keys with English fallback values, preventing `tr('...')` titles from resolving empty in iCUE.
 - Packaged HTML now adds a viewport meta tag before the iCUE title when source widgets omit one.
 - Fixed packaged `widget-polish.css` paths for productivity widgets.
 - Secondary packaged HTML files now receive the same iCUE title, CSP, and event metadata as `index.html`.

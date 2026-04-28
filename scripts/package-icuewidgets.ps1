@@ -102,8 +102,9 @@ function Update-HtmlForPackage($path, $title, $updateAssetPaths) {
 }
 
 function New-TranslationJson($path, $title) {
-  $translation = [ordered]@{
-    en = [ordered]@{
+  $translation = [ordered]@{}
+  @("en", "de", "es", "fr", "it", "ja", "ko", "pt", "ru", "zh_CN", "zh_TW", "uk", "en_FAKE") | ForEach-Object {
+    $translation[$_] = [ordered]@{
       translation = [ordered]@{
         $title = $title
         Settings = "Settings"

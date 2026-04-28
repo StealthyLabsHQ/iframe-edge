@@ -78,6 +78,7 @@ Packages also inject a minimal global `icueEvents` bridge so the iCUE validator 
 All packaged HTML files are normalized, including secondary auth pages.
 Packages include a viewport meta tag before the iCUE title.
 Packaged manifests target Xeneon Edge as `dashboard_lcd` with `sensor-screen` support.
+Translation files include Corsair locale keys, all mapped to English fallback text.
 The packaging script stages files in `icuewidget-build/`; do not switch it to a dot-prefixed folder because the official CLI skips hidden path segments.
 
 ### 📐 Size Variants
