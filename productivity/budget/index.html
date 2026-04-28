@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="../../widget-polish.css" />
 </head>
 
 <body>
@@ -20,23 +21,22 @@
     <!-- Header -->
     <div class="mod-header">
       <div class="mod-icon">💰</div>
-      <span class="mod-title" id="t-title">Budget</span>
+      <span class="mod-title" id="t-title" hidden>Budget</span>
       <div class="ctrl-btn" id="themeToggle" style="margin-left:auto">🌙</div>
-      <div class="ctrl-btn" id="langToggle">FR</div>
     </div>
 
     <!-- Summary cards -->
     <div class="summary-row">
       <div class="summary-card">
-        <div class="summary-label" id="t-balance">Solde</div>
+        <div class="summary-label" id="t-balance">Balance</div>
         <div class="summary-value" id="val-balance">€0.00</div>
       </div>
       <div class="summary-card">
-        <div class="summary-label" id="t-revenues">Revenus</div>
+        <div class="summary-label" id="t-revenues">Income</div>
         <div class="summary-value income-color" id="val-income">+€0.00</div>
       </div>
       <div class="summary-card">
-        <div class="summary-label" id="t-expenses">Dépenses</div>
+        <div class="summary-label" id="t-expenses">Expenses</div>
         <div class="summary-value expense-color" id="val-expense">-€0.00</div>
       </div>
     </div>
@@ -54,13 +54,13 @@
       <div class="form-row">
         <div class="type-toggle">
           <button class="type-btn active" id="btnExpense">
-            <span id="t-expense-btn">Dépense</span>
+            <span id="t-expense-btn">Expense</span>
           </button>
           <button class="type-btn" id="btnIncome">
-            <span id="t-income-btn">Revenu</span>
+            <span id="t-income-btn">Income</span>
           </button>
         </div>
-        <input class="form-input" type="number" id="inputAmount" min="0" step="0.01" placeholder="Montant" />
+        <input class="form-input" type="number" id="inputAmount" min="0" step="0.01" placeholder="Amount" />
       </div>
       <!-- Row 2: description + category + add button -->
       <div class="form-row">
@@ -79,9 +79,9 @@
       <div class="form-row" id="recurRow" style="display:none">
         <label class="recur-label" for="chkRecurring" id="recurLabel">
           <input type="checkbox" id="chkRecurring" />
-          <span id="t-recurring">🔄 Abonnement mensuel</span>
+          <span id="t-recurring">🔄 Monthly subscription</span>
         </label>
-        <input class="form-input" type="number" id="inputDebitDay" min="1" max="31" placeholder="Jour (1-31)"
+        <input class="form-input" type="number" id="inputDebitDay" min="1" max="31" placeholder="Day (1-31)"
           style="display:none; max-width:100px" />
       </div>
     </div>
@@ -90,7 +90,7 @@
     <div class="subs-section" id="subsSection" style="display:none">
       <div class="subs-header">
         <span class="subs-header-icon">🔄</span>
-        <span class="subs-header-label" id="t-next-debits">Prochains prélèvements</span>
+        <span class="subs-header-label" id="t-next-debits">Upcoming debits</span>
         <span class="subs-total" id="subsTotal"></span>
       </div>
       <div class="subs-chips" id="subsChips"></div>

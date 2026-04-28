@@ -27,23 +27,10 @@
           localStorage.setItem(THEME_KEY, currentTheme);
           updateThemeUI();
         });
-
-        const LANG_KEY = "pa_lang";
-        let currentLang = localStorage.getItem(LANG_KEY) || "en";
+        const currentLang = "en";
 
         const i18n = {
-          fr: {
-            title: "Habitudes",
-            placeholders: [
-              "Ex: Lire 10 pages...",
-              "Ex: Sport 30mn...",
-              "Ex: Méditation...",
-              "Ex: Vitamines...",
-            ],
-            toastReset: "🌅 Nouveau jour ! Habitudes réinitialisées.",
-            toastAllDone: "🎉 Toutes les habitudes sont complétées !",
-          },
-          en: {
+        en: {
             title: "Habit Tracker",
             placeholders: [
               "e.g., Read 10 pages...",
@@ -61,7 +48,6 @@
         }
 
         function updateLangUI() {
-          $("langToggle").textContent = currentLang.toUpperCase();
           $("t-title").textContent = t("title");
 
           const inputs = document.querySelectorAll(".h-input");
@@ -71,20 +57,10 @@
           });
         }
 
-        $("langToggle").addEventListener("click", () => {
-          currentLang = currentLang === "fr" ? "en" : "fr";
-          localStorage.setItem(LANG_KEY, currentLang);
-          updateLangUI();
-        });
-
         window.addEventListener("storage", (e) => {
           if (e.key === THEME_KEY) {
             currentTheme = e.newValue;
             updateThemeUI();
-          }
-          if (e.key === LANG_KEY) {
-            currentLang = e.newValue;
-            updateLangUI();
           }
         });
 
@@ -178,7 +154,7 @@
             loadHabits();
             renderHabits();
           }
-        }, 60_000);
+        }, 60000);
 
         // Init
         loadHabits();

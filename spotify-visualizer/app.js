@@ -13,7 +13,6 @@
 
     const LS = {
         THEME: "pa_theme",
-        LANG: "pa_lang",
         CID: "pa_spotify_client_id",
         RTOKEN: "pa_spotify_refresh_token",
     };
@@ -40,7 +39,7 @@
         sizeClass: '',             // 'sz-m' | 'sz-l' | 'sz-xl'
         connectionFailures: 0,
         theme: localStorage.getItem(LS.THEME) || "dark", // "dark" | "light" | "blur"
-        lang: localStorage.getItem(LS.LANG) || "en",
+        lang: "en",
         volume: 100,
         volumeBeforeMute: 100,     // last non-zero volume for mute toggle
         volumeDebounce: null,
@@ -136,39 +135,6 @@
      *  i18n
      * ────────────────────────────────────────────────────────────────────────*/
     const i18n = {
-        fr: {
-            title: "Spotify",
-            settings: "⚙️ Paramètres",
-            clientIdLbl: "Spotify Client ID",
-            clientHint: "Depuis votre tableau de bord Spotify Developer. Voir le README.",
-            authBtn: "Autoriser & obtenir le Refresh Token",
-            refreshLbl: "Refresh Token",
-            tokenHint: "Après autorisation, copiez le token depuis la page callback et collez-le ici.",
-            save: "Enregistrer",
-            lyricsLbl: "Paroles",
-            noSong: "Lancez une chanson pour voir les paroles",
-            noLyrics: "Paroles non disponibles",
-            notPlaying: "En attente...",
-            notPlayingSub: "Démarrez la lecture sur Spotify.",
-            setupTitle: "Configuration requise",
-            setupSub: "Ouvrez les paramètres pour ajouter votre Client ID et Refresh Token Spotify.",
-            openSettings: "Ouvrir les paramètres",
-            toastSaved: "✓ Paramètres enregistrés",
-            toastSavedCopied: "✓ Enregistré — URL iCUE copiée ! Collez-la dans les paramètres du widget iCUE.",
-            toastError: "Erreur de connexion Spotify",
-            toastReauth: "⚠️ Token expiré — ré-autorisez dans les paramètres",
-            sessionTitle: "Session expirée",
-            sessionSub: "Votre autorisation Spotify a été révoquée ou est expirée. Reconnectez-vous pour continuer.",
-            reconnect: "Se reconnecter",
-            copyUrlBtn: "Copier l'URL pour iCUE",
-            icueHint: "L'URL ci-dessous contient votre Client ID. Collez-la dans iCUE — vous devrez ré-autoriser le token dans les paramètres du widget.",
-            icueUrlPh: "Sauvegardez votre Client ID pour générer l'URL…",
-            toastUrlCopied: "✓ URL copiée — collez-la dans iCUE",
-            toastUrlError: "⚠️ Impossible de copier — copiez manuellement",
-            missingClientId: "⚠️ Entrez d'abord votre Client ID",
-            offlineTitle: "Connexion Spotify indisponible",
-            offlineSub: "Dernier titre conservé. Nouvelle tentative automatique...",
-        },
         en: {
             title: "Spotify",
             settings: "⚙️ Settings",
@@ -247,9 +213,8 @@
     /* ─────────────────────────────────────────────────────────────────────────
      *  LANGUAGE
      * ────────────────────────────────────────────────────────────────────────*/
-    function applyLang(lang) {
-        state.lang = (lang === "fr") ? "fr" : "en";
-        $("langToggle").textContent = state.lang.toUpperCase();
+    function applyLang() {
+        state.lang = "en";
         updateStaticStrings();
     }
 
@@ -273,17 +238,11 @@
         if (inp) inp.setAttribute("placeholder", t("clientHint").substring(0, 30) + "…");
     }
 
-    $("langToggle").addEventListener("click", () => {
-        applyLang(state.lang === "fr" ? "en" : "fr");
-        localStorage.setItem(LS.LANG, state.lang);
-    });
-
     /* ─────────────────────────────────────────────────────────────────────────
      *  STORAGE SYNC (cross-widget)
      * ────────────────────────────────────────────────────────────────────────*/
     window.addEventListener("storage", e => {
         if (e.key === LS.THEME && e.newValue) applyTheme(e.newValue);
-        if (e.key === LS.LANG && e.newValue) applyLang(e.newValue);
     });
 
     /* ─────────────────────────────────────────────────────────────────────────
@@ -999,7 +958,7 @@
         loadFromHash();          // restore credentials from URL hash if localStorage is empty
         migrateRefreshTokenStorage();
         applyTheme(state.theme);
-        applyLang(state.lang);
+        applyLang();
         updateStaticStrings();
 
         const cid = localStorage.getItem(LS.CID) || "";

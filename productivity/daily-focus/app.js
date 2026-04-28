@@ -23,17 +23,10 @@
           localStorage.setItem(THEME_KEY, currentTheme);
           updateThemeUI();
         });
-
-        const LANG_KEY = "pa_lang";
-        let currentLang = localStorage.getItem(LANG_KEY) || "en";
+        const currentLang = "en";
 
         const i18n = {
-          fr: {
-            title: "Focus Quotidien",
-            placeholder: "UN OBJECTIF AUJOURD'HUI",
-            saved: "Sauvegardé",
-          },
-          en: {
+        en: {
             title: "Daily Focus",
             placeholder: "ONE GOAL TODAY",
             saved: "Saved",
@@ -45,26 +38,15 @@
         }
 
         function updateLangUI() {
-          $("langToggle").textContent = currentLang.toUpperCase();
           $("t-title").textContent = t("title");
           $("focusInput").placeholder = t("placeholder");
           $("t-saved").textContent = t("saved");
         }
 
-        $("langToggle").addEventListener("click", () => {
-          currentLang = currentLang === "fr" ? "en" : "fr";
-          localStorage.setItem(LANG_KEY, currentLang);
-          updateLangUI();
-        });
-
         window.addEventListener("storage", (e) => {
           if (e.key === THEME_KEY) {
             currentTheme = e.newValue;
             updateThemeUI();
-          }
-          if (e.key === LANG_KEY) {
-            currentLang = e.newValue;
-            updateLangUI();
           }
         });
 

@@ -27,24 +27,10 @@
         });
 
         updateThemeUI();
-
-        const LANG_KEY = "pa_lang";
-        let currentLang = localStorage.getItem(LANG_KEY) || "en";
+        const currentLang = "en";
 
         const i18n = {
-          fr: {
-            title: "Hydratation",
-            meta: "/ 8 verres · 2 L",
-            start: "Commencez à vous hydrater !",
-            left: (n) =>
-              `Plus que ${n} verre${n > 1 ? "s" : ""} pour l'objectif`,
-            goal: "🎉 Objectif journalier atteint !",
-            addBtn: "+1 verre",
-            toastGoal: "💧 Bravo ! Objectif hydratation atteint !",
-            toastAlready: "✅ Objectif déjà atteint pour aujourd'hui !",
-            toastReset: "🌅 Nouveau jour ! Compteur d'eau réinitialisé.",
-          },
-          en: {
+        en: {
             title: "Hydration",
             meta: "/ 8 glasses · 2 L",
             start: "Start hydrating!",
@@ -63,27 +49,16 @@
         }
 
         function updateLangUI() {
-          $("langToggle").textContent = currentLang.toUpperCase();
           $("t-title").textContent = t("title");
           $("t-meta").textContent = t("meta");
           $("t-add").textContent = t("addBtn");
           renderWater();
         }
 
-        $("langToggle").addEventListener("click", () => {
-          currentLang = currentLang === "fr" ? "en" : "fr";
-          localStorage.setItem(LANG_KEY, currentLang);
-          updateLangUI();
-        });
-
         window.addEventListener("storage", (e) => {
           if (e.key === THEME_KEY) {
             currentTheme = e.newValue;
             updateThemeUI();
-          }
-          if (e.key === LANG_KEY) {
-            currentLang = e.newValue;
-            updateLangUI();
           }
         });
 
@@ -160,7 +135,7 @@
             renderWater();
             showToast(t("toastReset"));
           }
-        }, 60_000);
+        }, 60000);
         updateLangUI();
       })();
     

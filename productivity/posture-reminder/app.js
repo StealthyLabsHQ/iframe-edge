@@ -15,21 +15,10 @@
           localStorage.setItem(THEME_KEY, currentTheme);
           updateThemeUI();
         });
-
-        const LANG_KEY = "pa_lang";
-        let currentLang = localStorage.getItem(LANG_KEY) || "en";
+        const currentLang = "en";
 
         const i18n = {
-          fr: {
-            title: "Santé",
-            working: "Concentre-toi. Prochain rappel dans 20m.",
-            alertTime: "Il est temps !",
-            alertMsg:
-              "Tiens-toi droit. Regarde au loin (6m) pendant 20s. Cligne des yeux.",
-            btnReset: "Réinitialiser",
-            btnDone: "Fait ! Reprendre",
-          },
-          en: {
+        en: {
             title: "Care",
             working: "Focusing. Next friendly reminder in 20m.",
             alertTime: "Time's up!",
@@ -59,7 +48,6 @@
         let timer = null;
 
         function updateLangUI() {
-          $("langToggle").textContent = currentLang.toUpperCase();
           $("t-title").textContent = t("title");
 
           if (isAlert) {
@@ -112,20 +100,10 @@
           resetTimer();
         });
 
-        $("langToggle").addEventListener("click", () => {
-          currentLang = currentLang === "fr" ? "en" : "fr";
-          localStorage.setItem(LANG_KEY, currentLang);
-          updateLangUI();
-        });
-
         window.addEventListener("storage", (e) => {
           if (e.key === THEME_KEY) {
             currentTheme = e.newValue;
             updateThemeUI();
-          }
-          if (e.key === LANG_KEY) {
-            currentLang = e.newValue;
-            updateLangUI();
           }
         });
 

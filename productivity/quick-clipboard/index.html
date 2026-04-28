@@ -18,6 +18,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="../../widget-polish.css" />
 </head>
 
 <body>
@@ -30,11 +31,10 @@
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
             </div>
-            <span class="mod-title" id="t-title">Clipboard</span>
+            <span class="mod-title" id="t-title" hidden>Clipboard</span>
             <div class="lang-toggle" id="themeToggle" style="margin-left: auto">
                 🌙
             </div>
-            <div class="lang-toggle" id="langToggle">EN</div>
         </div>
 
         <div class="clip-body">
@@ -88,20 +88,9 @@
                 localStorage.setItem(THEME_KEY, currentTheme);
                 updateThemeUI();
             });
-
-            const LANG_KEY = "pa_lang";
-            let currentLang = localStorage.getItem(LANG_KEY) || "fr";
+            const currentLang = "en";
 
             const i18n = {
-                fr: {
-                    title: "Presse-papiers",
-                    placeholder:
-                        "Collez vos liens, scripts ou commandes ici pour un accès rapide...",
-                    btnCopy: "Copier le texte",
-                    toastCopied: "✅ Copié dans le presse-papiers !",
-                    toastEmpty: "⚠️ Rien à copier.",
-                    toastCleared: "🗑️ Presse-papiers vidé.",
-                },
                 en: {
                     title: "Clipboard",
                     placeholder:
@@ -118,26 +107,15 @@
             }
 
             function updateLangUI() {
-                $("langToggle").textContent = currentLang.toUpperCase();
                 $("t-title").textContent = t("title");
                 $("clipArea").placeholder = t("placeholder");
                 $("t-copy").textContent = t("btnCopy");
             }
 
-            $("langToggle").addEventListener("click", () => {
-                currentLang = currentLang === "fr" ? "en" : "fr";
-                localStorage.setItem(LANG_KEY, currentLang);
-                updateLangUI();
-            });
-
             window.addEventListener("storage", (e) => {
                 if (e.key === THEME_KEY) {
                     currentTheme = e.newValue;
                     updateThemeUI();
-                }
-                if (e.key === LANG_KEY) {
-                    currentLang = e.newValue;
-                    updateLangUI();
                 }
             });
 

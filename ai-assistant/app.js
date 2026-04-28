@@ -6,7 +6,6 @@
      * ────────────────────────────────────────────────────────────────*/
     const LS = {
         THEME: "pa_theme",
-        LANG: "pa_lang",
         PROVIDER: "pa_ai_provider",
         KEY_GEMINI: "pa_ai_key_gemini",
         KEY_CLAUDE: "pa_ai_key_claude",
@@ -44,6 +43,15 @@
 
     const $ = id => document.getElementById(id);
 
+    function pathValue(root, keys) {
+        let current = root;
+        for (const key of keys) {
+            if (current == null) return undefined;
+            current = current[key];
+        }
+        return current;
+    }
+
     function enforceSameOriginFrame() {
         if (window.top === window.self) return;
         try {
@@ -62,7 +70,7 @@
      * ────────────────────────────────────────────────────────────────*/
     let state = {
         theme: localStorage.getItem(LS.THEME) || "dark",
-        lang: localStorage.getItem(LS.LANG) || "en",
+        lang: "en",
         provider: localStorage.getItem(LS.PROVIDER) || "gemini",
         sizeClass: "",
         conversations: [],
@@ -151,71 +159,6 @@
      *  i18n
      * ────────────────────────────────────────────────────────────────*/
     const i18n = {
-        fr: {
-            title: "AI Assistant",
-            history: "Historique",
-            settings: "⚙️ Paramètres",
-            providerLbl: "Fournisseur IA",
-            geminiKeyLbl: "Clé API Gemini",
-            geminiKeyHint: "Google AI Studio → Get API key",
-            claudeKeyLbl: "Clé API Claude",
-            claudeKeyHint: "console.anthropic.com → API Keys",
-            modelGemini: "Modèle",
-            modelClaude: "Modèle",
-            proxyLbl: "URL Proxy",
-            proxyHint: "Si vide, requête directe (header CORS Anthropic). Sinon, proxy HTTPS.",
-            systemLbl: "Prompt système",
-            optional: "optionnel",
-            systemPh: "Tu es un assistant utile et concis…",
-            proxyPh: "https://mon-proxy.exemple.com",
-            save: "Enregistrer",
-            clear: "Effacer l'historique",
-            welcomeTitle: "Comment puis-je vous aider ?",
-            setupTitle: "Configuration requise",
-            setupSub: "Configurez votre clé API pour commencer.",
-            openSettings: "Ouvrir les paramètres",
-            newConv: "Nouvelle conversation",
-            you: "Vous",
-            ai: "IA",
-            aborted: "— Génération interrompue",
-            toastSaved: "✓ Paramètres enregistrés",
-            toastCleared: "✓ Historique effacé",
-            toastError: "Erreur — vérifiez votre clé API",
-            toastInvalidProxy: "URL proxy invalide (HTTPS requis, sans auth/query/hash).",
-            footerGemini: "Gemini peut se tromper. Vérifiez les informations importantes.",
-            footerClaude: "Claude peut se tromper. Vérifiez les informations importantes.",
-            footerOpenAI: "ChatGPT peut se tromper. Vérifiez les informations importantes.",
-            openaiKeyLbl: "Clé API OpenAI",
-            openaiKeyHint: "platform.openai.com → API Keys",
-            modelOpenAI: "Modèle",
-            s1: "Explique un concept complexe simplement",
-            s2: "Aide-moi à rédiger un email professionnel",
-            s3: "Analyse et améliore ce code",
-            s4: "Écris un court poème créatif",
-            geminiTemp: "Temperature",
-            geminiMedia: "Résolution média",
-            geminiThinking: "Niveau de réflexion",
-            geminiTools: "Outils",
-            geminiStructured: "Sorties structurées",
-            geminiCodeExec: "Exécution de code",
-            geminiFuncCall: "Appels de fonctions",
-            geminiSearch: "Grounding avec Google Search",
-            geminiMaps: "Grounding avec Google Maps",
-            geminiUrl: "Contexte URL",
-            geminiAdvanced: "Paramètres avancés",
-            geminiStop: "Séquence d'arrêt",
-            geminiStopPh: "Ajouter stop...",
-            geminiOutputLen: "Longueur de sortie",
-            geminiTopP: "Top P",
-            mediaDefault: "Par défaut",
-            mediaLow: "Basse",
-            mediaMedium: "Moyenne",
-            mediaHigh: "Haute",
-            thinkingNone: "Aucun",
-            thinkingLow: "Bas",
-            thinkingMedium: "Moyen",
-            thinkingHigh: "Élevé",
-        },
         en: {
             title: "AI Assistant",
             history: "History",
@@ -316,9 +259,8 @@
     /* ─────────────────────────────────────────────────────────────────
      *  LANGUAGE
      * ────────────────────────────────────────────────────────────────*/
-    function applyLang(lang) {
-        state.lang = lang === "fr" ? "fr" : "en";
-        $("langToggle").textContent = state.lang.toUpperCase();
+    function applyLang() {
+        state.lang = "en";
         updateStaticStrings();
     }
 
@@ -388,14 +330,8 @@
         updateModelBadge();
     }
 
-    $("langToggle").addEventListener("click", () => {
-        applyLang(state.lang === "fr" ? "en" : "fr");
-        localStorage.setItem(LS.LANG, state.lang);
-    });
-
     window.addEventListener("storage", e => {
         if (e.key === LS.THEME && e.newValue) applyTheme(e.newValue);
-        if (e.key === LS.LANG && e.newValue) applyLang(e.newValue);
     });
 
     /* ─────────────────────────────────────────────────────────────────
@@ -487,13 +423,12 @@
         const min = Math.floor(diff / 60000);
         const hr = Math.floor(diff / 3600000);
         const day = Math.floor(diff / 86400000);
-        const fr = state.lang === "fr";
-        if (min < 1) return fr ? "À l'instant" : "Just now";
-        if (min < 60) return fr ? `Il y a ${min}m` : `${min}m ago`;
-        if (hr < 24) return fr ? `Il y a ${hr}h` : `${hr}h ago`;
-        if (day < 2) return fr ? "Hier" : "Yesterday";
-        if (day < 7) return fr ? `Il y a ${day}j` : `${day}d ago`;
-        return new Date(ts).toLocaleDateString(fr ? "fr-FR" : "en-US", { month: "short", day: "numeric" });
+        if (min < 1) return "Just now";
+        if (min < 60) return `${min}m ago`;
+        if (hr < 24) return `${hr}h ago`;
+        if (day < 2) return "Yesterday";
+        if (day < 7) return `${day}d ago`;
+        return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric" });
     }
 
     /* ─────────────────────────────────────────────────────────────────
@@ -519,7 +454,7 @@
             const del = document.createElement("button");
             del.className = "history-del";
             del.textContent = "×";
-            del.setAttribute("aria-label", state.lang === "fr" ? "Supprimer" : "Delete");
+            del.setAttribute("aria-label", "Delete");
             del.addEventListener("click", e => { e.stopPropagation(); deleteConversation(conv.id); });
 
             el.appendChild(title);
@@ -620,7 +555,7 @@
         const time = document.createElement("div");
         time.className = "msg-time";
         time.textContent = new Date().toLocaleTimeString(
-            state.lang === "fr" ? "fr-FR" : "en-US",
+            "en-US",
             { hour: "2-digit", minute: "2-digit" }
         );
 
@@ -736,7 +671,7 @@
      * ────────────────────────────────────────────────────────────────*/
     function readGeminiConfig() {
         const temperature = parseFloat(localStorage.getItem(LS.GEMINI_TEMP)) || 1;
-        const topP = parseFloat(localStorage.getItem(LS.GEMINI_TOPP) ?? "0.95");
+        const topP = parseFloat(localStorage.getItem(LS.GEMINI_TOPP) || "0.95");
         const maxOutputTokens = parseInt(localStorage.getItem(LS.GEMINI_OUTPUT_LEN), 10) || 65536;
         const stopRaw = (localStorage.getItem(LS.GEMINI_STOP) || "").trim();
         const stopSequences = stopRaw ? stopRaw.split(",").map(s => s.trim()).filter(Boolean) : [];
@@ -807,7 +742,7 @@
 
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}));
-            throw new Error(err?.error?.message || `Gemini HTTP ${resp.status}`);
+            throw new Error(pathValue(err, ["error", "message"]) || `Gemini HTTP ${resp.status}`);
         }
 
         const reader = resp.body.getReader();
@@ -826,7 +761,7 @@
                 if (data === "[DONE]") return;
                 try {
                     const json = JSON.parse(data);
-                    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    const text = pathValue(json, ["candidates", 0, "content", "parts", 0, "text"]);
                     if (text) onChunk(text);
                 } catch (_) { /* partial JSON — skip */ }
             }
@@ -835,7 +770,7 @@
         if (buffer.startsWith("data: ")) {
             try {
                 const json = JSON.parse(buffer.slice(6));
-                const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+                const text = pathValue(json, ["candidates", 0, "content", "parts", 0, "text"]);
                 if (text) onChunk(text);
             } catch (_) { }
         }
@@ -877,7 +812,7 @@
 
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}));
-            throw new Error(err?.error?.message || `Claude HTTP ${resp.status}`);
+            throw new Error(pathValue(err, ["error", "message"]) || `Claude HTTP ${resp.status}`);
         }
 
         const reader = resp.body.getReader();
@@ -896,7 +831,7 @@
                 if (data === "[DONE]") return;
                 try {
                     const json = JSON.parse(data);
-                    if (json.type === "content_block_delta" && json.delta?.type === "text_delta") {
+                    if (json.type === "content_block_delta" && json.delta && json.delta.type === "text_delta") {
                         onChunk(json.delta.text);
                     }
                 } catch (_) { }
@@ -934,7 +869,7 @@
 
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}));
-            throw new Error(err?.error?.message || `OpenAI HTTP ${resp.status}`);
+            throw new Error(pathValue(err, ["error", "message"]) || `OpenAI HTTP ${resp.status}`);
         }
 
         const reader = resp.body.getReader();
@@ -953,7 +888,7 @@
                 if (data === "[DONE]") return;
                 try {
                     const json = JSON.parse(data);
-                    const text = json?.choices?.[0]?.delta?.content;
+                    const text = pathValue(json, ["choices", 0, "delta", "content"]);
                     if (text) onChunk(text);
                 } catch (_) { }
             }
@@ -1088,13 +1023,11 @@
                 const body = contentEl.closest(".msg-body");
                 if (body) body.classList.add("error");
                 contentEl.classList.remove("streaming");
-                const isProxyErr = err?.message === "invalid_proxy_url";
+                const isProxyErr = err && err.message === "invalid_proxy_url";
                 contentEl.textContent = isProxyErr ? t("toastInvalidProxy") : (err.message || t("toastError"));
                 const label = document.createElement("div");
                 label.className = "msg-error-label";
-                label.textContent = "⚠ " + (state.lang === "fr"
-                    ? (isProxyErr ? "Configuration invalide" : "Erreur API")
-                    : (isProxyErr ? "Invalid configuration" : "API Error"));
+                label.textContent = "⚠ " + (isProxyErr ? "Invalid configuration" : "API Error");
                 contentEl.closest(".msg-bubble").appendChild(label);
                 showToast(isProxyErr ? t("toastInvalidProxy") : t("toastError"), 4000);
             }
@@ -1145,7 +1078,7 @@
 
     $("sendBtn").addEventListener("click", () => {
         if (state.isStreaming) {
-            state.abortCtrl?.abort();
+            if (state.abortCtrl) state.abortCtrl.abort();
         } else {
             sendMessage();
         }
@@ -1224,7 +1157,7 @@
         const gTemp = parseFloat(localStorage.getItem(LS.GEMINI_TEMP)) || 1;
         $("geminiTemp").value = gTemp;
         $("geminiTempVal").value = gTemp;
-        const gTopP = parseFloat(localStorage.getItem(LS.GEMINI_TOPP) ?? "0.95");
+        const gTopP = parseFloat(localStorage.getItem(LS.GEMINI_TOPP) || "0.95");
         $("geminiTopP").value = gTopP;
         $("geminiTopPVal").value = gTopP;
         $("inputGeminiOutputLen").value = localStorage.getItem(LS.GEMINI_OUTPUT_LEN) || "65536";
@@ -1274,7 +1207,8 @@
     }
 
     $("saveBtn").addEventListener("click", () => {
-        const provider = document.querySelector(".provider-tab.active")?.dataset.provider || "gemini";
+        const activeProviderTab = document.querySelector(".provider-tab.active");
+        const provider = activeProviderTab ? activeProviderTab.dataset.provider : "gemini";
         let proxy = "";
         try {
             proxy = normalizeProxyUrl($("inputProxyUrl").value);
@@ -1286,17 +1220,17 @@
         // Resolve __custom__ sentinel for all three providers
         const rawGeminiModel = $("selectGeminiModel").value;
         const geminiModel = rawGeminiModel === "__custom__"
-            ? ($("inputGeminiCustomModel")?.value.trim() || "gemini-2.0-flash")
+            ? (($("inputGeminiCustomModel") && $("inputGeminiCustomModel").value.trim()) || "gemini-2.0-flash")
             : rawGeminiModel;
 
         const rawClaudeModel = $("selectClaudeModel").value;
         const claudeModel = rawClaudeModel === "__custom__"
-            ? ($("inputClaudeCustomModel")?.value.trim() || "claude-sonnet-4-6")
+            ? (($("inputClaudeCustomModel") && $("inputClaudeCustomModel").value.trim()) || "claude-sonnet-4-6")
             : rawClaudeModel;
 
         const rawOpenAIModel = $("selectOpenAIModel").value;
         const openaiModel = rawOpenAIModel === "__custom__"
-            ? ($("inputOpenAICustomModel")?.value.trim() || "gpt-4o")
+            ? (($("inputOpenAICustomModel") && $("inputOpenAICustomModel").value.trim()) || "gpt-4o")
             : rawOpenAIModel;
 
         localStorage.setItem(LS.PROVIDER, provider);
@@ -1453,7 +1387,7 @@
 
             const valueSpan = document.createElement("span");
             valueSpan.className = "custom-select-value";
-            valueSpan.textContent = sel.options[sel.selectedIndex]?.text || "";
+            valueSpan.textContent = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "";
 
             // Chevron SVG
             const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -1503,13 +1437,13 @@
                             e.stopPropagation();
                             sel.value = opt.value;
                             valueSpan.textContent = opt.value === "__custom__"
-                                ? (customInput?.value || opt.text)
+                                ? ((customInput && customInput.value) || opt.text)
                                 : opt.text;
                             list.querySelectorAll(".custom-select-option").forEach(o => o.classList.remove("selected"));
                             item.classList.add("selected");
                             wrapper.classList.remove("open");
                             toggleCustomInput(opt.value === "__custom__");
-                            if (opt.value === "__custom__") setTimeout(() => customInput?.focus(), 50);
+                            if (opt.value === "__custom__" && customInput) setTimeout(() => customInput.focus(), 50);
                             sel.dispatchEvent(new Event("change"));
                         });
                         list.appendChild(item);
@@ -1528,7 +1462,7 @@
                         item.classList.add("selected");
                         wrapper.classList.remove("open");
                         toggleCustomInput(child.value === "__custom__");
-                        if (child.value === "__custom__") setTimeout(() => customInput?.focus(), 50);
+                        if (child.value === "__custom__" && customInput) setTimeout(() => customInput.focus(), 50);
                         sel.dispatchEvent(new Event("change"));
                     });
                     list.appendChild(item);
@@ -1584,7 +1518,7 @@
         // this widget runs inside iCUE's native WebView (cross-origin by nature).
         migrateLegacyApiKeys();
         applyTheme(state.theme);
-        applyLang(state.lang);
+        applyLang();
 
         loadConversations();
 

@@ -6,6 +6,19 @@ All notable changes to **iframe-edge** are documented here.
 
 ## [Unreleased]
 
+### Added - Widget polish layer
+- `widget-polish.css`: shared Huashu design finish layer for active widgets, with compact icon-only headers, tighter controls, restrained 8px surfaces, improved borders, focus states, and less title-heavy UI.
+- `scripts/package-icuewidgets.ps1`: validates and builds active widgets into `dist/icuewidgets/*.icuewidget`.
+
+### Changed - Active widgets
+- Removed visible header titles across active widgets while preserving DOM ids for runtime copy updates.
+- Standardized active widget UI to English-only copy and removed French language toggles/dictionaries.
+- News Radar defaults to English sources and no longer lists French feeds.
+
+### Changed - Documentation
+- README now documents English-only widgets and the shared `widget-polish.css` layer.
+- Removed French documentation section to match English-only widget behavior.
+
 ### Added - Xeneon Edge Design System
 - `productivity/xeneon-edge.css`: Shared design system for all widgets — CSS tokens (dark/light), AMOLED `#000` base, scanline grid overlay, base components (`.mod-header`, `.mod-icon`, `.mod-title`, `.lang-toggle`, `.stat-chip`, `.stats-row`, `.btn`, `.btn-ghost`, `.toast`), M/L/XL size utilities via `data-size` attribute
 - `productivity/size-loader.js`: Flash-free size detection — reads `?size=m|l|xl` from URL param, sets `data-size` on `<html>` before render; mirrors `theme-loader.js` pattern

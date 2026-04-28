@@ -94,18 +94,7 @@
 
   // ── i18n ─────────────────────────────────────────────────────────────────
   const i18n = {
-    fr: {
-      btnStart:     "Start",
-      btnPause:     "Pause",
-      btnResume:    "Reprendre",
-      addPhase:     "Ajouter",
-      newPhaseName: "Phase",
-      toastEnd:     (n) => `✓ ${n} terminé !`,
-      toastCycle:   "🎉 Cycle complet !",
-      ariaReset:    "Réinitialiser",
-      ariaSkip:     "Passer",
-    },
-    en: {
+        en: {
       btnStart:     "Start",
       btnPause:     "Pause",
       btnResume:    "Resume",
@@ -136,7 +125,7 @@
   };
 
   let timerInterval = null;
-  let currentLang   = localStorage.getItem("pa_lang")   || "en";
+  const currentLang = "en";
   let currentTheme  = localStorage.getItem("pa_theme")  || "dark";
 
   function t(key, ...args) {
@@ -295,7 +284,10 @@
         row.querySelector('[data-action="edit"]').addEventListener("click", () => {
           st.editingIdx = idx;
           renderPhaseList();
-          setTimeout(() => $("ei-name")?.focus(), 10);
+          setTimeout(() => {
+            const input = $("ei-name");
+            if (input) input.focus();
+          }, 10);
         });
         const delBtn = row.querySelector('[data-action="delete"]');
         if (delBtn) delBtn.addEventListener("click", () => deletePhase(idx));
@@ -389,13 +381,18 @@
     st.phases.push({ id: st.nextId++, name: t("newPhaseName"), duration: 5 * 60, colorIdx });
     st.editingIdx = st.phases.length - 1;
     renderPhaseList();
-    setTimeout(() => $("ei-name")?.focus(), 10);
+    setTimeout(() => {
+      const input = $("ei-name");
+      if (input) input.focus();
+    }, 10);
     saveState();
   }
 
   function savePhaseEdit(idx) {
-    const name     = ($("ei-name")?.value || "").trim() || st.phases[idx].name;
-    const duration = parseTime($("ei-time")?.value || "") || st.phases[idx].duration;
+    const nameInput = $("ei-name");
+    const timeInput = $("ei-time");
+    const name     = ((nameInput && nameInput.value) || "").trim() || st.phases[idx].name;
+    const duration = parseTime((timeInput && timeInput.value) || "") || st.phases[idx].duration;
     st.phases[idx].name     = name;
     st.phases[idx].duration = duration;
     if (idx === st.currentPhaseIdx && !st.running) st.timeLeft = duration;
@@ -464,20 +461,12 @@
 
   // ── Lang ──────────────────────────────────────────────────────────────────
   function updateLangUI() {
-    $("langToggle").textContent = currentLang.toUpperCase();
     renderControls();
     renderPhaseList();
   }
 
-  $("langToggle").addEventListener("click", () => {
-    currentLang = currentLang === "fr" ? "en" : "fr";
-    localStorage.setItem("pa_lang", currentLang);
-    updateLangUI();
-  });
-
   window.addEventListener("storage", (e) => {
     if (e.key === "pa_theme") { currentTheme = e.newValue; updateThemeUI(); }
-    if (e.key === "pa_lang")  { currentLang  = e.newValue; updateLangUI(); }
   });
 
   // ── Display toggle ────────────────────────────────────────────────────────

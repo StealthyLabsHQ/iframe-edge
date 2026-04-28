@@ -4,16 +4,17 @@
     const HTTP_PROTOCOLS = new Set(["https:", "http:"]);
     const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]"]);
     const VALID_THEMES = new Set(["dark", "light"]);
-    const VALID_LANGS = new Set(["fr", "en"]);
-
+    function textOf(root, selector) {
+        const el = root.querySelector(selector);
+        return el ? el.textContent : "";
+    }
+    function attrOf(root, selector, attr) {
+        const el = root.querySelector(selector);
+        return el ? el.getAttribute(attr) : "";
+    }
     function normalizeTheme(value) {
         return VALID_THEMES.has(value) ? value : "dark";
     }
-
-    function normalizeLang(value) {
-        return VALID_LANGS.has(value) ? value : "en";
-    }
-
     function isPrivateOrLoopbackHost(hostname) {
         if (!hostname) return true;
         const host = hostname.toLowerCase();
@@ -47,7 +48,7 @@
         let parsed;
         try {
             parsed = new URL(value);
-        } catch {
+        } catch (e) {
             return "";
         }
 
@@ -83,37 +84,9 @@
     });
 
     // Language
-    const LANG_KEY = "pa_lang";
-    let currentLang = normalizeLang(localStorage.getItem(LANG_KEY));
+    const currentLang = "en";
 
     const i18n = {
-        fr: {
-            title: "News Radar",
-            search: "Chercher",
-            placeholder: "Entrez un mot-clé…",
-            customUrl: "URL personnalisée…",
-            customPlaceholder: "https://example.com/feed.xml",
-            emptyTitle: "Aucun signal",
-            emptyDesc: "Entrez un mot-clé et appuyez sur Chercher pour scanner les flux.",
-            loading: "Scan en cours…",
-            found: "article(s) trouvé(s)",
-            noResults: "Aucun article trouvé pour",
-            error: "❌ Erreur lors du chargement du flux.",
-            linkCopied: "✅ Lien copié !",
-            enterKeyword: "⚠️ Veuillez entrer un mot-clé.",
-            btnLink: "Lien",
-            btnOpen: "Ouvrir",
-            cached: "Cache restauré",
-            invalidCustomUrl: "URL de flux invalide (http/https public uniquement).",
-            invalidArticleLink: "Lien d'article invalide.",
-            groupFr: "France",
-            groupUsUk: "Etats-Unis / Royaume-Uni",
-            groupEu: "Europe",
-            groupMe: "Europe / Moyen-Orient",
-            groupTech: "Tech",
-            groupGnews: "Google News",
-            groupOther: "Autre",
-        },
         en: {
             title: "News Radar",
             search: "Search",
@@ -133,7 +106,6 @@
             cached: "Cache restored",
             invalidCustomUrl: "Invalid feed URL (public http/https only).",
             invalidArticleLink: "Invalid article link.",
-            groupFr: "France",
             groupUsUk: "United States / United Kingdom",
             groupEu: "Europe",
             groupMe: "Europe / Middle East",
@@ -146,7 +118,6 @@
     function t(key) { return i18n[currentLang][key]; }
 
     function updateLangUI() {
-        $("langToggle").textContent = currentLang.toUpperCase();
         $("t-title").textContent = t("title");
         $("t-search").textContent = t("search");
         $("keywordInput").placeholder = t("placeholder");
@@ -161,26 +132,21 @@
             el.textContent = t("btnOpen");
         });
         // Dropdown group headers
-        const groupMap = { "t-group-gnews": "groupGnews", "t-group-fr": "groupFr", "t-group-usuk": "groupUsUk", "t-group-eu": "groupEu", "t-group-me": "groupMe", "t-group-tech": "groupTech", "t-group-other": "groupOther" };
+        const groupMap = { "t-group-gnews": "groupGnews", "t-group-usuk": "groupUsUk", "t-group-eu": "groupEu", "t-group-me": "groupMe", "t-group-tech": "groupTech", "t-group-other": "groupOther" };
         for (const [id, key] of Object.entries(groupMap)) {
             const el = $(id);
             if (el && i18n[currentLang][key]) el.textContent = t(key);
         }
-        // Reorder groups based on language
         reorderDropdownGroups();
     }
 
-    // Group order per language: FR = French first, EN = English first
-    const GROUP_ORDER = {
-        fr: ["t-group-gnews", "t-group-fr", "t-group-usuk", "t-group-me", "t-group-eu", "t-group-tech", "t-group-other"],
-        en: ["t-group-gnews", "t-group-usuk", "t-group-me", "t-group-tech", "t-group-eu", "t-group-fr", "t-group-other"],
-    };
+    const GROUP_ORDER = ["t-group-gnews", "t-group-usuk", "t-group-me", "t-group-tech", "t-group-eu", "t-group-other"];
 
     function reorderDropdownGroups() {
         const list = $("customSelectList");
         if (!list) return;
 
-        const order = GROUP_ORDER[currentLang] || GROUP_ORDER.fr;
+        const order = GROUP_ORDER;
 
         // Collect each group: header LI + following option LIs until next group
         const groups = new Map();
@@ -195,24 +161,6 @@
             }
         });
 
-        // Within Google News group: EN first when lang=en, FR first when lang=fr
-        const gnews = groups.get("t-group-gnews");
-        if (gnews) {
-            const frOpt = gnews.find((el) => el.dataset?.value?.includes("ceid=FR:fr"));
-            const enOpt = gnews.find((el) => el.dataset?.value?.includes("ceid=US:en"));
-            if (frOpt && enOpt) {
-                const frIdx = gnews.indexOf(frOpt);
-                const enIdx = gnews.indexOf(enOpt);
-                if (currentLang === "en" && frIdx < enIdx) {
-                    gnews[frIdx] = enOpt;
-                    gnews[enIdx] = frOpt;
-                } else if (currentLang === "fr" && enIdx < frIdx) {
-                    gnews[enIdx] = frOpt;
-                    gnews[frIdx] = enOpt;
-                }
-            }
-        }
-
         // Re-append in desired order
         for (const groupId of order) {
             const elements = groups.get(groupId);
@@ -222,16 +170,9 @@
         }
     }
 
-    $("langToggle").addEventListener("click", () => {
-        currentLang = currentLang === "fr" ? "en" : "fr";
-        localStorage.setItem(LANG_KEY, currentLang);
-        updateLangUI();
-    });
-
     // Cross-tab sync
     window.addEventListener("storage", (e) => {
         if (e.key === THEME_KEY) { currentTheme = normalizeTheme(e.newValue); updateThemeUI(); }
-        if (e.key === LANG_KEY) { currentLang = normalizeLang(e.newValue); updateLangUI(); }
     });
 
     // Custom source dropdown
@@ -239,7 +180,7 @@
     const customSelectList = $("customSelectList");
     const customSelectLabel = $("customSelectLabel");
     const customUrlInput = $("customUrlInput");
-    const DEFAULT_SOURCE = "https://news.google.com/rss?hl=fr&gl=FR&ceid=FR:fr";
+    const DEFAULT_SOURCE = "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en";
     const allowedSources = new Set(
         Array.from(customSelectList.querySelectorAll(".custom-select-option"))
             .map((opt) => opt.dataset.value)
@@ -317,16 +258,16 @@
     function formatDate(dateStr) {
         try {
             return new Date(dateStr).toLocaleDateString(
-                currentLang === "fr" ? "fr-FR" : "en-US",
+                "en-US",
                 { day: "numeric", month: "short", year: "numeric" }
             );
-        } catch { return dateStr; }
+        } catch (e) { return dateStr; }
     }
 
     function stripHtml(html) {
         if (!html) return "";
         const doc = new DOMParser().parseFromString(String(html), "text/html");
-        return doc.body?.textContent || "";
+        return doc.body ? doc.body.textContent : "";
     }
 
     function createLinkButton() {
@@ -496,7 +437,6 @@
     const ALLORIGINS_RAW = "https://api.allorigins.win/raw?url=";
     const URL_ALIASES = Object.freeze({
         // Legacy URL migrations (http->https, broken->working)
-        "https://www.lemonde.fr/international/rss_full_text.xml": "https://www.lemonde.fr/international/rss_full.xml",
         "https://www.bfmtv.com/rss/info/flux-rss/": "https://www.bfmtv.com/rss/news-24-7/",
         "http://feeds.bbci.co.uk/news/world/rss.xml": "https://feeds.bbci.co.uk/news/world/rss.xml",
         "http://feeds.skynews.com/feeds/rss/home.xml": "https://feeds.skynews.com/feeds/rss/home.xml",
@@ -504,7 +444,6 @@
         "https://rss.cnn.com/rss/edition.rss": "https://news.google.com/rss/search?q=site%3Acnn.com&hl=en-US&gl=US&ceid=US%3Aen",
         "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml": "https://news.google.com/rss/search?q=site%3Anytimes.com&hl=en-US&gl=US&ceid=US%3Aen",
         "https://www.cbsnews.com/latest/rss/main": "https://news.google.com/rss/search?q=site%3Acbsnews.com&hl=en-US&gl=US&ceid=US%3Aen",
-        "https://fr.euronews.com/rss?format=full&level=vertical&name=news": "https://news.google.com/rss/search?q=site%3Afr.euronews.com&hl=fr&gl=FR&ceid=FR:fr",
         "https://www.euronews.com/rss?format=full&level=vertical&name=news": "https://news.google.com/rss/search?q=site%3Aeuronews.com&hl=en-US&gl=US&ceid=US%3Aen",
         // Feeds that block proxies -> Google News site search
         "https://feeds.reuters.com/reuters/topNews": "https://news.google.com/rss/search?q=site%3Areuters.com&hl=en-US&gl=US&ceid=US%3Aen",
@@ -535,7 +474,6 @@
     // Google News search RSS: keyword injected as query
     function buildGoogleNewsUrl(keyword, source) {
         const langMap = {
-            "https://news.google.com/rss?hl=fr&gl=FR&ceid=FR:fr": { hl: "fr", gl: "FR", ceid: "FR:fr" },
             "https://news.google.com/rss?hl=en&gl=US&ceid=US:en": { hl: "en", gl: "US", ceid: "US:en" },
         };
         const params = langMap[source];
@@ -549,7 +487,7 @@
                 const existing = u.searchParams.get("q") || "";
                 u.searchParams.set("q", keyword + " " + existing);
                 return u.toString();
-            } catch { return null; }
+            } catch (e) { return null; }
         }
         return null;
     }
@@ -567,12 +505,11 @@
 
         items.forEach((item) => {
             results.push({
-                title: item.querySelector("title")?.textContent || "",
-                link: item.querySelector("link")?.textContent || "",
-                pubDate: item.querySelector("pubDate")?.textContent || "",
-                description: item.querySelector("description")?.textContent || "",
-                author: item.querySelector("source")?.textContent ||
-                    item.querySelector("dc\\:creator")?.textContent || "",
+                title: textOf(item, "title"),
+                link: textOf(item, "link"),
+                pubDate: textOf(item, "pubDate"),
+                description: textOf(item, "description"),
+                author: textOf(item, "source") || textOf(item, "dc\\:creator"),
             });
         });
 
@@ -583,14 +520,11 @@
         entries.forEach((entry) => {
             const linkEl = entry.querySelector("link[href]");
             results.push({
-                title: entry.querySelector("title")?.textContent || "",
-                link: linkEl?.getAttribute("href") || entry.querySelector("link")?.textContent || "",
-                pubDate: entry.querySelector("published")?.textContent ||
-                    entry.querySelector("updated")?.textContent || "",
-                description: entry.querySelector("summary")?.textContent ||
-                    entry.querySelector("content")?.textContent || "",
-                author: entry.querySelector("author > name")?.textContent ||
-                    entry.querySelector("author")?.textContent || "",
+                title: textOf(entry, "title"),
+                link: (linkEl ? linkEl.getAttribute("href") : "") || textOf(entry, "link"),
+                pubDate: textOf(entry, "published") || textOf(entry, "updated"),
+                description: textOf(entry, "summary") || textOf(entry, "content"),
+                author: textOf(entry, "author > name") || textOf(entry, "author"),
             });
         });
 
@@ -675,7 +609,7 @@
                         console.log("[NewsRadar]", provider.name, "OK -", items.length, "items");
                         return items;
                     }, (err) => {
-                        console.warn("[NewsRadar]", provider.name, "failed:", err?.message || err);
+                        console.warn("[NewsRadar]", provider.name, "failed:", (err && err.message) || err);
                         throw err;
                     })
                 );
@@ -766,7 +700,7 @@
         try {
             let items;
             try { items = await fetchRss(rssUrl); }
-            catch { items = await fetchRss(rssUrl); } // silent retry on transient failure
+            catch (e) { items = await fetchRss(rssUrl); } // silent retry on transient failure
             const articles = pickTopArticles(items, keyword, useServerFilter);
 
             localStorage.setItem("pa_newsCache", JSON.stringify(articles));
@@ -779,11 +713,11 @@
             renderArticles(articles);
         } catch (err) {
             console.error("[NewsRadar] fetch error:", err);
-            const reason = String(err?.message || err || "");
+            const reason = String((err && err.message) || err || "");
             const isNetwork = /Failed to fetch|NetworkError|AbortError|Load failed|timed out/i.test(reason);
             const note = isNetwork
-                ? (currentLang === "fr" ? "connexion ou source indisponible" : "connection or source unavailable")
-                : (currentLang === "fr" ? "source indisponible ou bloquée" : "source unavailable or blocked");
+                ? "connection or source unavailable"
+                : "source unavailable or blocked";
             $("statusText").textContent = t("error") + " \u2014 " + note;
             renderArticles([]);
         } finally {
@@ -830,7 +764,7 @@
                     renderArticles(articles.slice(0, MAX_ARTICLES));
                     $("statusText").textContent = t("cached");
                 }
-            } catch { /* noop */ }
+            } catch (e) { /* noop */ }
         }
     }
 

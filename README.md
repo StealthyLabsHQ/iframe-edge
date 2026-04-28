@@ -11,16 +11,16 @@
 </p>
 
 ---
-
 ## ✨ Features
 
 - **No external dependencies:** Pure HTML, CSS, and vanilla JavaScript bundled in single files.
 - **Fully Responsive:** M / L / XL sizes via `?size=` URL param or iCUE body-class injection.
 - **Plug & Play:** Just copy the code and paste it into iCUE.
 - **Dark Mode OLED / Light Mode** with a toggle on each widget.
-- **EN / FR** bilingual support on all widgets.
+- **English-only UI copy** across active widgets.
 - **AI Assistant for 3 AI Models:** Google Gemini, Anthropic Claude, and OpenAI ChatGPT.
 - **Xeneon Edge Design System:** Shared `xeneon-edge.css` + `size-loader.js` — unified tokens, fonts, and size variants across all widgets.
+- **Headerless widget polish:** Shared `widget-polish.css` removes title-heavy headers and tightens controls, surfaces, borders, and focus states.
 
 ---
 
@@ -63,6 +63,16 @@ To use these widgets on your Corsair setup, you will need:
    *(Example: `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>`)*
 
 > **🎉 Done!** The widget will load live from GitHub Pages.
+
+### iCUE Widget Packages
+
+The iCUE Widget CLI is used to validate each package:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\package-icuewidgets.ps1
+```
+
+Packaged widgets are written to `dist/icuewidgets/*.icuewidget`.
 
 ### 📐 Size Variants
 
@@ -117,80 +127,5 @@ The AI Assistant widget requires an API key from either Google (Gemini), Anthrop
 1. Add the widget to iCUE as described above using its specific URL.
 2. When the widget loads, enter your **Client ID** to connect.
 3. You will be redirected to log in and grant permissions.
-
----
-
-## 🇫🇷 Documentation en Français
-
-### 📋 Prérequis
-
-Pour utiliser ces widgets sur votre installation Corsair, vous aurez besoin de :
-
-- Un écran **Corsair Xeneon Edge**.
-- Le logiciel **[Corsair iCUE](https://www.corsair.com/icue)** installé et à jour sur votre machine.
-
-### 🚀 iFrame Direct
-
-1. Ouvrez **iCUE** et allez dans la configuration de votre écran.
-2. Dans la liste des **Widgets** (colonne gauche), cliquez sur l'icône **`</> iFrame`**.
-3. Choisissez la taille souhaitée : **`M`**, **`L`**, ou **`XL`**.
-4. Dans les réglages de l'iFrame, cherchez le champ de texte principal **code HTML**.
-5. **Copiez le code `<iframe>`** du tableau ci-dessus pour le widget souhaité, et **collez-le** dans la zone de texte.
-   *(Exemple : `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/hydration/"></iframe>`)*
-
-> **🎉 Et voilà !** Le widget se chargera directement depuis GitHub Pages.
-
-### 📐 Variantes de taille
-
-La plupart des widgets supportent trois tailles via le paramètre URL `?size=` :
-
-| Taille | Dimensions | URL |
-|---|---|---|
-| **M** | ~300 × 200 px | `…/pomodoro/?size=m` |
-| **L** | ~400 × 280 px | `…/pomodoro/` *(défaut)* |
-| **XL** | ~560 × 380 px | `…/pomodoro/?size=xl` |
-
-Exemple — Pomodoro en XL :
-```html
-<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/pomodoro/?size=xl"></iframe>
-```
-
-> ISS Horizon utilise l'injection de classe iCUE native (`sz-m` / `sz-l` / `sz-xl`) et n'a pas besoin du paramètre `?size=`.
-
-### 🤖 Assistant IA
-
-Le widget Assistant IA nécessite une clé API de Google (Gemini), Anthropic (Claude), ou OpenAI (ChatGPT) pour fonctionner.
-
-<p align="center"><img width="420" height="573" alt="{D9C92563-D79B-4473-BF24-CE4F2FEB7B6D}" src="https://github.com/user-attachments/assets/3d705bdb-ce5a-4ed7-8589-008153144234" /></p>
-
-**Comment obtenir une clé API :**
-- <img src="svg/img/google.png" width="20" height="20" style="vertical-align: middle; margin-right: 4px;"> **Google Gemini (Gratuit disponible / Payant à l'usage [Recommandé]) :** Allez sur [Google AI Studio](https://aistudio.google.com/app/apikey), connectez-vous avec votre compte Google et cliquez sur "Create API Key".
-- <img src="svg/img/anthropic.png" width="20" height="20" style="vertical-align: middle; margin-right: 4px;"> **Anthropic Claude (Payant à l'usage) :** Allez sur la [Console Anthropic](https://console.anthropic.com/settings/keys), connectez-vous et générez une nouvelle clé secrète.
-- <img src="svg/img/openai.png" width="20" height="20" style="vertical-align: middle; margin-right: 4px;"> **OpenAI (Payant à l'usage) :** Allez sur la [Plateforme OpenAI](https://platform.openai.com/api-keys), connectez-vous et générez une nouvelle clé secrète.
-
-**Configuration :**
-1. Ajoutez le widget dans iCUE en utilisant son code `<iframe>` du tableau.
-2. Cliquez sur l'icône **Paramètres ⚙️** en haut à droite du widget.
-3. Sélectionnez votre fournisseur préféré (Google, Anthropic, ou OpenAI) et collez votre clé API.
-4. Cliquez sur **Enregistrer**. Votre clé est stockée localement de manière sécurisée dans votre session iCUE.
-
-### 🎵 Spotify Visualizer
-
-**Prérequis :**
-- Avoir un compte **Spotify Premium**.
-
-**Comment l'installer :**
-1. Allez sur le site des développeurs Spotify avec [ce lien](https://developer.spotify.com/dashboard) et connectez-vous.
-2. Cliquez sur **Create app** (Créer une application).
-3. Remplissez le nom et la description de l'application.
-4. Ajouter en tant que **Redirect URL** exactement : 
-   `https://stealthylabshq.github.io/iframe-edge/spotify-visualizer/auth/callback.html`
-5. Et cochez la case **Web API**.
-6. Enregistrez et récupérez votre **Client ID**.
-
-**Comment l'utiliser :**
-1. Ajoutez le widget dans iCUE comme décrit plus haut avec son URL.
-2. Au chargement du widget, entrez votre **Client ID** pour vous connecter.
-3. Autorisez l'accès à votre compte et profitez de la musique !
 
 ---

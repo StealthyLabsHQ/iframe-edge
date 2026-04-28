@@ -24,22 +24,10 @@
         });
 
         updateThemeUI();
-
-        const LANG_KEY = "pa_lang";
-        let currentLang = localStorage.getItem(LANG_KEY) || "en";
+        const currentLang = "en";
 
         const i18n = {
-          fr: {
-            title: "Notes Rapides",
-            placeholder:
-              "Vos idées, tâches, pensées... Sauvegarde automatique.",
-            char: (n) => `${n} caractère${n !== 1 ? "s" : ""}`,
-            saved: "Sauvegardé",
-            clearBtn: "Effacer",
-            confirm: "Effacer toutes les notes ?",
-            toastClear: "🗑️ Notes effacées.",
-          },
-          en: {
+        en: {
             title: "Quick Notes",
             placeholder: "Your ideas, tasks, thoughts... Auto-saving.",
             char: (n) => `${n} character${n !== 1 ? "s" : ""}`,
@@ -56,7 +44,6 @@
         }
 
         function updateLangUI() {
-          $("langToggle").textContent = currentLang.toUpperCase();
           $("t-title").textContent = t("title");
           $("notesArea").placeholder = t("placeholder");
           $("t-saved").textContent = t("saved");
@@ -64,20 +51,10 @@
           updateCharCount();
         }
 
-        $("langToggle").addEventListener("click", () => {
-          currentLang = currentLang === "fr" ? "en" : "fr";
-          localStorage.setItem(LANG_KEY, currentLang);
-          updateLangUI();
-        });
-
         window.addEventListener("storage", (e) => {
           if (e.key === THEME_KEY) {
             currentTheme = e.newValue;
             updateThemeUI();
-          }
-          if (e.key === LANG_KEY) {
-            currentLang = e.newValue;
-            updateLangUI();
           }
         });
 

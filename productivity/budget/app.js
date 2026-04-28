@@ -3,14 +3,13 @@
 
   // ── Constants ────────────────────────────────────────────────────────────────
   const THEME_KEY = "pa_theme";
-  const LANG_KEY  = "pa_lang";
   const TXNS_KEY  = "pa_budgetTxns";
   const SUBS_KEY  = "pa_budgetSubs";
   const $ = id => document.getElementById(id);
 
   // ── State ────────────────────────────────────────────────────────────────────
   let theme        = localStorage.getItem(THEME_KEY) || "dark";
-  let lang         = localStorage.getItem(LANG_KEY)  || "en";
+  const lang = "en";
   let txns         = [];
   let subs         = [];   // Subscription[]
   let viewMonth    = "";
@@ -18,32 +17,7 @@
 
   // ── i18n ─────────────────────────────────────────────────────────────────────
   const i18n = {
-    fr: {
-      title: "Budget",
-      income: "Revenu", expense: "Dépense",
-      balance: "Solde", revenues: "Revenus", expenses: "Dépenses",
-      descPlaceholder: "Description…",
-      amountPlaceholder: "Montant",
-      catFood: "Alimentation", catTransport: "Transport", catHousing: "Logement",
-      catEntertainment: "Loisirs", catHealth: "Santé", catShopping: "Shopping",
-      catOther: "Autre", catSalary: "Salaire", catFreelance: "Freelance",
-      catOtherIncome: "Autre revenu",
-      noTxn: "Aucune transaction ce mois",
-      toastAdded: "✓ Transaction ajoutée",
-      toastDeleted: "✓ Supprimée",
-      toastError: "⚠️ Montant invalide",
-      recurring: "🔄 Abonnement mensuel",
-      debitDayPh: "Jour (1-31)",
-      nextDebits: "Prochains prélèvements",
-      perMonth: "/mois",
-      toastSubAdded: "✓ Abonnement enregistré",
-      toastSubDeleted: "✓ Abonnement supprimé",
-      months: [
-        "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-        "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
-      ],
-    },
-    en: {
+        en: {
       title: "Budget",
       income: "Income", expense: "Expense",
       balance: "Balance", revenues: "Income", expenses: "Expenses",
@@ -70,7 +44,10 @@
     },
   };
 
-  function t(key) { return (i18n[lang] || i18n.en)[key] ?? key; }
+  function t(key) {
+    const value = (i18n[lang] || i18n.en)[key];
+    return value === undefined ? key : value;
+  }
 
   // ── Category data ─────────────────────────────────────────────────────────────
   const CAT_EMOJI = {
@@ -153,14 +130,14 @@
   // ── Persistence ───────────────────────────────────────────────────────────────
   function loadTxns() {
     try { txns = JSON.parse(localStorage.getItem(TXNS_KEY)) || []; }
-    catch { txns = []; }
+    catch (e) { txns = []; }
   }
 
   function saveTxns() { localStorage.setItem(TXNS_KEY, JSON.stringify(txns)); }
 
   function loadSubs() {
     try { subs = JSON.parse(localStorage.getItem(SUBS_KEY)) || []; }
-    catch { subs = []; }
+    catch (e) { subs = []; }
   }
 
   function saveSubs() { localStorage.setItem(SUBS_KEY, JSON.stringify(subs)); }
@@ -321,7 +298,6 @@
 
   // ── Render: lang UI ───────────────────────────────────────────────────────────
   function updateLangUI() {
-    $("langToggle").textContent    = lang.toUpperCase();
     $("t-title").textContent       = t("title");
     $("t-balance").textContent     = t("balance");
     $("t-revenues").textContent    = t("revenues");
@@ -493,7 +469,6 @@
   // ── Cross-tab storage sync ────────────────────────────────────────────────────
   window.addEventListener("storage", e => {
     if (e.key === THEME_KEY) { applyTheme(e.newValue); }
-    if (e.key === LANG_KEY)  { lang = e.newValue || "en"; render(); }
     if (e.key === TXNS_KEY)  { loadTxns(); render(); }
     if (e.key === SUBS_KEY)  { loadSubs(); renderSubsSection(); }
   });
@@ -503,12 +478,6 @@
     theme = theme === "dark" ? "light" : "dark";
     localStorage.setItem(THEME_KEY, theme);
     applyTheme(theme);
-  });
-
-  $("langToggle").addEventListener("click", () => {
-    lang = lang === "fr" ? "en" : "fr";
-    localStorage.setItem(LANG_KEY, lang);
-    render();
   });
 
   $("btnAdd").addEventListener("click", addTransaction);

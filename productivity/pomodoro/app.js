@@ -29,29 +29,10 @@
   updateThemeUI();
 
   /* ── Language ───────────────────────────────────────────── */
-  const LANG_KEY = "pa_lang";
-  let currentLang = localStorage.getItem(LANG_KEY) || "en";
+  const currentLang = "en";
 
   const i18n = {
-    fr: {
-      focus:          "Focus",
-      pause:          "Pause",
-      focusSub:       "focus",
-      pauseSub:       "pause",
-      btnStart:       "Start",
-      btnResume:      "Reprendre",
-      btnPause:       "Pause",
-      toastFocusEnd:  "🍅 Focus terminé ! Pause 5 min.",
-      toastCycleEnd:  "🎉 Cycle complet ! 4 pomodoros terminés.",
-      toastNextFocus: "💪 C'est reparti ! Nouveau focus.",
-      ariaReset:      "Réinitialiser",
-      ariaStart:      "Démarrer",
-      ariaSkip:       "Passer la phase",
-      statSession:    "Séance",
-      statFocused:    "Focalisé",
-      statDone:       "Faits",
-    },
-    en: {
+        en: {
       focus:          "Focus",
       pause:          "Break",
       focusSub:       "focus",
@@ -74,7 +55,6 @@
   const t = (key) => i18n[currentLang][key];
 
   function updateLangUI() {
-    $("langToggle").textContent = currentLang.toUpperCase();
     $("t-title").textContent = "POMODORO";
     $("resetBtn").setAttribute("aria-label", t("ariaReset"));
     $("startBtn").setAttribute("aria-label", t("ariaStart"));
@@ -86,15 +66,8 @@
     renderPhase();
   }
 
-  $("langToggle").addEventListener("click", () => {
-    currentLang = currentLang === "fr" ? "en" : "fr";
-    localStorage.setItem(LANG_KEY, currentLang);
-    updateLangUI();
-  });
-
   window.addEventListener("storage", (e) => {
     if (e.key === THEME_KEY) { currentTheme = e.newValue; updateThemeUI(); }
-    if (e.key === LANG_KEY)  { currentLang  = e.newValue; updateLangUI(); }
   });
 
   /* ── Timer State ────────────────────────────────────────── */
