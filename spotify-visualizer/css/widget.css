@@ -61,6 +61,8 @@ button {
     --font-h:       'Space Grotesk', 'Inter', sans-serif;
     --font-b:       'IBM Plex Sans', 'Inter', sans-serif;
     --font-m:       'JetBrains Mono', monospace;
+    --layout-unit:  1vmin;
+    --album-compact-size: clamp(160px, calc(var(--layout-unit) * 75), 420px);
 }
 
 :root[data-theme="light"] {
@@ -115,6 +117,7 @@ html,
 body {
     width: 100%;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     background: var(--bg);
     color: var(--text-1);
@@ -1003,8 +1006,8 @@ html.sz-m .col-left-inner {
 }
 
 html.sz-m .album-wrap {
-    width: clamp(160px, 75vmin, 420px) !important;
-    height: clamp(160px, 75vmin, 420px) !important;
+    width: var(--album-compact-size) !important;
+    height: var(--album-compact-size) !important;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
     flex-shrink: 0;

@@ -38,6 +38,7 @@
         autoScroll: true,          // auto-follow active lyric line
         autoScrollResumeTimer: null,
         sizeClass: '',             // 'sz-m' | 'sz-l' | 'sz-xl'
+        connectionFailures: 0,
         theme: localStorage.getItem(LS.THEME) || "dark", // "dark" | "light" | "blur"
         lang: localStorage.getItem(LS.LANG) || "en",
         volume: 100,
@@ -165,6 +166,8 @@
             toastUrlCopied: "✓ URL copiée — collez-la dans iCUE",
             toastUrlError: "⚠️ Impossible de copier — copiez manuellement",
             missingClientId: "⚠️ Entrez d'abord votre Client ID",
+            offlineTitle: "Connexion Spotify indisponible",
+            offlineSub: "Dernier titre conservé. Nouvelle tentative automatique...",
         },
         en: {
             title: "Spotify",
@@ -196,6 +199,8 @@
             toastUrlCopied: "✓ URL copied — paste it in iCUE",
             toastUrlError: "⚠️ Could not copy — copy manually",
             missingClientId: "⚠️ Enter your Client ID first",
+            offlineTitle: "Spotify connection unavailable",
+            offlineSub: "Keeping the last track visible. Retrying automatically...",
         },
     };
 
@@ -365,6 +370,11 @@
         $("stateOverlay").classList.add("hidden");
     }
 
+    function lyricsPaneVisible() {
+        const el = $("colRight");
+        return !!el && getComputedStyle(el).display !== "none";
+    }
+
     /* ─────────────────────────────────────────────────────────────────────────
      *  SPOTIFY AUTH — refresh access token via refresh_token (PKCE, no secret)
      * ────────────────────────────────────────────────────────────────────────*/
@@ -383,7 +393,7 @@
                     client_id: cid,
                 }),
             });
-            const data = await resp.json();
+            const data = await resp.json().catch(() => ({}));
             if (!resp.ok) {
                 if (resp.status === 400 && data.error === "invalid_grant") {
                     // Token revoked/expired — clear it and show persistent reconnect banner
@@ -472,8 +482,7 @@
         // Lyrics
         state.lyricsData = [];
         state.lyricsTrackId = null; // sentinel — blocks in-flight fetch from previous track
-        const needsLyrics = (state.sizeClass === 'sz-xl' || state.sizeClass === 'sz-l');
-        if (needsLyrics) renderLyricsLoading();
+        if (lyricsPaneVisible()) renderLyricsLoading();
 
         // Track info — keep state.trackId intact so poll can detect the real new track ID
         $("trackName").textContent = "—";
@@ -846,12 +855,17 @@
         const data = await fetchCurrentlyPlaying();
 
         if (data === null) {
-            // Network error or auth failure — still show last known state
+            state.connectionFailures += 1;
+            if (state.connectionFailures >= 2) {
+                showOverlay("⚠️", t("offlineTitle"), t("offlineSub"));
+            }
             return;
         }
 
+        state.connectionFailures = 0;
+
         if (!data.is_playing || !data.item) {
-            hideOverlay();
+            showOverlay("♪", t("notPlaying"), t("notPlayingSub"));
             stopProgressTick();
             state.isPlaying = false;
             state.trackId = null;
@@ -901,8 +915,7 @@
             updateAlbumArt(artUrl);
 
             // Fetch lyrics for new track (L and XL layouts)
-            const needsLyrics = (state.sizeClass === 'sz-xl' || state.sizeClass === 'sz-l');
-            if (needsLyrics) {
+            if (lyricsPaneVisible()) {
                 state.lyricsData = [];
                 state.lyricsTrackId = trackId;
                 renderLyricsLoading(); // show skeleton while fetching
@@ -947,8 +960,7 @@
         document.documentElement.classList.add(sz);
         state.sizeClass = sz;
         // Fetch lyrics when entering a lyrics-capable layout
-        const needsLyrics = (sz === 'sz-xl' || sz === 'sz-l');
-        if (needsLyrics && state.trackId && state.lyricsData.length === 0) {
+        if (lyricsPaneVisible() && state.trackId && state.lyricsData.length === 0) {
             const tn = $("trackName").textContent;
             const ar = $("trackArtist").textContent;
             const al = $("trackAlbum").textContent;
