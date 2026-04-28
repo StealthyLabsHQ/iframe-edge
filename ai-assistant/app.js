@@ -40,6 +40,7 @@
     const CLAUDE_VERSION = "2023-06-01";
     const OPENAI_BASE = "https://api.openai.com";
     const MAX_CONVS = 20;
+    const ALLOWED_PROXY_HOSTS = new Set(["stealthylabs.eu", "stealthylabshq.github.io"]);
 
     const $ = id => document.getElementById(id);
 
@@ -147,6 +148,7 @@
         }
 
         if (parsed.protocol !== "https:") throw new Error("invalid_proxy_url");
+        if (!ALLOWED_PROXY_HOSTS.has(parsed.hostname)) throw new Error("invalid_proxy_url");
         if (parsed.username || parsed.password) throw new Error("invalid_proxy_url");
         if (parsed.search || parsed.hash) throw new Error("invalid_proxy_url");
 

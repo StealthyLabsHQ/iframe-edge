@@ -1,10 +1,5 @@
 <h1 align="center">🖥️ iframe-edge</h1>
 
-<img width="2560" height="720" alt="{ADD81F34-B6AF-41F5-8927-9F8BCA4BE490}" src="https://github.com/user-attachments/assets/ceccbf30-6d85-4d0e-aecf-327c5137d9c8" />
-<img width="2560" height="720" alt="{A72EA717-C9F2-4B4B-9514-57498A444FDE}" src="https://github.com/user-attachments/assets/cacc99a5-3e7c-4b96-a160-db1d7031cb02" />
-<img width="2560" height="720" alt="{A7221C84-BBC2-4EEC-B00B-86D7A814B4CC}" src="https://github.com/user-attachments/assets/1a1be2d4-1d50-48ba-9d91-31c3a3d91e64" />
-<img width="2560" height="720" alt="{0D4010FE-62BE-42F3-A0AD-2EEB821F9203}" src="https://github.com/user-attachments/assets/b3af95e0-2289-48e6-b895-bc2b2d309e23" />
-
 <p align="center">
   <b>All-in-one HTML/CSS/JS widgets in a single file for Productivity, Streaming, and more.</b></br>
   <i>Specially designed to be 100% responsive for Corsair Xeneon Edge & iCUE.</i>
@@ -15,7 +10,7 @@
 
 - **No external dependencies:** Pure HTML, CSS, and vanilla JavaScript bundled in single files.
 - **Fully Responsive:** M / L / XL sizes via `?size=` URL param or iCUE body-class injection.
-- **Plug & Play:** Just copy the code and paste it into iCUE.
+- **Plug & Play:** Use either GitHub Pages iFrame embeds or native `.icuewidget` imports.
 - **Dark Mode OLED / Light Mode** with a toggle on each widget.
 - **English-only UI copy** across active widgets.
 - **AI Assistant for 3 AI Models:** Google Gemini, Anthropic Claude, and OpenAI ChatGPT.
@@ -25,6 +20,8 @@
 ---
 
 ## 🗂️ Available Widgets
+
+Every widget can be used in two ways: live GitHub Pages iFrame embed, or native iCUE import with the matching `.icuewidget` file from `dist/icuewidgets/`.
 
 | Widget | iCUE `<iframe>` Code (Copy & Paste) |
 |---|---|
@@ -41,6 +38,8 @@
 | 🧘 **Posture & Blink** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/posture-reminder/"></iframe>` |
 | 📋 **Quick Clipboard** | `<iframe src="https://stealthylabshq.github.io/iframe-edge/productivity/quick-clipboard/"></iframe>` |
 
+Native packages are generated under `dist/icuewidgets/`:
+`ai-assistant.icuewidget`, `spotify-visualizer.icuewidget`, `iss-horizon.icuewidget`, `news-radar.icuewidget`, `budget.icuewidget`, `daily-focus.icuewidget`, `habit-tracker.icuewidget`, `hydration.icuewidget`, `notes.icuewidget`, `pomodoro.icuewidget`, `posture-reminder.icuewidget`, `quick-clipboard.icuewidget`, and `timer.icuewidget`.
 
 ---
 
@@ -66,6 +65,8 @@ To use these widgets on your Corsair setup, you will need:
 
 ### iCUE Widget Packages
 
+Widgets can also be imported directly into iCUE as `.icuewidget` files instead of using the generic iFrame widget.
+
 The iCUE Widget CLI is used to validate each package:
 
 ```powershell
@@ -73,14 +74,18 @@ powershell -ExecutionPolicy Bypass -File scripts\package-icuewidgets.ps1
 ```
 
 Packaged widgets are written to `dist/icuewidgets/*.icuewidget`.
+Each package includes a transparent widget-specific SVG preview icon at `resources/icon.svg`.
+Spotify Visualizer uses `svg/spotify.svg` for its package preview icon.
 Packages include `tr('...')` HTML titles required by the iCUE import validator.
 Packages also inject a minimal global `icueEvents` bridge so the iCUE validator accepts every widget.
+The default iCUE bridge is packaged as an external script so CSP does not need automatic `unsafe-inline` relaxation.
 Packages contain a single widget HTML entry, `index.html`; secondary web pages are excluded from `.icuewidget` archives.
 Packages include a viewport meta tag before the iCUE title.
 Packaged manifests target Xeneon Edge as `dashboard_lcd` with `sensor-screen` support.
 Translation files include Corsair locale keys, all mapped to English fallback text.
 The packaging script stages files in `icuewidget-build/`; do not switch it to a dot-prefixed folder because the official CLI skips hidden path segments.
 Final archives are written with `index.html` as the first ZIP entry to match importable Marketplace packages.
+The Spotify Visualizer package exposes native iCUE settings for `Spotify Client ID`, `Refresh Token`, and the Spotify Developer Dashboard URL, opens Spotify authorization from the widget overlay, preserves rotated refresh tokens across iCUE widget switches, retries the native iCUE token after restart fallback, restores the last track while reconnecting, caches synced lyrics, maps S/M to player-only layouts with volume controls, and maps L/XL to lyrics layouts.
 
 ### 📐 Size Variants
 

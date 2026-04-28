@@ -6,10 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.spotify.com https://accounts.spotify.com https://lrclib.net; object-src 'none'; base-uri 'none'; form-action 'none';" />
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.spotify.com https://accounts.spotify.com https://lrclib.net; object-src 'none'; base-uri 'none'; form-action 'none';" />
     <script src="../productivity/theme-loader.js"></script>
     <script src="../productivity/size-loader.js"></script>
     <title>Spotify Visualizer</title>
+    <meta name="x-icue-property" content="spotifyClientId" data-label="tr('Spotify Client ID')" data-type="textfield"
+        data-default="''" />
+    <meta name="x-icue-property" content="spotifyRefreshToken" data-label="tr('Refresh Token')" data-type="textfield"
+        data-default="''" />
+    <meta name="x-icue-property" content="spotifyDeveloperDashboard" data-label="tr('Spotify Developer Dashboard')"
+        data-type="textfield" data-default="'https://developer.spotify.com/dashboard'" />
+    <script id="x-icue-groups" type="application/json">
+        [
+            {
+                "title": "tr('Spotify Connection')",
+                "properties": ["spotifyClientId", "spotifyRefreshToken", "spotifyDeveloperDashboard"]
+            }
+        ]
+    </script>
     <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -27,26 +41,6 @@
 
     <!-- Main widget card -->
     <div id="widget">
-        <!-- Header -->
-        <div class="hdr">
-            <div class="hdr-icon" aria-hidden="true">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                        d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
-                </svg>
-            </div>
-            <span class="hdr-title" hidden>Spotify</span>
-            <button class="icon-btn" id="themeToggle" aria-label="Toggle theme" style="margin-left:auto">🌙</button>
-            <button class="icon-btn" id="settingsToggle" aria-label="Settings">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round">
-                    <circle cx="12" cy="12" r="3" />
-                    <path
-                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                </svg>
-            </button>
-        </div>
-
         <!-- Content -->
         <div id="content">
             <!-- Left column: album + info + controls -->
@@ -165,52 +159,35 @@
             <button class="state-btn ui-hidden" id="stateAction"></button>
         </div>
 
-        <!-- Settings panel -->
-        <div id="settingsPanel" role="dialog" aria-label="Settings">
-            <div class="settings-hdr">
-                <h2 id="t-settings">⚙️ Settings</h2>
-                <button class="icon-btn" id="closeSettings" aria-label="Close">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-
-            <div class="field">
-                <label id="t-client-id">Spotify Client ID</label>
-                <input type="text" id="inputClientId" placeholder="e.g. 4b2f8e1a3c6d..." autocomplete="off" />
-                <div class="field-hint" id="t-client-hint">From your Spotify Developer Dashboard. See README for setup
-                    guide.</div>
-            </div>
-
-            <button class="auth-btn" id="authBtn">🔑 <span id="t-auth-btn">Authorize &amp; get Refresh
-                    Token</span></button>
-
-            <div class="field">
-                <label id="t-refresh-token">Refresh Token</label>
-                <input type="password" id="inputRefreshToken" placeholder="Paste token from callback page…"
-                    autocomplete="off" />
-                <div class="field-hint" id="t-token-hint">After authorization, copy the token from the callback page and
-                    paste it here.</div>
-            </div>
-            <div class="divider"></div>
-
-            <button class="save-btn" id="saveBtn">Save</button>
-
-            <div class="divider"></div>
-
-            <div class="field-hint" id="t-icue-hint"></div>
-            <input id="iCueUrl" class="icue-url-input" type="password" readonly spellcheck="false" autocomplete="off" />
-            <button class="copy-url-btn" id="copyUrlBtn">📋 <span id="t-copy-url">Copy URL for iCUE</span></button>
-        </div>
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌙</button>
     </div>
 
     <!-- Toast notification -->
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./app.js"></script>
+    <script>
+        function syncSpotifyIcueProperties(options) {
+            var clientId = typeof spotifyClientId !== "undefined" ? spotifyClientId : undefined;
+            var refreshToken = typeof spotifyRefreshToken !== "undefined" ? spotifyRefreshToken : undefined;
+            return window.SpotifyVisualizerIcue.setCredentials(clientId, refreshToken, options);
+        }
+        window.SpotifyVisualizerIcue.syncFromIcue = syncSpotifyIcueProperties;
+        icueEvents = {
+            onICUEInitialized: function () {
+                syncSpotifyIcueProperties({ clearEmpty: true });
+                window.SpotifyVisualizerIcue.onInitialized();
+            },
+            onDataUpdated: function () {
+                syncSpotifyIcueProperties({ clearEmpty: false });
+                window.SpotifyVisualizerIcue.onDataUpdated();
+            }
+        };
+        if (typeof iCUE_initialized !== "undefined" && iCUE_initialized) {
+            syncSpotifyIcueProperties({ clearEmpty: true });
+            window.SpotifyVisualizerIcue.onInitialized();
+        }
+    </script>
 </body>
 
 </html>

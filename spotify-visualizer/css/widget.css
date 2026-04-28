@@ -223,11 +223,12 @@ body {
 
 /* ── Header ─────────────────────────────────────────────── */
 .hdr {
-    display: flex;
+    display: none;
     align-items: center;
-    gap: 12px;
-    min-height: 50px;
-    padding: 8px 16px;
+    justify-content: flex-end;
+    gap: 8px;
+    min-height: 40px;
+    padding: 6px 14px;
     flex-shrink: 0;
     border-bottom: 1px solid var(--hairline);
     background: rgba(0, 0, 0, 0.32);
@@ -281,6 +282,23 @@ body {
     user-select: none;
 }
 
+#themeToggle {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    z-index: 12;
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    padding: 0;
+    opacity: 0.62;
+    margin: 0;
+}
+
+#themeToggle:hover {
+    opacity: 1;
+}
+
 .icon-btn:hover {
     background: var(--overlay-10);
     color: var(--text-1);
@@ -309,23 +327,16 @@ body {
 
 /* ── Widget playing state ───────────────────────────────── */
 #widget::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 55%, transparent 100%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    z-index: 2;
+    display: none;
 }
 
 #widget.is-playing {
-    border-color: rgba(29, 185, 84, 0.22);
-    box-shadow: inset 0 0 0 1px rgba(29, 185, 84, 0.05);
+    border-color: var(--glass-b);
+    box-shadow: none;
 }
 
 #widget.is-playing::before {
-    opacity: 1;
+    opacity: 0;
 }
 
 /* ── Album art ──────────────────────────────────────────── */
@@ -431,11 +442,11 @@ body {
 .progress-fill {
     height: 100%;
     border-radius: 0;
-    background: var(--accent);
+    background: linear-gradient(90deg, rgba(29, 185, 84, 0.78), rgba(29, 185, 84, 0.92));
     width: 0%;
     transition: width 1s linear;
     pointer-events: none;
-    box-shadow: 0 0 8px var(--accent-glow);
+    box-shadow: none;
 }
 
 .progress-times {
@@ -781,194 +792,6 @@ html.sz-xl .lyric-line.active {
     filter: brightness(1.1);
 }
 
-/* ── Settings panel ─────────────────────────────────────── */
-#settingsPanel {
-    position: absolute;
-    inset: 0;
-    z-index: 20;
-    background: rgba(14, 14, 14, 0.96);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    transform: translateX(100%);
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-#settingsPanel.open {
-    transform: translateX(0);
-}
-
-.settings-hdr {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-.settings-hdr h2 {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-.field {
-    margin-bottom: 14px;
-}
-
-.field label {
-    display: block;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text-2);
-    margin-bottom: 6px;
-}
-
-.field input {
-    width: 100%;
-    padding: 10px 12px;
-    background: var(--overlay-5);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    color: var(--text-1);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    outline: none;
-    transition: border-color var(--tr);
-}
-
-.field input::placeholder {
-    color: var(--text-3);
-}
-
-.field input:focus {
-    border-color: var(--accent);
-}
-
-.field-hint {
-    font-size: 10px;
-    color: var(--text-3);
-    margin-top: 5px;
-    line-height: 1.5;
-}
-
-.remember-option {
-    margin-bottom: 12px;
-}
-
-.remember-check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    color: var(--text-2);
-    cursor: pointer;
-}
-
-.remember-check input[type="checkbox"] {
-    width: 14px;
-    height: 14px;
-    accent-color: var(--accent);
-    cursor: pointer;
-}
-
-.auth-btn {
-    width: 100%;
-    padding: 11px;
-    background: rgba(29, 185, 84, 0.12);
-    border: 1px solid rgba(29, 185, 84, 0.3);
-    border-radius: 9px;
-    color: var(--accent);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all var(--tr);
-    margin-bottom: 14px;
-    cursor: pointer;
-}
-
-.auth-btn:hover {
-    background: rgba(29, 185, 84, 0.2);
-}
-
-.save-btn {
-    width: 100%;
-    padding: 12px;
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 700;
-    transition: filter var(--tr);
-    cursor: pointer;
-}
-
-.save-btn:hover {
-    filter: brightness(1.08);
-}
-
-.icue-url-input {
-    display: block;
-    width: 100%;
-    background: var(--overlay-5);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-3);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    cursor: text;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    outline: none;
-    transition: border-color var(--tr), color var(--tr);
-}
-
-.icue-url-input:focus {
-    border-color: var(--border-h);
-    color: var(--text-2);
-}
-
-.icue-url-input::placeholder {
-    font-family: inherit;
-    font-size: 11px;
-    color: var(--text-3);
-    font-style: italic;
-}
-
-.copy-url-btn {
-    width: 100%;
-    padding: 10px;
-    background: var(--overlay-5);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    color: var(--text-2);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all var(--tr);
-    cursor: pointer;
-    margin-top: 8px;
-}
-
-.copy-url-btn:hover {
-    background: var(--overlay-8);
-    color: var(--text-1);
-    border-color: var(--border-h);
-}
-
-.copy-url-btn.copied {
-    color: var(--accent);
-    border-color: rgba(29, 185, 84, 0.35);
-}
-
 .divider {
     height: 1px;
     background: var(--border);
@@ -1167,10 +990,7 @@ html.sz-m .volume-row {
 }
 
 html.sz-m .hdr {
-    position: relative;
-    z-index: 5;
-    background: linear-gradient(rgba(0, 0, 0, 0.55) 0%, transparent 100%);
-    border-radius: 0;
+    display: none;
 }
 
 /* ── L : Two columns, layout similar to XL ── */
@@ -1334,14 +1154,14 @@ html.sz-xl #content {
 }
 
 html.sz-xl .col-left {
-    width: 352px;
-    min-width: 352px;
+    width: clamp(440px, 22vw, 560px);
+    min-width: 440px;
     flex-shrink: 0;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
     gap: 12px;
-    padding: 16px 22px 18px;
+    padding: 18px 28px 20px;
     border-right: 1px solid var(--hairline);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.010));
 }
@@ -1354,8 +1174,8 @@ html.sz-xl .col-left-inner {
 
 html.sz-xl .album-wrap {
     width: 100%;
-    height: min(276px, calc(100vh - 260px));
-    height: min(276px, calc(100dvh - 260px));
+    height: min(430px, calc(100vh - 300px));
+    height: min(430px, calc(100dvh - 300px));
     flex-shrink: 0;
 }
 
@@ -1367,16 +1187,16 @@ html.sz-xl #trackInfo {
 }
 
 html.sz-xl .track-name {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 700;
 }
 
 html.sz-xl .track-artist {
-    font-size: 15px;
+    font-size: 17px;
 }
 
 html.sz-xl .track-album {
-    font-size: 13px;
+    font-size: 14px;
 }
 
 html.sz-xl .progress-wrap {
@@ -1397,13 +1217,13 @@ html.sz-xl .progress-times {
 html.sz-xl .controls {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 html.sz-xl .volume-row {
     display: flex;
     justify-content: center;
-    max-width: 260px;
+    max-width: 320px;
     margin: 0 auto;
 }
 
@@ -1433,8 +1253,8 @@ html.sz-xl #volumeSlider::-moz-range-thumb {
 }
 
 html.sz-xl .controls .ctrl-btn {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 6px;
 }
 
@@ -1444,8 +1264,8 @@ html.sz-xl .controls .ctrl-btn svg {
 }
 
 html.sz-xl .controls .ctrl-btn.play {
-    width: 54px;
-    height: 54px;
+    width: 62px;
+    height: 62px;
     border-radius: 50%;
 }
 
@@ -1455,8 +1275,8 @@ html.sz-xl .controls .ctrl-btn.play svg {
 }
 
 html.sz-xl .controls .ctrl-btn.ctrl-sm {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 5px;
 }
 
@@ -1475,7 +1295,256 @@ html.sz-xl .col-right {
     margin-left: 0;
 }
 
+html.sz-xl #lyricsScroll {
+    padding: 42px 128px 54px 84px;
+}
+
+html.sz-xl .lyric-line {
+    max-width: 1180px;
+    font-size: 18px;
+    line-height: 1.65;
+}
+
+html.sz-xl .lyric-line.near {
+    font-size: 20px;
+}
+
+html.sz-xl .lyric-line.active {
+    font-size: 34px;
+    line-height: 1.12;
+}
+
 /* ── Lyrics scroll controls ── */
+/* S/M : player only, no lyrics */
+html.sz-m #content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(10px, 2.2vh, 28px) clamp(18px, 4vw, 42px) clamp(28px, 6vh, 58px);
+    overflow: hidden;
+}
+
+html.sz-m .col-left {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: 100%;
+    max-width: 920px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 3.4vh, 30px);
+    background: none;
+    padding-top: 0;
+}
+
+html.sz-m .col-left-inner {
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(20px, 5vw, 44px);
+    width: min(100%, 820px);
+}
+
+html.sz-m .album-wrap {
+    width: clamp(190px, min(36vw, 50vh), 340px) !important;
+    height: clamp(190px, min(36vw, 50vh), 340px) !important;
+}
+
+html.sz-m #trackInfo {
+    display: flex;
+    flex-direction: column;
+    position: static;
+    padding: 0;
+    background: none;
+    width: min(48vw, 390px);
+    min-width: 0;
+}
+
+html.sz-m .track-name {
+    font-size: clamp(24px, 4vh, 34px);
+    line-height: 1.12;
+}
+
+html.sz-m .track-artist {
+    font-size: clamp(16px, 2.5vh, 20px);
+}
+
+html.sz-m .track-album {
+    display: block;
+    font-size: clamp(14px, 2vh, 18px);
+}
+
+html.sz-m .progress-wrap {
+    display: flex !important;
+    flex-direction: column;
+    position: static;
+    width: min(100%, 760px);
+    padding: 0;
+}
+
+html.sz-m .progress-bar {
+    height: 4px;
+    border-radius: 999px;
+}
+
+html.sz-m .progress-times {
+    display: flex;
+}
+
+html.sz-m .controls {
+    display: flex;
+    position: static;
+    justify-content: center;
+    gap: clamp(8px, 2vw, 14px);
+    padding: 0;
+    background: none;
+}
+
+html.sz-m .controls .ctrl-btn {
+    width: clamp(42px, 6.6vh, 54px);
+    height: clamp(42px, 6.6vh, 54px);
+}
+
+html.sz-m .controls .ctrl-btn.play {
+    width: clamp(58px, 9.2vh, 72px);
+    height: clamp(58px, 9.2vh, 72px);
+}
+
+html.sz-m .col-right {
+    display: none;
+}
+
+html.sz-m .volume-row {
+    display: flex;
+    justify-content: center;
+    width: min(52vw, 360px);
+    max-width: 360px;
+    margin: 0 auto;
+    gap: 10px;
+    padding-right: 40px;
+}
+
+html.sz-m .volume-row .ctrl-btn.ctrl-sm {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+}
+
+html.sz-m #volumeSlider {
+    height: 4px;
+}
+
+html.sz-m .hdr {
+    display: none;
+}
+
+@media (max-height: 390px) {
+    html.sz-m #content {
+        padding-top: 4px;
+        padding-bottom: 8px;
+    }
+
+    html.sz-m .col-left {
+        gap: 8px;
+        padding-top: 8px;
+    }
+
+    html.sz-m .album-wrap {
+        width: clamp(170px, min(30vw, 55vh), 196px) !important;
+        height: clamp(170px, min(30vw, 55vh), 196px) !important;
+    }
+
+    html.sz-m .track-album,
+    html.sz-m .progress-times {
+        display: none;
+    }
+
+    html.sz-m .controls .ctrl-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    html.sz-m .controls .ctrl-btn.play {
+        width: 52px;
+        height: 52px;
+    }
+
+    html.sz-m .volume-row {
+        width: min(42vw, 260px);
+        padding-right: 38px;
+    }
+}
+
+/* L keeps the lyrics layout used by the wide preview, XL remains unchanged. */
+html.sz-l .col-left {
+    width: 420px;
+    min-width: 400px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 16px 22px 18px;
+    border-right: 1px solid var(--hairline);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.010));
+}
+
+html.sz-l .col-left-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+html.sz-l .album-wrap {
+    width: 100%;
+    height: min(330px, calc(100vh - 310px));
+    height: min(330px, calc(100dvh - 310px));
+}
+
+html.sz-l #trackInfo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+html.sz-l .track-name {
+    font-size: 18px;
+}
+
+html.sz-l .track-artist {
+    font-size: 15px;
+}
+
+html.sz-l .track-album {
+    font-size: 13px;
+}
+
+html.sz-l .progress-wrap {
+    display: flex;
+    flex-direction: column;
+}
+
+html.sz-l .controls {
+    gap: 10px;
+}
+
+html.sz-l .controls .ctrl-btn {
+    width: 44px;
+    height: 44px;
+}
+
+html.sz-l .controls .ctrl-btn.play {
+    width: 54px;
+    height: 54px;
+}
+
+html.sz-l .controls .ctrl-btn.ctrl-sm {
+    width: 36px;
+    height: 36px;
+}
+
 .lyrics-ctrl-bar {
     display: none;
     position: absolute;
@@ -1703,45 +1772,9 @@ html.sz-xl .lyrics-ctrl-btn svg {
     background: rgba(0, 0, 0, 0.06);
 }
 
-/* Settings panel */
-:root[data-theme="light"] #settingsPanel {
-    background: rgba(242, 242, 244, 0.97);
-    color: #0a0a0a;
-}
-
-:root[data-theme="light"] .settings-hdr h2 {
-    color: #0a0a0a;
-}
-
-:root[data-theme="light"] .field label {
-    color: #2a2a2a;
-}
-
-:root[data-theme="light"] .field input {
-    background: rgba(0, 0, 0, 0.06);
-    border-color: rgba(0, 0, 0, 0.16);
-    color: #0a0a0a;
-}
-
-:root[data-theme="light"] .field input::placeholder {
-    color: #888888;
-}
-
-:root[data-theme="light"] .field-hint {
-    color: #555555;
-}
-
-:root[data-theme="light"] .remember-check {
-    color: #2a2a2a;
-}
-
-:root[data-theme="light"] .divider {
-    background: rgba(0, 0, 0, 0.14);
-}
-
 /* sz-m light mode: swap dark header/controls gradients for light ones */
 html[data-theme="light"].sz-m .hdr {
-    background: linear-gradient(rgba(255, 255, 255, 0.55) 0%, transparent 100%);
+    display: none;
 }
 
 html[data-theme="light"].sz-m .controls {

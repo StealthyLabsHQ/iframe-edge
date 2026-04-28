@@ -9,12 +9,18 @@
     const API_BASE = "https://api.spotify.com/v1";
     const LRCLIB_BASE = "https://lrclib.net/api/get";
     const LRCLIB_SEARCH = "https://lrclib.net/api/search";
-    const POLL_MS = 5000;
+    const POLL_MS = 3000;
+    const CONNECTING_OVERLAY_FAILURES = 4;
+    const OFFLINE_OVERLAY_FAILURES = 10;
+    const LYRICS_CACHE_LIMIT = 24;
 
     const LS = {
         THEME: "pa_theme",
         CID: "pa_spotify_client_id",
         RTOKEN: "pa_spotify_refresh_token",
+        RTOKEN_ICUE: "pa_spotify_refresh_token_icue",
+        LAST_TRACK: "pa_spotify_last_track",
+        LYRICS_CACHE: "pa_spotify_lyrics_cache_v1",
     };
     const HASH_PREFIX = "#cfg=";
 
@@ -29,6 +35,7 @@
         durationMs: 0,
         lastPollTime: 0,
         pollTimer: null,
+        tokenRefreshPromise: null,
         progressTimer: null,
         lyricsData: [],       // [{timeMs, text}]
         lyricsTrackId: null,
@@ -51,17 +58,19 @@
         return localStorage.getItem(LS.RTOKEN) || "";
     }
 
-    function setRefreshToken(token) {
+    function setRefreshToken(token, source) {
         const value = token || "";
         if (!value) {
             clearRefreshToken();
             return;
         }
         localStorage.setItem(LS.RTOKEN, value);
+        if (source === "icue") localStorage.setItem(LS.RTOKEN_ICUE, value);
     }
 
     function clearRefreshToken() {
         localStorage.removeItem(LS.RTOKEN);
+        localStorage.removeItem(LS.RTOKEN_ICUE);
     }
 
     // Migration: if token was stored under old session/remember system, pull it into localStorage.
@@ -75,6 +84,106 @@
         // Clean up old remember flag
         localStorage.removeItem("pa_spotify_refresh_token_remember");
     }
+
+    function readIcueProperty(name) {
+        if (name !== "spotifyClientId" && name !== "spotifyRefreshToken") {
+            return { found: false, value: undefined };
+        }
+        if (typeof window !== "undefined" && Object.prototype.hasOwnProperty.call(window, name)) {
+            return { found: true, value: window[name] };
+        }
+        return { found: false, value: undefined };
+    }
+
+    function readIcueString(name) {
+        const prop = readIcueProperty(name);
+        if (!prop.found) return null;
+        return String(prop.value || "").trim();
+    }
+
+    function setIcueCredentials(cidValue, rtknValue, options) {
+        const clearEmpty = !!(options && options.clearEmpty);
+        const cid = cidValue === undefined || cidValue === null ? null : String(cidValue || "").trim();
+        const rtkn = rtknValue === undefined || rtknValue === null ? null : String(rtknValue || "").trim();
+        let changed = false;
+
+        if (cid !== null) {
+            const currentCid = localStorage.getItem(LS.CID) || "";
+            if (cid && cid !== currentCid) {
+                localStorage.setItem(LS.CID, cid);
+                changed = true;
+            } else if (!cid && (clearEmpty || !currentCid)) {
+                localStorage.removeItem(LS.CID);
+                if (currentCid) changed = true;
+                if (clearEmpty) {
+                    clearRefreshToken();
+                    state.accessToken = null;
+                    state.tokenExpiry = 0;
+                }
+            }
+        }
+
+        if (rtkn !== null) {
+            const currentRtkn = getRefreshToken();
+            const lastIcueRtkn = localStorage.getItem(LS.RTOKEN_ICUE) || "";
+            if (rtkn) {
+                if (currentRtkn && currentRtkn !== rtkn && lastIcueRtkn === rtkn) {
+                    return changed;
+                }
+                if (currentRtkn !== rtkn) {
+                    setRefreshToken(rtkn, "icue");
+                    changed = true;
+                } else {
+                    localStorage.setItem(LS.RTOKEN_ICUE, rtkn);
+                }
+            } else if (clearEmpty || cid || !currentRtkn) {
+                clearRefreshToken();
+                if (currentRtkn) changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    function syncIcueCredentials(options) {
+        const cid = readIcueString("spotifyClientId");
+        const rtkn = readIcueString("spotifyRefreshToken");
+        return setIcueCredentials(cid, rtkn, options);
+    }
+
+    function getNativeIcueRefreshToken() {
+        return readIcueString("spotifyRefreshToken") || "";
+    }
+
+    function syncIcueInlineBridge(options) {
+        if (window.SpotifyVisualizerIcue && typeof window.SpotifyVisualizerIcue.syncFromIcue === "function") {
+            return window.SpotifyVisualizerIcue.syncFromIcue(options);
+        }
+        return syncIcueCredentials(options);
+    }
+
+    function handleIcueSettingsUpdate(options) {
+        const changed = syncIcueInlineBridge(options);
+        if (localStorage.getItem(LS.CID) && getRefreshToken()) {
+            if (changed) {
+                state.accessToken = null;
+                state.tokenExpiry = 0;
+            }
+            restoreLastTrackSnapshot();
+            hideOverlay();
+            if (!state.pollTimer) startPolling();
+            else if (changed) poll();
+        } else {
+            stopPolling();
+            showCredentialSetupOverlay();
+        }
+    }
+
+    window.SpotifyVisualizerIcue = {
+        onInitialized: function () { handleIcueSettingsUpdate({ clearEmpty: true }); },
+        onDataUpdated: function () { handleIcueSettingsUpdate({ clearEmpty: false }); },
+        setCredentials: setIcueCredentials,
+    };
 
     /* ─────────────────────────────────────────────────────────────────────────
      *  URL HASH CONFIG — survives iCUE widget switching
@@ -99,7 +208,7 @@
             localStorage.setItem(LS.CID, cfg.c);
         }
         if (cfg.r) {
-            setRefreshToken(cfg.r);
+            setRefreshToken(cfg.r, "hash");
         }
     }
 
@@ -114,21 +223,8 @@
         } catch (_) { }
     }
 
-    function buildConfigUrl() {
-        const cid = localStorage.getItem(LS.CID) || "";
-        const rtkn = getRefreshToken();
-        const encoded = encodeConfig(cid, rtkn);
-        return window.location.origin + window.location.pathname + HASH_PREFIX + encoded;
-    }
-
-    function buildIcueUrl() {
-        const cid = localStorage.getItem(LS.CID) || "";
-        const encoded = encodeConfig(cid, "");
-        return window.location.origin + window.location.pathname + HASH_PREFIX + encoded;
-    }
-
-    function buildIframeTag() {
-        return `<iframe src="${buildIcueUrl()}"></iframe>`;
+    function buildAuthUrl(cid) {
+        return LOGIN_URL + "?client_id=" + encodeURIComponent(cid || "");
     }
 
     /* ─────────────────────────────────────────────────────────────────────────
@@ -137,34 +233,24 @@
     const i18n = {
         en: {
             title: "Spotify",
-            settings: "⚙️ Settings",
-            clientIdLbl: "Spotify Client ID",
-            clientHint: "From your Spotify Developer Dashboard. See README for setup guide.",
-            authBtn: "Authorize & get Refresh Token",
-            refreshLbl: "Refresh Token",
-            tokenHint: "After authorization, copy the token from the callback page and paste it here.",
-            save: "Save",
             lyricsLbl: "Lyrics",
             noSong: "Play a song to see lyrics",
             noLyrics: "Lyrics not available",
             notPlaying: "Not playing",
             notPlayingSub: "Start playback on any Spotify device.",
             setupTitle: "Setup Required",
-            setupSub: "Open settings to add your Spotify Client ID and Refresh Token.",
-            openSettings: "Open Settings",
-            toastSaved: "✓ Settings saved",
-            toastSavedCopied: "✓ Saved — iCUE URL copied! Paste it in your iCUE widget settings.",
+            setupSub: "Use iCUE settings to add your Spotify Client ID and Refresh Token.",
+            setupClientIdSub: "Add your Spotify Client ID in the native iCUE settings panel.",
+            setupTokenSub: "Authorize Spotify, then paste the refresh token into iCUE settings.",
+            authorizeSpotify: "Authorize Spotify",
             toastError: "Spotify connection error",
             toastReauth: "⚠️ Token expired — re-authorize in settings",
             sessionTitle: "Session expired",
             sessionSub: "Your Spotify authorization was revoked or expired. Reconnect to continue.",
             reconnect: "Reconnect",
-            copyUrlBtn: "Copy URL for iCUE",
-            icueHint: "This URL contains your Client ID. Paste it in iCUE — you will need to re-authorize the token in the widget settings.",
-            icueUrlPh: "Save your Client ID to generate the URL…",
-            toastUrlCopied: "✓ URL copied — paste it in iCUE",
-            toastUrlError: "⚠️ Could not copy — copy manually",
-            missingClientId: "⚠️ Enter your Client ID first",
+            missingClientId: "⚠️ Add your Client ID in iCUE settings first",
+            connectingTitle: "Connecting to Spotify",
+            connectingSub: "Reconnecting after widget switch...",
             offlineTitle: "Spotify connection unavailable",
             offlineSub: "Keeping the last track visible. Retrying automatically...",
         },
@@ -220,22 +306,8 @@
 
     function updateStaticStrings() {
         const el = (id, key) => { const e = $(id); if (e) e.textContent = t(key); };
-        el("t-settings", "settings");
-        el("t-client-id", "clientIdLbl");
-        el("t-client-hint", "clientHint");
-        el("t-auth-btn", "authBtn");
-        el("t-refresh-token", "refreshLbl");
-        el("t-token-hint", "tokenHint");
         el("t-lyrics", "lyricsLbl");
         el("t-no-song", "noSong");
-        el("t-icue-hint", "icueHint");
-        el("t-copy-url", "copyUrlBtn");
-
-        const saveBtn = $("saveBtn");
-        if (saveBtn) saveBtn.textContent = t("save");
-
-        const inp = $("inputClientId");
-        if (inp) inp.setAttribute("placeholder", t("clientHint").substring(0, 30) + "…");
     }
 
     /* ─────────────────────────────────────────────────────────────────────────
@@ -246,66 +318,35 @@
     });
 
     /* ─────────────────────────────────────────────────────────────────────────
-     *  SETTINGS PANEL
+     *  EXTERNAL AUTH LINK
      * ────────────────────────────────────────────────────────────────────────*/
-    function openSettings() {
-        $("settingsPanel").classList.add("open");
-        $("inputClientId").value = localStorage.getItem(LS.CID) || "";
-        $("inputRefreshToken").value = getRefreshToken();
-        refreshIcueUrlField();
-    }
-
-    function refreshIcueUrlField() {
-        const cid = localStorage.getItem(LS.CID) || "";
-        const field = $("iCueUrl");
-        if (cid) {
-            field.value = buildIframeTag();
+    function openExternalLink(url) {
+        if (window.plugins && window.plugins.Linkprovider && typeof pluginLinkprovider_initialized !== "undefined" && pluginLinkprovider_initialized) {
+            window.plugins.Linkprovider.open(url);
         } else {
-            field.value = "";
+            window.open(url, "_blank", "noopener,noreferrer");
         }
     }
 
-    function closeSettings() {
-        $("settingsPanel").classList.remove("open");
-    }
-
-    $("settingsToggle").addEventListener("click", openSettings);
-    $("closeSettings").addEventListener("click", closeSettings);
-
-    $("authBtn").addEventListener("click", () => {
-        const cid = $("inputClientId").value.trim();
+    function startSpotifyAuthorization() {
+        syncIcueInlineBridge();
+        const cid = localStorage.getItem(LS.CID) || "";
         if (!cid) {
             showToast(t("missingClientId"));
-            $("inputClientId").focus();
             return;
         }
-        const url = LOGIN_URL + "?client_id=" + encodeURIComponent(cid);
-        window.open(url, "_blank", "noopener,noreferrer");
-    });
+        openExternalLink(buildAuthUrl(cid));
+    }
 
-    $("saveBtn").addEventListener("click", () => {
-        const cid = $("inputClientId").value.trim();
-        const rtkn = $("inputRefreshToken").value.trim();
-        localStorage.setItem(LS.CID, cid);
-        setRefreshToken(rtkn);
-        refreshIcueUrlField();
-        closeSettings();
-        // Reset token so we re-fetch
-        state.accessToken = null;
-        state.tokenExpiry = 0;
-        startPolling();
-        showToast(t("toastSaved"));
-    });
-
-    $("copyUrlBtn").addEventListener("click", () => {
-        const url = buildIframeTag();
-        navigator.clipboard.writeText(url).then(() => {
-            const btn = $("copyUrlBtn");
-            btn.classList.add("copied");
-            showToast(t("toastUrlCopied"));
-            setTimeout(() => btn.classList.remove("copied"), 2500);
-        }).catch(() => showToast(t("toastUrlError")));
-    });
+    function showCredentialSetupOverlay() {
+        syncIcueInlineBridge();
+        const cid = localStorage.getItem(LS.CID) || "";
+        if (!cid) {
+            showOverlay("⚙️", t("setupTitle"), t("setupClientIdSub"), t("authorizeSpotify"), startSpotifyAuthorization);
+            return;
+        }
+        showOverlay("🔑", t("setupTitle"), t("setupTokenSub"), t("authorizeSpotify"), startSpotifyAuthorization);
+    }
 
     /* ─────────────────────────────────────────────────────────────────────────
      *  STATE OVERLAY
@@ -337,7 +378,7 @@
     /* ─────────────────────────────────────────────────────────────────────────
      *  SPOTIFY AUTH — refresh access token via refresh_token (PKCE, no secret)
      * ────────────────────────────────────────────────────────────────────────*/
-    async function refreshAccessToken() {
+    async function refreshAccessTokenOnce(allowNativeFallback = true) {
         const cid = localStorage.getItem(LS.CID) || "";
         const rtkn = getRefreshToken();
         if (!cid || !rtkn) return false;
@@ -355,26 +396,38 @@
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) {
                 if (resp.status === 400 && data.error === "invalid_grant") {
+                    const nativeRtkn = getNativeIcueRefreshToken();
+                    if (allowNativeFallback && nativeRtkn && nativeRtkn !== rtkn) {
+                        setRefreshToken(nativeRtkn, "icue");
+                        state.accessToken = null;
+                        state.tokenExpiry = 0;
+                        return refreshAccessTokenOnce(false);
+                    }
                     // Token revoked/expired — clear it and show persistent reconnect banner
                     stopPolling();
                     clearRefreshToken();
                     state.accessToken = null;
                     state.tokenExpiry = 0;
-                    showOverlay("🔒", t("sessionTitle"), t("sessionSub"), t("reconnect"), () => {
-                        hideOverlay();
-                        openSettings();
-                    });
+                    showOverlay("🔒", t("sessionTitle"), t("sessionSub"), t("reconnect"), startSpotifyAuthorization);
                 }
                 return false;
             }
             state.accessToken = data.access_token;
             state.tokenExpiry = Date.now() + (data.expires_in - 30) * 1000;
             // Spotify sometimes returns a new refresh_token — persist it immediately
-            if (data.refresh_token) setRefreshToken(data.refresh_token);
+            if (data.refresh_token) setRefreshToken(data.refresh_token, "spotify");
             return true;
         } catch (_) {
             return false;
         }
+    }
+
+    async function refreshAccessToken() {
+        if (state.tokenRefreshPromise) return state.tokenRefreshPromise;
+        state.tokenRefreshPromise = refreshAccessTokenOnce().finally(() => {
+            state.tokenRefreshPromise = null;
+        });
+        return state.tokenRefreshPromise;
     }
 
     async function getAccessToken() {
@@ -428,7 +481,7 @@
     // Each scheduled poll bails out early if the track already changed, avoiding wasted calls.
     function pollUntilTrackChanges() {
         const prevId = state.trackId;
-        [300, 700, 1300, 2200, 3500].forEach(ms => {
+        [150, 400, 800, 1300, 2100].forEach(ms => {
             setTimeout(() => {
                 if (state.trackId !== prevId) return; // already updated
                 poll();
@@ -436,22 +489,9 @@
         });
     }
 
-    // Optimistic UI clear on skip: wipe track info instantly so the user sees the change immediately
+    // Keep current track visible while Spotify applies the skip.
     function clearOnSkip() {
-        // Lyrics
-        state.lyricsData = [];
-        state.lyricsTrackId = null; // sentinel — blocks in-flight fetch from previous track
-        if (lyricsPaneVisible()) renderLyricsLoading();
-
-        // Track info — keep state.trackId intact so poll can detect the real new track ID
-        $("trackName").textContent = "—";
-        $("trackArtist").textContent = "—";
-        $("trackAlbum").textContent = "";
-        updateAlbumArt(null);
-
-        // Progress reset
         state.progressMs = 0;
-        state.durationMs = 0;
         renderProgress();
     }
 
@@ -612,22 +652,51 @@
     /* ─────────────────────────────────────────────────────────────────────────
      *  LRCLIB — fetch synced lyrics
      * ────────────────────────────────────────────────────────────────────────*/
-    async function fetchLyrics(artist, title, album, durationSec) {
+    function lyricsCacheKey(artist, title, durationSec) {
+        return [artist || "", title || "", Math.round(durationSec || 0)].join("|").toLowerCase();
+    }
+
+    function readLyricsCache() {
+        try { return JSON.parse(localStorage.getItem(LS.LYRICS_CACHE) || "{}"); }
+        catch (_) { return {}; }
+    }
+
+    function getCachedLyrics(key) {
+        const entry = readLyricsCache()[key];
+        if (!entry || !Array.isArray(entry.lines)) return null;
+        return entry.lines;
+    }
+
+    function setCachedLyrics(key, lines) {
         try {
-            // 1. Exact match — fastest, requires album name + duration to match LRCLib exactly
+            const cache = readLyricsCache();
+            cache[key] = { ts: Date.now(), lines: Array.isArray(lines) ? lines : [] };
+            Object.keys(cache)
+                .sort((a, b) => (cache[b].ts || 0) - (cache[a].ts || 0))
+                .slice(LYRICS_CACHE_LIMIT)
+                .forEach(k => delete cache[k]);
+            localStorage.setItem(LS.LYRICS_CACHE, JSON.stringify(cache));
+        } catch (_) { }
+    }
+
+    async function fetchLyricsExact(artist, title, album, durationSec) {
+        try {
             const url = new URL(LRCLIB_BASE);
             url.searchParams.set("artist_name", artist);
             url.searchParams.set("track_name", title);
             url.searchParams.set("album_name", album || "");
             url.searchParams.set("duration", Math.round(durationSec));
             const resp = await fetch(url.toString());
-            if (resp.ok) {
-                const data = await resp.json();
-                if (data.syncedLyrics) return parseLRC(data.syncedLyrics);
-            }
+            if (!resp.ok) return [];
+            const data = await resp.json();
+            return data.syncedLyrics ? parseLRC(data.syncedLyrics) : [];
+        } catch (_) {
+            return [];
+        }
+    }
 
-            // 2. Fallback search — no album/duration required, picks the result whose
-            //    duration is closest to the actual track so we get the right version
+    async function fetchLyricsSearch(artist, title, durationSec) {
+        try {
             const searchUrl = new URL(LRCLIB_SEARCH);
             searchUrl.searchParams.set("artist_name", artist);
             searchUrl.searchParams.set("track_name", title);
@@ -635,11 +704,8 @@
             if (!searchResp.ok) return [];
             const results = await searchResp.json();
             if (!Array.isArray(results) || results.length === 0) return [];
-
             const withSynced = results.filter(r => r.syncedLyrics);
             if (withSynced.length === 0) return [];
-
-            // Pick the entry whose duration is closest to the Spotify track duration
             withSynced.sort((a, b) =>
                 Math.abs((a.duration || 0) - durationSec) - Math.abs((b.duration || 0) - durationSec)
             );
@@ -647,6 +713,18 @@
         } catch (_) {
             return [];
         }
+    }
+
+    async function fetchLyrics(artist, title, album, durationSec) {
+        const key = lyricsCacheKey(artist, title, durationSec);
+        const cached = getCachedLyrics(key);
+        if (cached) return cached;
+        const exactPromise = fetchLyricsExact(artist, title, album, durationSec);
+        const searchPromise = fetchLyricsSearch(artist, title, durationSec);
+        const exact = await exactPromise;
+        const lines = exact.length ? exact : await searchPromise;
+        if (lines.length) setCachedLyrics(key, lines);
+        return lines;
     }
 
     // Parse LRC format: [mm:ss.xx] text
@@ -795,6 +873,46 @@
         $("widget").classList.toggle("is-playing", playing);
     }
 
+    function saveLastTrackSnapshot(track, artists, album, artUrl) {
+        if (!track || !track.id) return;
+        try {
+            localStorage.setItem(LS.LAST_TRACK, JSON.stringify({
+                id: track.id,
+                name: track.name || "",
+                artists: artists || "",
+                album: album.name || "",
+                artUrl: artUrl || "",
+                progressMs: state.progressMs || 0,
+                durationMs: state.durationMs || 0,
+                isPlaying: !!state.isPlaying,
+                savedAt: Date.now(),
+            }));
+        } catch (_) { }
+    }
+
+    function restoreLastTrackSnapshot() {
+        try {
+            const snap = JSON.parse(localStorage.getItem(LS.LAST_TRACK) || "null");
+            if (!snap || !snap.id || Date.now() - (snap.savedAt || 0) > 30 * 60 * 1000) return false;
+            const elapsed = snap.isPlaying ? Date.now() - (snap.savedAt || Date.now()) : 0;
+            state.trackId = snap.id;
+            state.durationMs = snap.durationMs || 0;
+            state.progressMs = Math.min((snap.progressMs || 0) + elapsed, state.durationMs || 0);
+            state.isPlaying = !!snap.isPlaying;
+            $("trackName").textContent = snap.name || "-";
+            $("trackArtist").textContent = snap.artists || "-";
+            $("trackAlbum").textContent = snap.album || "";
+            updateAlbumArt(snap.artUrl || null);
+            renderProgress();
+            setPlayIcon(state.isPlaying);
+            if (state.isPlaying) startProgressTick();
+            hideOverlay();
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
     /* ─────────────────────────────────────────────────────────────────────────
      *  POLL — main loop
      * ────────────────────────────────────────────────────────────────────────*/
@@ -804,10 +922,7 @@
 
         if (!cid || !rtkn) {
             stopPolling();
-            showOverlay("⚙️", t("setupTitle"), t("setupSub"), t("openSettings"), () => {
-                hideOverlay();
-                openSettings();
-            });
+            showCredentialSetupOverlay();
             return;
         }
 
@@ -815,19 +930,23 @@
 
         if (data === null) {
             state.connectionFailures += 1;
-            if (state.connectionFailures >= 2) {
+            if (state.trackId) {
+                return;
+            }
+            if (state.connectionFailures >= OFFLINE_OVERLAY_FAILURES) {
                 showOverlay("⚠️", t("offlineTitle"), t("offlineSub"));
+            } else if (state.connectionFailures >= CONNECTING_OVERLAY_FAILURES) {
+                showOverlay("…", t("connectingTitle"), t("connectingSub"));
             }
             return;
         }
 
         state.connectionFailures = 0;
 
-        if (!data.is_playing || !data.item) {
-            showOverlay("♪", t("notPlaying"), t("notPlayingSub"));
+        if (!data.item) {
+            hideOverlay();
             stopProgressTick();
             state.isPlaying = false;
-            state.trackId = null;
             setPlayIcon(false);
             return;
         }
@@ -862,6 +981,7 @@
 
         if (state.isPlaying) startProgressTick();
         else stopProgressTick();
+        saveLastTrackSnapshot(track, artists, album, artUrl);
 
         // Only re-render track info / art if track changed
         if (trackId !== state.trackId) {
@@ -873,22 +993,27 @@
 
             updateAlbumArt(artUrl);
 
-            // Fetch lyrics for new track (L and XL layouts)
-            if (lyricsPaneVisible()) {
-                state.lyricsData = [];
-                state.lyricsTrackId = trackId;
-                renderLyricsLoading(); // show skeleton while fetching
-                fetchLyrics(artists, track.name, album.name, (track.duration_ms || 0) / 1000)
-                    .then(lines => {
-                        if (state.lyricsTrackId !== trackId) return; // stale — skip if song changed again
-                        state.lyricsData = lines;
-                        renderLyrics(lines);
-                        highlightLyricLine();
-                    });
+            const durationSec = (track.duration_ms || 0) / 1000;
+            const cachedLyrics = getCachedLyrics(lyricsCacheKey(artists, track.name, durationSec));
+            state.lyricsTrackId = trackId;
+            if (cachedLyrics) {
+                state.lyricsData = cachedLyrics;
+                if (lyricsPaneVisible()) {
+                    renderLyrics(cachedLyrics);
+                    highlightLyricLine();
+                }
             } else {
-                // Even in non-lyrics layout, reset state so lyrics are fresh on next resize
                 state.lyricsData = [];
-                state.lyricsTrackId = null;
+                if (lyricsPaneVisible()) renderLyricsLoading();
+                fetchLyrics(artists, track.name, album.name, durationSec)
+                    .then(lines => {
+                        if (state.lyricsTrackId !== trackId || state.trackId !== trackId) return;
+                        state.lyricsData = lines;
+                        if (lyricsPaneVisible()) {
+                            renderLyrics(lines);
+                            highlightLyricLine();
+                        }
+                    });
             }
         } else {
             // Same track — just sync lyrics highlight
@@ -898,6 +1023,7 @@
 
     function startPolling() {
         stopPolling();
+        state.connectionFailures = 0;
         poll(); // immediate
         state.pollTimer = setInterval(poll, POLL_MS);
     }
@@ -906,6 +1032,20 @@
         clearInterval(state.pollTimer);
         state.pollTimer = null;
     }
+
+    function resumePollingAfterWidgetSwitch() {
+        syncIcueInlineBridge();
+        if (!localStorage.getItem(LS.CID) || !getRefreshToken()) return;
+        restoreLastTrackSnapshot();
+        state.connectionFailures = 0;
+        if (!state.pollTimer) startPolling();
+        else poll();
+    }
+
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) resumePollingAfterWidgetSwitch();
+    });
+    window.addEventListener("focus", resumePollingAfterWidgetSwitch);
 
     /* ─────────────────────────────────────────────────────────────────────────
      *  RESPONSIVE SIZE DETECTION via ResizeObserver on the widget element
@@ -919,7 +1059,10 @@
         document.documentElement.classList.add(sz);
         state.sizeClass = sz;
         // Fetch lyrics when entering a lyrics-capable layout
-        if (lyricsPaneVisible() && state.trackId && state.lyricsData.length === 0) {
+        if (lyricsPaneVisible() && state.trackId && state.lyricsData.length > 0) {
+            renderLyrics(state.lyricsData);
+            highlightLyricLine();
+        } else if (lyricsPaneVisible() && state.trackId && state.lyricsData.length === 0) {
             const tn = $("trackName").textContent;
             const ar = $("trackArtist").textContent;
             const al = $("trackAlbum").textContent;
@@ -934,16 +1077,16 @@
     if (typeof ResizeObserver !== 'undefined') {
         const ro = new ResizeObserver(entries => {
             const w = entries[0].contentRect.width;
-            if (w < 700) applySize('sz-m');
-            else if (w < 1400) applySize('sz-l');
+            if (w < 1200) applySize('sz-m');
+            else if (w < 2000) applySize('sz-l');
             else applySize('sz-xl');
         });
         ro.observe($('widget'));
     } else {
         const fb = () => {
             const w = $('widget').offsetWidth || window.innerWidth;
-            if (w < 700) applySize('sz-m');
-            else if (w < 1400) applySize('sz-l');
+            if (w < 1200) applySize('sz-m');
+            else if (w < 2000) applySize('sz-l');
             else applySize('sz-xl');
         };
         window.addEventListener('resize', fb);
@@ -957,6 +1100,7 @@
     function init() {
         loadFromHash();          // restore credentials from URL hash if localStorage is empty
         migrateRefreshTokenStorage();
+        syncIcueCredentials({ clearEmpty: true });
         applyTheme(state.theme);
         applyLang();
         updateStaticStrings();
@@ -965,11 +1109,9 @@
         const rtkn = getRefreshToken();
 
         if (!cid || !rtkn) {
-            showOverlay("⚙️", t("setupTitle"), t("setupSub"), t("openSettings"), () => {
-                hideOverlay();
-                openSettings();
-            });
+            showCredentialSetupOverlay();
         } else {
+            restoreLastTrackSnapshot();
             startPolling();
         }
     }

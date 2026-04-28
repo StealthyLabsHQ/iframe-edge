@@ -29,7 +29,7 @@
 
     if (!clientIdIsValid) {
         document.getElementById('authBtn').disabled = true;
-        showError('Invalid or missing client_id parameter. Please re-open this page from the widget settings.');
+        showError('Invalid or missing client_id parameter. Add the Client ID in iCUE settings, then re-open authorization from the widget.');
     }
 
     // PKCE helpers

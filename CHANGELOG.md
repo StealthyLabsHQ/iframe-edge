@@ -9,8 +9,36 @@ All notable changes to **iframe-edge** are documented here.
 ### Added - Widget polish layer
 - `widget-polish.css`: shared Huashu design finish layer for active widgets, with compact icon-only headers, tighter controls, restrained 8px surfaces, improved borders, focus states, and less title-heavy UI.
 - `scripts/package-icuewidgets.ps1`: validates and builds active widgets into `dist/icuewidgets/*.icuewidget`.
+- Generated `.icuewidget` packages now use widget-specific SVG preview icons instead of text initials.
 
 ### Fixed - iCUE packages
+- Spotify Visualizer packages now expose native iCUE settings for Spotify Client ID and Refresh Token, matching the importable settings-panel pattern used by RSS widgets.
+- Spotify Visualizer now removes its in-widget settings panel and opens Spotify authorization through the iCUE LinkProvider flow.
+- Spotify Visualizer now syncs iCUE textfield values through an inline bridge before opening Spotify authorization.
+- Spotify Visualizer now tolerates transient Spotify API misses while switching iCUE widgets before showing an offline state.
+- Spotify Visualizer now preserves rotated Spotify refresh tokens across iCUE widget switches and restores the last track while reconnecting.
+- Spotify Visualizer now polls faster after skips and caches synced lyrics to reduce transition/loading delay.
+- Spotify Visualizer now maps S/M slots to player-only layouts, L/XL to lyrics layouts, and removes the top Spotify badge/playing stripe.
+- Spotify Visualizer compact S/M layouts now use larger album art and include volume controls.
+- Spotify Visualizer theme toggle is now a subtle floating control in the lower corner.
+- Spotify Visualizer theme toggle now anchors to the widget viewport instead of the header.
+- Spotify Visualizer theme toggle now sits in the lower-left corner to avoid the lyrics scroll controls.
+- Spotify Visualizer compact S/M layout now uses the available upper space more tightly.
+- Spotify Visualizer compact S/M layout now uses larger track metadata text.
+- Spotify Visualizer now removes the empty top header strip from the widget.
+- Spotify Visualizer now clears stale local credentials when a newly added iCUE widget has empty native settings.
+- Spotify Visualizer now blocks stale local refresh tokens when only Spotify Client ID is set in iCUE settings.
+- Spotify Visualizer now retries the native iCUE Refresh Token after an iCUE restart if the cached local token is rejected.
+- Spotify Visualizer now removes the green playing-state frame around the widget.
+- Generated `.icuewidget` preview icons now use transparent widget-specific SVG marks across all widgets instead of black square tiles.
+- Spotify Visualizer package now uses `svg/spotify.svg` as its iCUE preview icon.
+- AI Assistant CSP now restricts proxy connections to StealthyLabs origins instead of any HTTPS endpoint.
+- Spotify Visualizer iCUE property lookup now uses an explicit allowlist instead of dynamic function evaluation.
+- Packaged widgets now inject the default iCUE event bridge as an external script, avoiding automatic CSP `unsafe-inline` relaxation.
+- README now documents both supported iCUE usage modes: GitHub Pages iFrame embeds and native `.icuewidget` imports.
+- Spotify Visualizer XL layout now uses more horizontal space with larger album art, player metadata, controls, and lyrics.
+- Spotify Visualizer M layout now uses more vertical space with larger album art, metadata, controls, and lower player spacing.
+- Spotify Visualizer iCUE settings now include a Spotify Developer Dashboard URL field for setup.
 - Final `.icuewidget` archives now write `index.html` as the first ZIP entry, matching importable Marketplace packages and avoiding iCUE's title parser reading another file.
 - Packaged archives now exclude secondary HTML pages so iCUE only validates the widget `index.html`.
 - Translation files now include Corsair's expected locale keys with English fallback values, preventing `tr('...')` titles from resolving empty in iCUE.
