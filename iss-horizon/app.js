@@ -1,4 +1,5 @@
 /* jshint esversion: 11 */
+/* global issMapStyle */
 'use strict';
 
 (function () {
@@ -26,7 +27,8 @@
     const allowIcueBlocked = query.get('allowIcueBlocked') === '1';
     const safeMode = query.get('safeMode') !== '0';
     const IS_LOCAL_FILE = location.protocol === 'file:';
-    const IS_ICUE_WEBVIEW = /icue|corsair/i.test(navigator.userAgent || '');
+    const IS_ICUE_WIDGET = typeof window.icueEvents !== 'undefined';
+    const IS_ICUE_WEBVIEW = IS_ICUE_WIDGET || /icue|corsair/i.test(navigator.userAgent || '');
     const FORCE_IBM_ONLY = forcedProvider === 'ibm' || forcedProvider === 'safe';
     const FORCE_ICUE_SAFE = IS_ICUE_WEBVIEW && !allowIcueBlocked && forcedProvider !== 'youtube';
     const FORCE_HLS = forcedProvider === 'hls' || FORCE_ICUE_SAFE;
@@ -41,7 +43,7 @@
     ]);
     const FALLBACK_IBM_SOURCE = SOURCES.find(s => s.type === 'ibm') || SOURCES[0];
     const PLAYABLE_SOURCES = FORCE_HLS
-        ? SOURCES.filter(s => s.type === 'hls')
+        ? SOURCES.filter(s => s.type === 'hls' && s.id === 'ntv1')
         : ALLOW_YOUTUBE
             ? SOURCES.filter((s) => {
                 if (s.type !== 'youtube') return true;
@@ -59,6 +61,7 @@
     // ── Video Player (YouTube / IBM iframe + HLS native) ────────────
     const iframe = $('videoIframe');
     const video = $('videoPlayer');
+    const videoEnabled = !!(iframe && video);
     let hlsInstance = null;
     const btnMute = $('btnMute');
     const iconMute = $('iconMute');
@@ -145,11 +148,14 @@
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = url;
             video.addEventListener('loadedmetadata', () => video.play());
+        } else {
+            videoZone.classList.add('is-error');
         }
     }
 
     function loadSource(source) {
         const playable = resolvePlayableSource(source);
+        if (!videoEnabled) return playable;
         lbSource.textContent = playable.name;
         videoZone.classList.remove('is-error');
         const theaterOn = THEATER_DEFAULT && playable.type === 'youtube';
@@ -186,36 +192,37 @@
     } catch (e) { }
 
     // Init
-    updateMuteIcon();
-    loadSource(PLAYABLE_SOURCES[currentSourceIdx]);
-    if (safeMode && !allowIcueBlocked && PLAYABLE_SOURCES.length > 1) {
-        btnSwitchSource.title = 'Safe source list active';
-    } else if (FORCE_ICUE_SAFE) {
-        btnSwitchSource.title = 'iCUE-safe mode: IBM fallback active';
-    } else if (IS_ICUE_WEBVIEW && !allowIcueBlocked && PLAYABLE_SOURCES.length > 1) {
-        btnSwitchSource.title = 'iCUE-safe source list active';
-    }
-    if (PLAYABLE_SOURCES.length <= 1) {
-        btnSwitchSource.style.pointerEvents = 'none';
-        btnSwitchSource.style.opacity = '0.7';
-        btnSwitchSource.title = 'Single compatible stream in this environment';
-    }
-
-    // Mute toggle
-    btnMute.addEventListener('click', () => {
-        isMuted = !isMuted;
-        try { localStorage.setItem('iss_mute', isMuted); } catch (e) { }
+    if (videoEnabled) {
         updateMuteIcon();
-        // Toggle mute on current player
-        const currentSrc = PLAYABLE_SOURCES[currentSourceIdx];
-        if (currentSrc && currentSrc.type === 'hls') {
-            video.muted = isMuted; // native mute, no reload
-        } else {
-            loadSource(currentSrc); // iframe needs reload
+        loadSource(PLAYABLE_SOURCES[currentSourceIdx]);
+        if (safeMode && !allowIcueBlocked && PLAYABLE_SOURCES.length > 1) {
+            btnSwitchSource.title = 'Safe source list active';
+        } else if (FORCE_ICUE_SAFE) {
+            btnSwitchSource.title = 'iCUE-safe mode: HLS fallback active';
+        } else if (IS_ICUE_WEBVIEW && !allowIcueBlocked && PLAYABLE_SOURCES.length > 1) {
+            btnSwitchSource.title = 'iCUE-safe source list active';
         }
-    });
+        if (PLAYABLE_SOURCES.length <= 1) {
+            btnSwitchSource.style.pointerEvents = 'none';
+            btnSwitchSource.style.opacity = '0.7';
+            btnSwitchSource.title = 'Single compatible stream in this environment';
+        }
+
+        btnMute.addEventListener('click', () => {
+            isMuted = !isMuted;
+            try { localStorage.setItem('iss_mute', isMuted); } catch (e) { }
+            updateMuteIcon();
+            const currentSrc = PLAYABLE_SOURCES[currentSourceIdx];
+            if (currentSrc && currentSrc.type === 'hls') {
+                video.muted = isMuted;
+            } else {
+                loadSource(currentSrc);
+            }
+        });
+    }
 
     function updateMuteIcon() {
+        if (!iconMute) return;
         iconMute.replaceChildren();
         appendSvgElement(iconMute, 'polygon', { points: '11 5 6 9 2 9 2 15 6 15 11 19 11 5' });
         if (isMuted) {
@@ -228,12 +235,14 @@
     }
 
     // Source toggle
-    btnSwitchSource.addEventListener('click', () => {
-        currentSourceIdx = (currentSourceIdx + 1) % PLAYABLE_SOURCES.length;
-        const src = PLAYABLE_SOURCES[currentSourceIdx];
-        try { localStorage.setItem('iss_source', src.id); } catch (e) { }
-        loadSource(src);
-    });
+    if (videoEnabled) {
+        btnSwitchSource.addEventListener('click', () => {
+            currentSourceIdx = (currentSourceIdx + 1) % PLAYABLE_SOURCES.length;
+            const src = PLAYABLE_SOURCES[currentSourceIdx];
+            try { localStorage.setItem('iss_source', src.id); } catch (e) { }
+            loadSource(src);
+        });
+    }
 
     // ── Day / Night Calculation ──────────────────────────────────────
     // A simplified solar declination algorithm to approximate if ISS is in sunlight
@@ -400,9 +409,84 @@
 
 
     // ── Leaflet Map Setup ────────────────────────────────────────────
-    let leafletMap = null, issMapMarker = null;
+    const MAP_STYLES = {
+        dark: {
+            url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+            options: { maxZoom: 18, subdomains: 'abcd' }
+        },
+        satellite: {
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            options: { maxZoom: 18 },
+            labels: {
+                url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+                options: { maxZoom: 18, pane: 'labelsPane' }
+            }
+        },
+        day: {
+            url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+            options: { maxZoom: 18, subdomains: 'abcd' }
+        }
+    };
+    let leafletMap = null, issMapMarker = null, mapTileLayer = null, mapLabelLayer = null;
     let pastPolylines = [], futurePolylines = [];
     let mapFollowISS = true;
+    let currentMapStyle = 'dark';
+    let appliedMapStyle = null;
+    try { currentMapStyle = localStorage.getItem('iss_map_style') || 'dark'; } catch (e) { }
+
+    function resolvedMapStyle() {
+        if (currentMapStyle !== 'auto') return currentMapStyle;
+        return calculateDayNight(issData.lat, issData.lon) ? 'day' : 'dark';
+    }
+
+    function normalizeMapStyle(value) {
+        const style = String(value || '').trim().toLowerCase();
+        if (style === 'sat' || style === 'satellite') return 'satellite';
+        return (MAP_STYLES[style] || style === 'auto') ? style : 'dark';
+    }
+
+    function readIcueMapStyle() {
+        if (typeof issMapStyle !== 'undefined') {
+            return normalizeMapStyle(issMapStyle);
+        }
+        if (typeof window !== 'undefined' && Object.prototype.hasOwnProperty.call(window, 'issMapStyle')) {
+            return normalizeMapStyle(window.issMapStyle);
+        }
+        return null;
+    }
+
+    function setMapNightOverlay() {
+        const night = resolvedMapStyle() === 'dark' && currentMapStyle === 'auto' && !calculateDayNight(issData.lat, issData.lon);
+        document.body.classList.toggle('map-night', night);
+    }
+
+    function applyMapStyle(style) {
+        currentMapStyle = normalizeMapStyle(style);
+        try { localStorage.setItem('iss_map_style', currentMapStyle); } catch (e) { }
+        if (!leafletMap) return;
+        const resolvedStyleName = resolvedMapStyle();
+        document.body.dataset.mapStyle = resolvedStyleName;
+        if (appliedMapStyle === resolvedStyleName) {
+            setMapNightOverlay();
+            return;
+        }
+        if (mapTileLayer) leafletMap.removeLayer(mapTileLayer);
+        if (mapLabelLayer) leafletMap.removeLayer(mapLabelLayer);
+        const resolved = MAP_STYLES[resolvedStyleName] || MAP_STYLES.dark;
+        mapTileLayer = L.tileLayer(resolved.url, resolved.options).addTo(leafletMap);
+        mapLabelLayer = resolved.labels ? L.tileLayer(resolved.labels.url, resolved.labels.options).addTo(leafletMap) : null;
+        appliedMapStyle = resolvedStyleName;
+        setMapNightOverlay();
+    }
+
+    function syncIcueMapStyle() {
+        const nativeMapStyle = readIcueMapStyle();
+        if (nativeMapStyle && nativeMapStyle !== currentMapStyle) applyMapStyle(nativeMapStyle);
+    }
+
+    window.IssHorizonIcue = {
+        syncMapStyle: syncIcueMapStyle
+    };
 
     function initLeafletMap() {
         if (typeof L === 'undefined') return;
@@ -418,11 +502,11 @@
             maxBounds: [[-85, -9999], [85, 9999]],
             maxBoundsViscosity: 1.0,
         }).setView([20, 0], 2);
+        leafletMap.createPane('labelsPane');
+        leafletMap.getPane('labelsPane').style.zIndex = 420;
+        leafletMap.getPane('labelsPane').style.pointerEvents = 'none';
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 18,
-            subdomains: 'abcd',
-        }).addTo(leafletMap);
+        applyMapStyle(currentMapStyle);
 
         const issIcon = L.divIcon({
             className: 'iss-map-marker',
@@ -571,7 +655,10 @@
 
     function updateLeafletMap(lat, lon) {
         if (!issMapMarker) return;
+        syncIcueMapStyle();
         issMapMarker.setLatLng([lat, lon]);
+        if (currentMapStyle === 'auto') applyMapStyle('auto');
+        else setMapNightOverlay();
 
         if (prevLat !== null) {
             isAscending = lat > prevLat;
@@ -618,6 +705,8 @@
     });
 
     initLeafletMap();
+    syncIcueMapStyle();
+    setInterval(syncIcueMapStyle, 1000);
 
     // Instant render from cache
     try {

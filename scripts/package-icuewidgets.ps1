@@ -245,8 +245,8 @@ function New-IcueWidgetArchive($source, $output) {
 
 $widgets = @(
   @{ slug="ai-assistant"; source="ai-assistant"; name="AI Assistant"; id="com.stealthylabshq.aiassistant"; desc="AI assistant widget for iCUE."; accent="#a78bfa"; label="AI"; icon="ai" },
-  @{ slug="spotify-visualizer"; source="spotify-visualizer"; name="Spotify Visualizer"; id="com.stealthylabshq.spotifyvisualizer"; desc="Spotify playback visualizer for iCUE."; accent="#1DB954"; label="SP"; icon="spotify"; keys=@("Spotify Connection", "Spotify Client ID", "Refresh Token", "Spotify Developer Dashboard"); plugins=@("widgetbuilder.linkprovider:Url:1.0") },
-  @{ slug="iss-horizon"; source="iss-horizon"; name="ISS Horizon"; id="com.stealthylabshq.isshorizon"; desc="ISS tracking widget for iCUE."; accent="#00c8ff"; label="IS"; icon="iss" },
+  @{ slug="spotify-visualizer"; source="spotify-visualizer"; name="Spotify Visualizer"; id="com.stealthylabshq.spotifyvisualizer"; desc="Spotify playback visualizer for iCUE."; accent="#1DB954"; label="SP"; icon="spotify"; keys=@("Spotify Connection", "Spotify Client ID", "Reset Pairing Code"); plugins=@("widgetbuilder.linkprovider:Url:1.0") },
+  @{ slug="iss-horizon"; source="iss-horizon"; name="ISS Horizon"; id="com.stealthylabshq.isshorizon"; desc="ISS tracking widget for iCUE."; accent="#00c8ff"; label="IS"; icon="iss"; keys=@("ISS Horizon", "Map Style", "Dark", "Satellite", "Day", "Auto") },
   @{ slug="news-radar"; source="news-radar"; name="News Radar"; id="com.stealthylabshq.newsradar"; desc="News feed widget for iCUE."; accent="#0984e3"; label="NR"; icon="news" },
   @{ slug="budget"; source="productivity\budget"; name="Budget"; id="com.stealthylabshq.budget"; desc="Budget tracker widget for iCUE."; accent="#f9ca24"; label="BU"; icon="budget" },
   @{ slug="daily-focus"; source="productivity\daily-focus"; name="Daily Focus"; id="com.stealthylabshq.dailyfocus"; desc="Daily focus widget for iCUE."; accent="#a29bfe"; label="DF"; icon="focus" },
@@ -268,6 +268,10 @@ foreach ($widget in $widgets) {
   $src = Join-Path $root $widget.source
   $dst = Join-Path $buildRoot $widget.slug
   Copy-Tree $src $dst
+  if ($widget.slug -eq "spotify-visualizer") {
+    $legacyAuthDir = Join-Path $dst "auth"
+    if (Test-Path $legacyAuthDir) { Remove-Item -LiteralPath $legacyAuthDir -Recurse -Force }
+  }
 
   foreach ($shared in $sharedFiles) {
     $sharedSrc = Join-Path $root $shared

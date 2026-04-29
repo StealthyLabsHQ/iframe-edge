@@ -1,0 +1,16 @@
+name = "spotify-auth-worker"
+main = "src/worker.js"
+compatibility_date = "2026-04-29"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "spotify-auth"
+database_id = "replace-with-cloudflare-d1-id"
+
+[vars]
+SPOTIFY_REDIRECT_URI = "https://spotify-auth-worker.example.workers.dev/auth/callback"
+WIDGET_ALLOWED_ORIGIN = "*"
+
+# Set with wrangler secret put:
+# SPOTIFY_CLIENT_ID
+# TOKEN_ENCRYPTION_KEY_BASE64

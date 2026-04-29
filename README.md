@@ -91,22 +91,44 @@ ISS Horizon and Spotify Visualizer primarily use iCUE size detection instead of 
 
 ## Spotify Visualizer Setup
 
-Spotify Visualizer requires Spotify Premium and a Spotify Developer app.
+Spotify Visualizer requires Spotify Premium and a free Spotify Developer app. The app is only used to identify your own Spotify account during login. No client secret is needed.
 
-1. Open the Spotify Developer Dashboard: `https://developer.spotify.com/dashboard`
-2. Create an app.
-3. Add this redirect URL:
+### Quick Install
+
+1. Download `dist/icuewidgets/spotify-visualizer.icuewidget`.
+2. Open iCUE and import the widget.
+3. Add Spotify Visualizer to your XENEON EDGE screen.
+4. Open the widget settings.
+5. Paste your Spotify Client ID.
+6. Click `Authorize Spotify` inside the widget.
+7. Accept Spotify authorization.
+8. Return to iCUE and start playback on Spotify.
+
+### Get a Spotify Client ID
+
+1. Open `https://developer.spotify.com/dashboard`.
+2. Sign in with your Spotify account.
+3. Create an app.
+4. Open the app settings.
+5. Add this redirect URI:
 
 ```text
-https://stealthylabshq.github.io/icue-edge-widgets/spotify-visualizer/auth/callback.html
+https://spotify-auth-worker.code-39c.workers.dev/auth/callback
 ```
 
-4. Enable Web API access.
-5. Copy the Spotify Client ID.
-6. In iCUE, import `dist/icuewidgets/spotify-visualizer.icuewidget`.
-7. Paste the Client ID in the native iCUE Spotify settings panel.
-8. Use the widget authorization button to connect Spotify.
-9. Paste the generated refresh token in the native iCUE settings panel if needed.
+6. Save settings.
+7. Copy the app `Client ID`.
+8. Paste it into Spotify Visualizer settings in iCUE.
+
+Do not use or share the client secret. Spotify Visualizer does not need it.
+
+### Common Issues
+
+- `Authorize Spotify` does nothing: check that the Client ID is pasted in iCUE settings.
+- Spotify says redirect URI mismatch: add the exact redirect URI above in Spotify Developer Dashboard.
+- Widget shows no music: start playback in the Spotify desktop/mobile app first.
+- Lyrics are missing: Spotify lyrics and widget lyrics come from different providers. Some tracks may not exist in LRCLIB.
+- You used the wrong Spotify account: type `RESET` in `Reset Pairing Code`, then authorize again.
 
 Spotify Visualizer supports:
 
@@ -117,7 +139,19 @@ Spotify Visualizer supports:
 - Theme toggle.
 - Last track restore while reconnecting.
 - Synced lyrics cache.
-- Native iCUE settings for Client ID, Refresh Token, and Spotify Developer Dashboard URL.
+- Server-side Spotify OAuth through `spotify-auth-worker`.
+
+### Spotify Server-Side OAuth
+
+`spotify-auth-worker/` contains the first server-side OAuth backend for Spotify Visualizer.
+
+GitHub Pages remains the widget domain:
+
+```text
+https://stealthylabshq.github.io/icue-edge-widgets/
+```
+
+The Worker is only used for OAuth, encrypted refresh-token storage, and Spotify API proxying.
 
 ## AI Assistant Setup
 
@@ -141,6 +175,7 @@ Provider key pages:
 | --- | --- |
 | `ai-assistant/` | AI Assistant widget |
 | `spotify-visualizer/` | Spotify Visualizer widget and Spotify auth pages |
+| `spotify-auth-worker/` | Cloudflare Worker for Spotify OAuth and encrypted refresh-token storage |
 | `iss-horizon/` | ISS Horizon widget |
 | `news-radar/` | News widget |
 | `productivity/` | Productivity widgets |

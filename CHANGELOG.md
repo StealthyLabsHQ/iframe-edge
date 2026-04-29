@@ -10,13 +10,36 @@ All notable changes to **icue-edge-widgets** are documented here.
 - `widget-polish.css`: shared Huashu design finish layer for active widgets, with compact icon-only headers, tighter controls, restrained 8px surfaces, improved borders, focus states, and less title-heavy UI.
 - `scripts/package-icuewidgets.ps1`: validates and builds active widgets into `dist/icuewidgets/*.icuewidget`.
 - Generated `.icuewidget` packages now use widget-specific SVG preview icons instead of text initials.
+- `spotify-auth-worker/`: Cloudflare Worker starter for Spotify OAuth, pairing codes, encrypted refresh-token storage, and Spotify player proxying.
+- Spotify Auth Worker deployed to Cloudflare Workers with D1 storage and PKCE OAuth.
+- Spotify Visualizer now supports Worker-backed OAuth pairing instead of requiring Client ID and Refresh Token settings in iCUE.
+- Spotify Auth Worker now allows browser GET requests to `/pairings` for manual pairing tests.
+- Spotify Visualizer now reuses an existing Pairing Code when opening authorization instead of generating a mismatched new code.
+- Spotify Visualizer now regenerates expired pairing codes before opening Spotify authorization.
+- Spotify Auth Worker pairing and OAuth state windows now last 30 minutes.
+- Spotify Auth Worker encryption-key setup now documents Node-generated base64 to avoid invalid secret encoding.
 
 ### Fixed - iCUE packages
+- Spotify Visualizer now removes the legacy client-side refresh-token auth flow and relies on Worker-backed pairing only.
+- Spotify Auth Worker now resets pairings server-side, returns generic internal errors, sends stricter security headers, and rate-limits pairing/OAuth setup routes.
+- Spotify Auth Worker now exchanges pairing codes for opaque session tokens so playback APIs no longer accept pairing codes.
+- Spotify Visualizer now keeps the player visible instead of blocking it with a warning overlay after long Spotify pauses or transient player errors.
+- Spotify Visualizer now supports user-owned Spotify Client IDs, making OAuth independent from the maintainer's Spotify Developer Dashboard for new pairings.
+- Spotify Visualizer now resolves lyrics from the first valid LRCLIB response and times out slow lyric calls to reduce delays after track switches.
+- Spotify Visualizer now allows slower LRCLIB matches to finish so available lyrics are not marked unavailable too early.
+- README now includes a clearer Spotify Visualizer install guide with Client ID setup and common troubleshooting.
+- ISS Horizon now detects native `.icuewidget` runtime via `icueEvents` and defaults to NASA HLS streams instead of iframe-based live embeds.
+- ISS Horizon now removes the live video area in favor of a larger ISS ground track map with Dark, Satellite, Day, and Auto styles.
+- ISS Horizon map style now moves to native iCUE settings, and satellite mode overlays country/place labels.
+- ISS Horizon map style changes now sync through an external iCUE bridge compatible with the widget CSP.
 - Spotify Visualizer packages now expose native iCUE settings for Spotify Client ID and Refresh Token, matching the importable settings-panel pattern used by RSS widgets.
 - Spotify Visualizer now removes its in-widget settings panel and opens Spotify authorization through the iCUE LinkProvider flow.
 - Spotify Visualizer now syncs iCUE textfield values through an inline bridge before opening Spotify authorization.
 - Spotify Visualizer now tolerates transient Spotify API misses while switching iCUE widgets before showing an offline state.
 - Spotify Visualizer now preserves rotated Spotify refresh tokens across iCUE widget switches and restores the last track while reconnecting.
+- Spotify Visualizer now keeps credentials instance-scoped so adding a second empty Spotify widget does not clear the active widget refresh token.
+- Spotify Visualizer now suppresses transient Session expired overlays during widget switches when the current track is still visible.
+- Spotify Visualizer now reloads lyrics after restored track snapshots so widget switches do not leave the lyrics panel empty.
 - Spotify Visualizer now polls faster after skips and caches synced lyrics to reduce transition/loading delay.
 - Spotify Visualizer now maps S/M slots to player-only layouts, L/XL to lyrics layouts, and removes the top Spotify badge/playing stripe.
 - Spotify Visualizer compact S/M layouts now use larger album art and include volume controls.

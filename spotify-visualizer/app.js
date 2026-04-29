@@ -1,92 +1,117 @@
 (() => {
     "use strict";
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  CONSTANTS & STATE
-     * ────────────────────────────────────────────────────────────────────────*/
-    const LOGIN_URL = "https://stealthylabshq.github.io/icue-edge-widgets/spotify-visualizer/auth/login.html";
-    const TOKEN_URL = "https://accounts.spotify.com/api/token";
-    const API_BASE = "https://api.spotify.com/v1";
+     * ------------------------------------------------------------------------*/
     const LRCLIB_BASE = "https://lrclib.net/api/get";
     const LRCLIB_SEARCH = "https://lrclib.net/api/search";
-    const POLL_MS = 3000;
+    const DEFAULT_AUTH_WORKER_URL = "https://spotify-auth-worker.code-39c.workers.dev";
+    const POLL_MS = 1500;
     const CONNECTING_OVERLAY_FAILURES = 4;
     const OFFLINE_OVERLAY_FAILURES = 10;
     const LYRICS_CACHE_LIMIT = 24;
+    const LYRICS_FETCH_TIMEOUT_MS = 8000;
 
     const LS = {
         THEME: "pa_theme",
         CID: "pa_spotify_client_id",
         RTOKEN: "pa_spotify_refresh_token",
         RTOKEN_ICUE: "pa_spotify_refresh_token_icue",
+        PAIRING_CODE: "pa_spotify_pairing_code",
+        SESSION_TOKEN: "pa_spotify_session_token",
+        AUTH_WORKER_URL: "pa_spotify_auth_worker_url",
         LAST_TRACK: "pa_spotify_last_track",
         LYRICS_CACHE: "pa_spotify_lyrics_cache_v1",
     };
-    const HASH_PREFIX = "#cfg=";
-
     const $ = id => document.getElementById(id);
 
     let state = {
-        accessToken: null,
-        tokenExpiry: 0,        // Date.now() ms
         isPlaying: false,
         trackId: null,
         progressMs: 0,
         durationMs: 0,
         lastPollTime: 0,
         pollTimer: null,
-        tokenRefreshPromise: null,
         progressTimer: null,
         lyricsData: [],       // [{timeMs, text}]
         lyricsTrackId: null,
+        lyricsLoadingTrackId: null,
         shuffleOn: false,          // Spotify shuffle state
         repeatMode: "off",         // "off" | "context" | "track"
         autoScroll: true,          // auto-follow active lyric line
         autoScrollResumeTimer: null,
         sizeClass: '',             // 'sz-m' | 'sz-l' | 'sz-xl'
         connectionFailures: 0,
+        pairingCode: localStorage.getItem(LS.PAIRING_CODE) || "",
+        sessionToken: localStorage.getItem(LS.SESSION_TOKEN) || "",
+        authWorkerUrl: DEFAULT_AUTH_WORKER_URL,
         theme: localStorage.getItem(LS.THEME) || "dark", // "dark" | "light" | "blur"
         lang: "en",
         volume: 100,
         volumeBeforeMute: 100,     // last non-zero volume for mute toggle
         volumeDebounce: null,
         volumeDragging: false,     // true while user is dragging the slider
+        resetPairingSeen: false,
+        clientId: localStorage.getItem(LS.CID) || "",
     };
 
-    // Token is always persisted in localStorage — never session-only.
-    function getRefreshToken() {
-        return localStorage.getItem(LS.RTOKEN) || "";
+    function getPairingCode() {
+        return state.pairingCode || "";
     }
 
-    function setRefreshToken(token, source) {
-        const value = token || "";
-        if (!value) {
-            clearRefreshToken();
-            return;
-        }
-        localStorage.setItem(LS.RTOKEN, value);
-        if (source === "icue") localStorage.setItem(LS.RTOKEN_ICUE, value);
+    function getSessionToken() {
+        return state.sessionToken || "";
     }
 
-    function clearRefreshToken() {
-        localStorage.removeItem(LS.RTOKEN);
-        localStorage.removeItem(LS.RTOKEN_ICUE);
+    function getClientId() {
+        return state.clientId || "";
     }
 
-    // Migration: if token was stored under old session/remember system, pull it into localStorage.
-    function migrateRefreshTokenStorage() {
-        // Old session key → move to localStorage if nothing there yet
-        const sessionToken = sessionStorage.getItem("pa_spotify_refresh_token_session") || "";
-        if (sessionToken && !getRefreshToken()) {
-            localStorage.setItem(LS.RTOKEN, sessionToken);
-        }
-        sessionStorage.removeItem("pa_spotify_refresh_token_session");
-        // Clean up old remember flag
-        localStorage.removeItem("pa_spotify_refresh_token_remember");
+    function getAuthWorkerUrl() {
+        return DEFAULT_AUTH_WORKER_URL;
+    }
+
+    function setPairingCode(value) {
+        const code = String(value || "").trim().toUpperCase();
+        state.pairingCode = code;
+        if (code) localStorage.setItem(LS.PAIRING_CODE, code);
+        else localStorage.removeItem(LS.PAIRING_CODE);
+    }
+
+    function clearPairingCode() {
+        setPairingCode("");
+    }
+
+    function setSessionToken(value) {
+        const token = String(value || "").trim();
+        state.sessionToken = token;
+        if (token) localStorage.setItem(LS.SESSION_TOKEN, token);
+        else localStorage.removeItem(LS.SESSION_TOKEN);
+    }
+
+    function clearSessionToken() {
+        setSessionToken("");
+    }
+
+    function setClientId(value) {
+        const clientId = String(value || "").trim();
+        if (clientId === state.clientId) return false;
+        state.clientId = clientId;
+        if (clientId) localStorage.setItem(LS.CID, clientId);
+        else localStorage.removeItem(LS.CID);
+        clearSessionToken();
+        clearPairingCode();
+        return true;
+    }
+
+    function setAuthWorkerUrl(value) {
+        state.authWorkerUrl = DEFAULT_AUTH_WORKER_URL;
+        localStorage.removeItem(LS.AUTH_WORKER_URL);
     }
 
     function readIcueProperty(name) {
-        if (name !== "spotifyClientId" && name !== "spotifyRefreshToken") {
+        if (!["spotifyClientId", "spotifyResetPairing"].includes(name)) {
             return { found: false, value: undefined };
         }
         if (typeof window !== "undefined" && Object.prototype.hasOwnProperty.call(window, name)) {
@@ -101,58 +126,69 @@
         return String(prop.value || "").trim();
     }
 
-    function setIcueCredentials(cidValue, rtknValue, options) {
-        const clearEmpty = !!(options && options.clearEmpty);
-        const cid = cidValue === undefined || cidValue === null ? null : String(cidValue || "").trim();
-        const rtkn = rtknValue === undefined || rtknValue === null ? null : String(rtknValue || "").trim();
+    function resetServerPairing(sessionToken, pairingCode) {
+        const token = sessionToken || "";
+        const code = pairingCode || "";
+        if (!token && !code) return;
+        const param = token
+            ? "session_token=" + encodeURIComponent(token)
+            : "pairing_code=" + encodeURIComponent(code);
+        fetch(getAuthWorkerUrl() + "/pairings/reset?" + param, {
+            method: "POST",
+            cache: "no-store"
+        }).catch(() => { });
+    }
+
+    function resetPairingState() {
+        resetServerPairing(getSessionToken(), getPairingCode());
+        clearSessionToken();
+        clearPairingCode();
+        clearLegacySpotifySecrets();
+        state.connectionFailures = 0;
+        stopPolling();
+        showOverlay("KEY", t("setupTitle"), t("setupSub"), t("authorizeSpotify"), startSpotifyAuthorization);
+    }
+
+    function setIcuePairing(clientIdValue, pairingValue, workerUrlValue, resetValue) {
         let changed = false;
-
-        if (cid !== null) {
-            const currentCid = localStorage.getItem(LS.CID) || "";
-            if (cid && cid !== currentCid) {
-                localStorage.setItem(LS.CID, cid);
-                changed = true;
-            } else if (!cid && (clearEmpty || !currentCid)) {
-                localStorage.removeItem(LS.CID);
-                if (currentCid) changed = true;
-                if (clearEmpty) {
-                    clearRefreshToken();
-                    state.accessToken = null;
-                    state.tokenExpiry = 0;
-                }
-            }
+        const clientId = clientIdValue === undefined || clientIdValue === null ? null : String(clientIdValue || "").trim();
+        if (clientId !== null && setClientId(clientId)) changed = true;
+        const resetPairing = String(resetValue || "").trim().toUpperCase() === "RESET";
+        if (resetPairing && !state.resetPairingSeen) {
+            state.resetPairingSeen = true;
+            resetPairingState();
+            return true;
         }
-
-        if (rtkn !== null) {
-            const currentRtkn = getRefreshToken();
-            const lastIcueRtkn = localStorage.getItem(LS.RTOKEN_ICUE) || "";
-            if (rtkn) {
-                if (currentRtkn && currentRtkn !== rtkn && lastIcueRtkn === rtkn) {
-                    return changed;
-                }
-                if (currentRtkn !== rtkn) {
-                    setRefreshToken(rtkn, "icue");
+        if (!resetPairing) state.resetPairingSeen = false;
+        const pairing = pairingValue === undefined || pairingValue === null ? null : String(pairingValue || "").trim();
+        const workerUrl = workerUrlValue === undefined || workerUrlValue === null ? null : String(workerUrlValue || "").trim();
+        if (workerUrl && workerUrl !== getAuthWorkerUrl()) {
+            setAuthWorkerUrl(workerUrl);
+            changed = true;
+        }
+        if (pairing !== null) {
+            if (pairing) {
+                if (pairing !== getPairingCode()) {
+                    setPairingCode(pairing);
                     changed = true;
-                } else {
-                    localStorage.setItem(LS.RTOKEN_ICUE, rtkn);
                 }
-            } else if (clearEmpty || cid || !currentRtkn) {
-                clearRefreshToken();
-                if (currentRtkn) changed = true;
+            } else if (getPairingCode()) {
+                clearPairingCode();
+                changed = true;
             }
         }
-
         return changed;
     }
 
-    function syncIcueCredentials(options) {
-        const cid = readIcueString("spotifyClientId");
-        const rtkn = readIcueString("spotifyRefreshToken");
-        return setIcueCredentials(cid, rtkn, options);
+    function clearLegacySpotifySecrets() {
+        localStorage.removeItem(LS.RTOKEN);
+        localStorage.removeItem(LS.RTOKEN_ICUE);
+        sessionStorage.removeItem("pa_spotify_refresh_token_session");
+        localStorage.removeItem("pa_spotify_refresh_token_remember");
     }
 
-    function getNativeIcueRefreshToken() {
-        return readIcueString("spotifyRefreshToken") || "";
+    function syncIcueCredentials() {
+        return setIcuePairing(readIcueString("spotifyClientId"), undefined, undefined, readIcueString("spotifyResetPairing"));
     }
 
     function syncIcueInlineBridge(options) {
@@ -164,72 +200,27 @@
 
     function handleIcueSettingsUpdate(options) {
         const changed = syncIcueInlineBridge(options);
-        if (localStorage.getItem(LS.CID) && getRefreshToken()) {
-            if (changed) {
-                state.accessToken = null;
-                state.tokenExpiry = 0;
-            }
+        if (getSessionToken() || getPairingCode()) {
             restoreLastTrackSnapshot();
-            hideOverlay();
             if (!state.pollTimer) startPolling();
             else if (changed) poll();
-        } else {
-            stopPolling();
-            showCredentialSetupOverlay();
+            return;
         }
+        stopPolling();
+        showCredentialSetupOverlay();
     }
 
     window.SpotifyVisualizerIcue = {
         onInitialized: function () { handleIcueSettingsUpdate({ clearEmpty: true }); },
         onDataUpdated: function () { handleIcueSettingsUpdate({ clearEmpty: false }); },
-        setCredentials: setIcueCredentials,
+        setCredentials: function () { return false; },
+        setPairing: setIcuePairing,
+        resetPairing: resetPairingState,
     };
 
-    /* ─────────────────────────────────────────────────────────────────────────
-     *  URL HASH CONFIG — survives iCUE widget switching
-     * ────────────────────────────────────────────────────────────────────────*/
-    function encodeConfig(cid, rtkn) {
-        try { return btoa(JSON.stringify({ c: cid || "", r: rtkn || "" })); }
-        catch (_) { return ""; }
-    }
-
-    function decodeConfig(encoded) {
-        try { return JSON.parse(atob(encoded)); }
-        catch (_) { return null; }
-    }
-
-    // On startup: restore from URL hash (iCUE source of truth — always wins)
-    function loadFromHash() {
-        const hash = window.location.hash;
-        if (!hash.startsWith(HASH_PREFIX)) return;
-        const cfg = decodeConfig(hash.slice(HASH_PREFIX.length));
-        if (!cfg) return;
-        if (cfg.c) {
-            localStorage.setItem(LS.CID, cfg.c);
-        }
-        if (cfg.r) {
-            setRefreshToken(cfg.r, "hash");
-        }
-    }
-
-    // After save: keep URL hash in sync so iCUE always has the latest config
-    function updateHashConfig(cid, rtkn) {
-        try {
-            const encoded = encodeConfig(cid, rtkn);
-            if (encoded) {
-                const url = window.location.pathname + window.location.search + HASH_PREFIX + encoded;
-                window.history.replaceState(null, "", url);
-            }
-        } catch (_) { }
-    }
-
-    function buildAuthUrl(cid) {
-        return LOGIN_URL + "?client_id=" + encodeURIComponent(cid || "");
-    }
-
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  i18n
-     * ────────────────────────────────────────────────────────────────────────*/
+     * ------------------------------------------------------------------------*/
     const i18n = {
         en: {
             title: "Spotify",
@@ -239,16 +230,16 @@
             notPlaying: "Not playing",
             notPlayingSub: "Start playback on any Spotify device.",
             setupTitle: "Setup Required",
-            setupSub: "Use iCUE settings to add your Spotify Client ID and Refresh Token.",
-            setupClientIdSub: "Add your Spotify Client ID in the native iCUE settings panel.",
-            setupTokenSub: "Authorize Spotify, then paste the refresh token into iCUE settings.",
+            setupSub: "Authorize Spotify to connect this widget.",
+            setupClientIdSub: "Authorize Spotify to connect this widget.",
+            setupTokenSub: "Authorize Spotify to connect this widget.",
             authorizeSpotify: "Authorize Spotify",
             toastError: "Spotify connection error",
-            toastReauth: "⚠️ Token expired — re-authorize in settings",
+            toastReauth: "Token expired - re-authorize in settings",
             sessionTitle: "Session expired",
             sessionSub: "Your Spotify authorization was revoked or expired. Reconnect to continue.",
             reconnect: "Reconnect",
-            missingClientId: "⚠️ Add your Client ID in iCUE settings first",
+            missingClientId: "Add your Client ID in iCUE settings first",
             connectingTitle: "Connecting to Spotify",
             connectingSub: "Reconnecting after widget switch...",
             offlineTitle: "Spotify connection unavailable",
@@ -258,9 +249,9 @@
 
     function t(key) { return (i18n[state.lang] || i18n.en)[key] || key; }
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  TOAST
-     * ────────────────────────────────────────────────────────────────────────*/
+     * ------------------------------------------------------------------------*/
     function showToast(msg, dur = 3000) {
         const el = $("toast");
         el.textContent = msg;
@@ -269,12 +260,12 @@
         el._t = setTimeout(() => el.classList.remove("visible"), dur);
     }
 
-    // Cycle: dark → light → blur → dark
+    // Cycle: dark -> light -> blur -> dark
     function applyTheme(th) {
         const valid = ["dark", "light", "blur"];
         state.theme = valid.includes(th) ? th : "dark";
         document.documentElement.setAttribute("data-theme", state.theme);
-        const icons = { dark: "🌙", light: "☀️", blur: "🎨" };
+        const icons = { dark: "DARK", light: "LIGHT", blur: "BLUR" };
         $("themeToggle").textContent = icons[state.theme];
         // Show/hide blur background depending on mode
         refreshBgBlur();
@@ -296,9 +287,9 @@
         localStorage.setItem(LS.THEME, state.theme);
     });
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  LANGUAGE
-     * ────────────────────────────────────────────────────────────────────────*/
+     * ------------------------------------------------------------------------*/
     function applyLang() {
         state.lang = "en";
         updateStaticStrings();
@@ -310,47 +301,123 @@
         el("t-no-song", "noSong");
     }
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  STORAGE SYNC (cross-widget)
-     * ────────────────────────────────────────────────────────────────────────*/
+     * ------------------------------------------------------------------------*/
     window.addEventListener("storage", e => {
         if (e.key === LS.THEME && e.newValue) applyTheme(e.newValue);
     });
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  EXTERNAL AUTH LINK
-     * ────────────────────────────────────────────────────────────────────────*/
-    function openExternalLink(url) {
-        if (window.plugins && window.plugins.Linkprovider && typeof pluginLinkprovider_initialized !== "undefined" && pluginLinkprovider_initialized) {
+     * ------------------------------------------------------------------------*/
+    function hasLinkProvider() {
+        return window.plugins && window.plugins.Linkprovider && typeof pluginLinkprovider_initialized !== "undefined" && pluginLinkprovider_initialized;
+    }
+
+    function waitForLinkProvider(timeoutMs = 1200) {
+        if (hasLinkProvider()) return Promise.resolve(true);
+        return new Promise(resolve => {
+            const started = Date.now();
+            const timer = setInterval(() => {
+                if (hasLinkProvider()) {
+                    clearInterval(timer);
+                    resolve(true);
+                } else if (Date.now() - started >= timeoutMs) {
+                    clearInterval(timer);
+                    resolve(false);
+                }
+            }, 100);
+        });
+    }
+
+    async function openExternalLink(url) {
+        if (await waitForLinkProvider()) {
             window.plugins.Linkprovider.open(url);
-        } else {
-            window.open(url, "_blank", "noopener,noreferrer");
+            return true;
+        }
+        window.open(url, "_blank", "noopener,noreferrer");
+        return false;
+    }
+
+    async function createPairing() {
+        const clientId = getClientId();
+        if (!clientId) throw new Error("missing_client_id");
+        const resp = await fetch(getAuthWorkerUrl() + "/pairings?_=" + Date.now(), {
+            method: "POST",
+            cache: "no-store",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ client_id: clientId })
+        });
+        if (!resp.ok) throw new Error("pairing_failed");
+        const data = await resp.json();
+        if (!data.pairing_code || !data.authorize_url) throw new Error("pairing_invalid");
+        setPairingCode(data.pairing_code);
+        return data;
+    }
+
+    async function checkPairingSession() {
+        if (getSessionToken()) return true;
+        const code = getPairingCode();
+        if (!code) return false;
+        const resp = await fetch(getAuthWorkerUrl() + "/session?pairing_code=" + encodeURIComponent(code) + "&_=" + Date.now(), { cache: "no-store" });
+        if (!resp.ok) return false;
+        const data = await resp.json();
+        if (data.session_token) {
+            setSessionToken(data.session_token);
+            clearPairingCode();
+        }
+        return !!data.connected;
+    }
+
+    async function pairingExists() {
+        const code = getPairingCode();
+        if (!code) return false;
+        try {
+            const resp = await fetch(getAuthWorkerUrl() + "/session?pairing_code=" + encodeURIComponent(code) + "&_=" + Date.now(), { cache: "no-store" });
+            return resp.ok;
+        } catch (_) {
+            return false;
         }
     }
 
-    function startSpotifyAuthorization() {
+    async function startSpotifyAuthorization() {
         syncIcueInlineBridge();
-        const cid = localStorage.getItem(LS.CID) || "";
-        if (!cid) {
+        if (!getClientId()) {
             showToast(t("missingClientId"));
+            showCredentialSetupOverlay();
             return;
         }
-        openExternalLink(buildAuthUrl(cid));
+        try {
+            const code = await pairingExists() ? getPairingCode() : "";
+            const pairing = code
+                ? { authorize_url: "/auth/start?pairing_code=" + encodeURIComponent(code) }
+                : await createPairing();
+            const authUrl = pairing.authorize_url.startsWith("http")
+                ? pairing.authorize_url
+                : getAuthWorkerUrl() + pairing.authorize_url;
+            const openedExternally = await openExternalLink(authUrl);
+            showOverlay("...", t("connectingTitle"), "Waiting for Spotify authorization...");
+            if (!openedExternally) showToast("Open Spotify authorization in your browser");
+            state.connectionFailures = 0;
+            if (!state.pollTimer) startPolling();
+        } catch (_) {
+            showToast(t("toastError"));
+        }
     }
 
     function showCredentialSetupOverlay() {
         syncIcueInlineBridge();
-        const cid = localStorage.getItem(LS.CID) || "";
-        if (!cid) {
-            showOverlay("⚙️", t("setupTitle"), t("setupClientIdSub"), t("authorizeSpotify"), startSpotifyAuthorization);
+        if (!getClientId()) {
+            showOverlay("KEY", t("setupTitle"), t("missingClientId"));
             return;
         }
-        showOverlay("🔑", t("setupTitle"), t("setupTokenSub"), t("authorizeSpotify"), startSpotifyAuthorization);
+        showOverlay("KEY", t("setupTitle"), t("setupSub"), t("authorizeSpotify"), startSpotifyAuthorization);
     }
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  STATE OVERLAY
-     * ────────────────────────────────────────────────────────────────────────*/
+     * ------------------------------------------------------------------------*/
     function showOverlay(icon, title, sub, btnLabel, btnCb) {
         $("stateIcon").textContent = icon;
         $("stateTitle").textContent = title;
@@ -375,113 +442,52 @@
         return !!el && getComputedStyle(el).display !== "none";
     }
 
-    /* ─────────────────────────────────────────────────────────────────────────
-     *  SPOTIFY AUTH — refresh access token via refresh_token (PKCE, no secret)
-     * ────────────────────────────────────────────────────────────────────────*/
-    async function refreshAccessTokenOnce(allowNativeFallback = true) {
-        const cid = localStorage.getItem(LS.CID) || "";
-        const rtkn = getRefreshToken();
-        if (!cid || !rtkn) return false;
-
-        try {
-            const resp = await fetch(TOKEN_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: new URLSearchParams({
-                    grant_type: "refresh_token",
-                    refresh_token: rtkn,
-                    client_id: cid,
-                }),
-            });
-            const data = await resp.json().catch(() => ({}));
-            if (!resp.ok) {
-                if (resp.status === 400 && data.error === "invalid_grant") {
-                    const nativeRtkn = getNativeIcueRefreshToken();
-                    if (allowNativeFallback && nativeRtkn && nativeRtkn !== rtkn) {
-                        setRefreshToken(nativeRtkn, "icue");
-                        state.accessToken = null;
-                        state.tokenExpiry = 0;
-                        return refreshAccessTokenOnce(false);
-                    }
-                    // Token revoked/expired — clear it and show persistent reconnect banner
-                    stopPolling();
-                    clearRefreshToken();
-                    state.accessToken = null;
-                    state.tokenExpiry = 0;
-                    showOverlay("🔒", t("sessionTitle"), t("sessionSub"), t("reconnect"), startSpotifyAuthorization);
-                }
-                return false;
-            }
-            state.accessToken = data.access_token;
-            state.tokenExpiry = Date.now() + (data.expires_in - 30) * 1000;
-            // Spotify sometimes returns a new refresh_token — persist it immediately
-            if (data.refresh_token) setRefreshToken(data.refresh_token, "spotify");
-            return true;
-        } catch (_) {
-            return false;
-        }
-    }
-
-    async function refreshAccessToken() {
-        if (state.tokenRefreshPromise) return state.tokenRefreshPromise;
-        state.tokenRefreshPromise = refreshAccessTokenOnce().finally(() => {
-            state.tokenRefreshPromise = null;
-        });
-        return state.tokenRefreshPromise;
-    }
-
-    async function getAccessToken() {
-        if (state.accessToken && Date.now() < state.tokenExpiry) return state.accessToken;
-        const ok = await refreshAccessToken();
-        return ok ? state.accessToken : null;
-    }
-
-    /* ─────────────────────────────────────────────────────────────────────────
-     *  SPOTIFY API — currently playing
-     * ────────────────────────────────────────────────────────────────────────*/
+    /* -------------------------------------------------------------------------
+     *  SPOTIFY API - currently playing
+     * ------------------------------------------------------------------------*/
     async function fetchCurrentlyPlaying() {
-        const token = await getAccessToken();
-        if (!token) return null;
-
-        try {
-            // /me/player returns shuffle_state + repeat_state; 204 = no active device
-            const resp = await fetch(API_BASE + "/me/player?additional_types=track", {
-                headers: { Authorization: "Bearer " + token },
-            });
-            if (resp.status === 204) return { is_playing: false };
-            if (resp.status === 401) {
-                // Access token rejected mid-session — force a refresh next call
-                state.accessToken = null;
-                state.tokenExpiry = 0;
-                return null;
+        let sessionToken = getSessionToken();
+        if (!sessionToken && await checkPairingSession()) sessionToken = getSessionToken();
+        if (sessionToken) {
+            try {
+                const url = getAuthWorkerUrl() + "/spotify/player?session_token=" + encodeURIComponent(sessionToken) + "&_=" + Date.now();
+                const resp = await fetch(url, { cache: "no-store" });
+                if (resp.status === 204) return { is_playing: false };
+                if (!resp.ok) {
+                    const body = await resp.json().catch(() => ({}));
+                    return { spotifyError: true, status: resp.status, code: body.error || "spotify_player_error" };
+                }
+                return await resp.json();
+            } catch (_) {
+                return { spotifyError: true, status: 0, code: "network_error" };
             }
-            if (!resp.ok) return null;
-            return await resp.json();
-        } catch (_) {
-            return null;
         }
+        return { spotifyError: true, status: 401, code: "missing_session" };
     }
 
-    /* ─────────────────────────────────────────────────────────────────────────
-     *  SPOTIFY API — playback controls
-     * ────────────────────────────────────────────────────────────────────────*/
+    /* -------------------------------------------------------------------------
+     *  SPOTIFY API - playback controls
+     * ------------------------------------------------------------------------*/
     async function spotifyAction(method, endpoint) {
-        const token = await getAccessToken();
-        if (!token) return;
-        try {
-            await fetch(API_BASE + endpoint, {
-                method,
-                headers: { Authorization: "Bearer " + token },
-            });
-            pollUntilTrackChanges();
-        } catch (_) { }
+        let sessionToken = getSessionToken();
+        if (!sessionToken && await checkPairingSession()) sessionToken = getSessionToken();
+        if (sessionToken) {
+            try {
+                const url = getAuthWorkerUrl() + "/spotify/action?session_token=" + encodeURIComponent(sessionToken) +
+                    "&method=" + encodeURIComponent(method) + "&endpoint=" + encodeURIComponent(endpoint) + "&_=" + Date.now();
+                await fetch(url, { method: "POST", cache: "no-store" });
+                poll();
+                pollUntilTrackChanges();
+            } catch (_) { }
+            return;
+        }
     }
 
     // After a skip, poll at short intervals until Spotify reflects the new track.
     // Each scheduled poll bails out early if the track already changed, avoiding wasted calls.
     function pollUntilTrackChanges() {
         const prevId = state.trackId;
-        [150, 400, 800, 1300, 2100].forEach(ms => {
+        [150, 400, 800, 1300, 2100, 3200, 5000].forEach(ms => {
             setTimeout(() => {
                 if (state.trackId !== prevId) return; // already updated
                 poll();
@@ -537,9 +543,9 @@
         rBtn.title = mode === "off" ? "Repeat: off" : mode === "context" ? "Repeat: all" : "Repeat: one";
     }
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  VOLUME CONTROL
-     * ────────────────────────────────────────────────────────────────────────*/
+     * ------------------------------------------------------------------------*/
     function updateVolumeIcon(vol) {
         const icon = $("volumeIcon");
         if (!icon) return;
@@ -566,14 +572,10 @@
     function sendVolumeToSpotify(vol) {
         clearTimeout(state.volumeDebounce);
         state.volumeDebounce = setTimeout(async () => {
-            const token = await getAccessToken();
-            if (!token) return;
-            try {
-                await fetch(API_BASE + "/me/player/volume?volume_percent=" + Math.round(vol), {
-                    method: "PUT",
-                    headers: { Authorization: "Bearer " + token },
-                });
-            } catch (_) { }
+            if (getSessionToken() || getPairingCode()) {
+                spotifyAction("PUT", "/me/player/volume?volume_percent=" + Math.round(vol));
+                return;
+            }
         }, 250);
     }
 
@@ -600,9 +602,9 @@
         sendVolumeToSpotify(state.volume);
     });
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  PROGRESS BAR interpolation
-     * ────────────────────────────────────────────────────────────────────────*/
+     * ------------------------------------------------------------------------*/
     function formatMs(ms) {
         const s = Math.floor(ms / 1000);
         return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
@@ -636,22 +638,18 @@
         const rect = $("progressBar").getBoundingClientRect();
         const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         const posMs = Math.round(pct * state.durationMs);
-        const token = await getAccessToken();
-        if (!token) return;
-        try {
-            await fetch(API_BASE + "/me/player/seek?position_ms=" + posMs, {
-                method: "PUT",
-                headers: { Authorization: "Bearer " + token },
-            });
+        if (getSessionToken() || getPairingCode()) {
+            spotifyAction("PUT", "/me/player/seek?position_ms=" + posMs);
             state.progressMs = posMs;
             renderProgress();
             highlightLyricLine();
-        } catch (_) { }
+            return;
+        }
     });
 
-    /* ─────────────────────────────────────────────────────────────────────────
-     *  LRCLIB — fetch synced lyrics
-     * ────────────────────────────────────────────────────────────────────────*/
+    /* -------------------------------------------------------------------------
+     *  LRCLIB - fetch synced lyrics
+     * ------------------------------------------------------------------------*/
     function lyricsCacheKey(artist, title, durationSec) {
         return [artist || "", title || "", Math.round(durationSec || 0)].join("|").toLowerCase();
     }
@@ -679,6 +677,13 @@
         } catch (_) { }
     }
 
+    function fetchLyricsUrl(url) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), LYRICS_FETCH_TIMEOUT_MS);
+        return fetch(url.toString(), { signal: controller.signal })
+            .finally(() => clearTimeout(timer));
+    }
+
     async function fetchLyricsExact(artist, title, album, durationSec) {
         try {
             const url = new URL(LRCLIB_BASE);
@@ -686,7 +691,7 @@
             url.searchParams.set("track_name", title);
             url.searchParams.set("album_name", album || "");
             url.searchParams.set("duration", Math.round(durationSec));
-            const resp = await fetch(url.toString());
+            const resp = await fetchLyricsUrl(url);
             if (!resp.ok) return [];
             const data = await resp.json();
             return data.syncedLyrics ? parseLRC(data.syncedLyrics) : [];
@@ -700,7 +705,7 @@
             const searchUrl = new URL(LRCLIB_SEARCH);
             searchUrl.searchParams.set("artist_name", artist);
             searchUrl.searchParams.set("track_name", title);
-            const searchResp = await fetch(searchUrl.toString());
+            const searchResp = await fetchLyricsUrl(searchUrl);
             if (!searchResp.ok) return [];
             const results = await searchResp.json();
             if (!Array.isArray(results) || results.length === 0) return [];
@@ -715,14 +720,28 @@
         }
     }
 
+    function firstNonEmptyLyrics(promises) {
+        return new Promise(resolve => {
+            let pending = promises.length;
+            const done = lines => {
+                if (Array.isArray(lines) && lines.length) {
+                    resolve(lines);
+                    return;
+                }
+                pending -= 1;
+                if (pending === 0) resolve([]);
+            };
+            promises.forEach(p => p.then(done).catch(() => done([])));
+        });
+    }
+
     async function fetchLyrics(artist, title, album, durationSec) {
         const key = lyricsCacheKey(artist, title, durationSec);
         const cached = getCachedLyrics(key);
         if (cached) return cached;
         const exactPromise = fetchLyricsExact(artist, title, album, durationSec);
         const searchPromise = fetchLyricsSearch(artist, title, durationSec);
-        const exact = await exactPromise;
-        const lines = exact.length ? exact : await searchPromise;
+        const lines = await firstNonEmptyLyrics([exactPromise, searchPromise]);
         if (lines.length) setCachedLyrics(key, lines);
         return lines;
     }
@@ -764,7 +783,7 @@
             nl.id = "noLyrics";
             const icon = document.createElement("div");
             icon.className = "icon";
-            icon.textContent = "🎵";
+            icon.textContent = "MUSIC";
             const msg = document.createElement("div");
             msg.textContent = t("noLyrics");
             nl.appendChild(icon);
@@ -778,9 +797,38 @@
             const el = document.createElement("div");
             el.className = "lyric-line";
             el.dataset.idx = i;
-            el.textContent = line.text || "·";
+            el.textContent = line.text || ".";
             scroll.appendChild(el);
         });
+    }
+
+    function loadLyricsForTrack(trackId, artists, title, albumName, durationSec) {
+        if (!trackId || state.lyricsLoadingTrackId === trackId) return;
+        const cachedLyrics = getCachedLyrics(lyricsCacheKey(artists, title, durationSec));
+        state.lyricsTrackId = trackId;
+        if (cachedLyrics) {
+            state.lyricsData = cachedLyrics;
+            if (lyricsPaneVisible()) {
+                renderLyrics(cachedLyrics);
+                highlightLyricLine();
+            }
+            return;
+        }
+        state.lyricsData = [];
+        state.lyricsLoadingTrackId = trackId;
+        if (lyricsPaneVisible()) renderLyricsLoading();
+        fetchLyrics(artists, title, albumName, durationSec)
+            .then(lines => {
+                if (state.lyricsTrackId !== trackId || state.trackId !== trackId) return;
+                state.lyricsData = lines;
+                if (lyricsPaneVisible()) {
+                    renderLyrics(lines);
+                    highlightLyricLine();
+                }
+            })
+            .finally(() => {
+                if (state.lyricsLoadingTrackId === trackId) state.lyricsLoadingTrackId = null;
+            });
     }
 
     function highlightLyricLine() {
@@ -803,9 +851,9 @@
         }
     }
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  LYRICS SCROLL CONTROLS
-     * ────────────────────────────────────────────────────────────────────────*/
+     * ------------------------------------------------------------------------*/
     function setAutoScroll(on) {
         state.autoScroll = on;
         const btn = $("lyricsAutoBtn");
@@ -829,7 +877,7 @@
         });
     }
 
-    // Scroll arrows — scroll by ~3 lines
+    // Scroll arrows - scroll by ~3 lines
     const scrollUp = $("lyricsScrollUp");
     const scrollDown = $("lyricsScrollDown");
     const SCROLL_AMOUNT = 60; // px per arrow click
@@ -843,9 +891,9 @@
         lyricsEl.addEventListener("touchstart", () => pauseAutoScrollTemporarily(), { passive: true });
     }
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  UI UPDATE
-     * ────────────────────────────────────────────────────────────────────────*/
+     * ------------------------------------------------------------------------*/
     function updateAlbumArt(url) {
         const img = $("albumImg");
         const noArt = $("noArt");
@@ -913,14 +961,11 @@
         }
     }
 
-    /* ─────────────────────────────────────────────────────────────────────────
-     *  POLL — main loop
-     * ────────────────────────────────────────────────────────────────────────*/
+    /* -------------------------------------------------------------------------
+     *  POLL - main loop
+     * ------------------------------------------------------------------------*/
     async function poll() {
-        const cid = localStorage.getItem(LS.CID) || "";
-        const rtkn = getRefreshToken();
-
-        if (!cid || !rtkn) {
+        if (!getSessionToken() && !getPairingCode()) {
             stopPolling();
             showCredentialSetupOverlay();
             return;
@@ -928,15 +973,32 @@
 
         const data = await fetchCurrentlyPlaying();
 
-        if (data === null) {
+        if (data && data.spotifyError) {
+            if (data.status === 401) {
+                state.connectionFailures = 0;
+                showOverlay("KEY", t("setupTitle"), t("setupSub"), t("authorizeSpotify"), startSpotifyAuthorization);
+                return;
+            }
+            if (data.status === 404 || data.status === 410) {
+                clearSessionToken();
+                clearPairingCode();
+                state.connectionFailures = 0;
+                stopPolling();
+                showCredentialSetupOverlay();
+                return;
+            }
             state.connectionFailures += 1;
             if (state.trackId) {
+                hideOverlay();
+                stopProgressTick();
+                state.isPlaying = false;
+                setPlayIcon(false);
                 return;
             }
             if (state.connectionFailures >= OFFLINE_OVERLAY_FAILURES) {
-                showOverlay("⚠️", t("offlineTitle"), t("offlineSub"));
+                showOverlay("WARN", t("offlineTitle"), t("offlineSub"));
             } else if (state.connectionFailures >= CONNECTING_OVERLAY_FAILURES) {
-                showOverlay("…", t("connectingTitle"), t("connectingSub"));
+                showOverlay("...", t("connectingTitle"), t("connectingSub"));
             }
             return;
         }
@@ -973,7 +1035,7 @@
         if (data.repeat_state !== undefined) state.repeatMode = data.repeat_state;
         updateShuffleRepeat();
 
-        // Volume sync — only update when user is not dragging
+        // Volume sync - only update when user is not dragging
         if (data.device && data.device.volume_percent !== undefined && !state.volumeDragging) {
             setVolume(data.device.volume_percent);
             if (data.device.volume_percent > 0) state.volumeBeforeMute = data.device.volume_percent;
@@ -987,36 +1049,18 @@
         if (trackId !== state.trackId) {
             state.trackId = trackId;
 
-            $("trackName").textContent = track.name || "—";
-            $("trackArtist").textContent = artists || "—";
+            $("trackName").textContent = track.name || "-";
+            $("trackArtist").textContent = artists || "-";
             $("trackAlbum").textContent = album.name || "";
 
             updateAlbumArt(artUrl);
 
-            const durationSec = (track.duration_ms || 0) / 1000;
-            const cachedLyrics = getCachedLyrics(lyricsCacheKey(artists, track.name, durationSec));
-            state.lyricsTrackId = trackId;
-            if (cachedLyrics) {
-                state.lyricsData = cachedLyrics;
-                if (lyricsPaneVisible()) {
-                    renderLyrics(cachedLyrics);
-                    highlightLyricLine();
-                }
-            } else {
-                state.lyricsData = [];
-                if (lyricsPaneVisible()) renderLyricsLoading();
-                fetchLyrics(artists, track.name, album.name, durationSec)
-                    .then(lines => {
-                        if (state.lyricsTrackId !== trackId || state.trackId !== trackId) return;
-                        state.lyricsData = lines;
-                        if (lyricsPaneVisible()) {
-                            renderLyrics(lines);
-                            highlightLyricLine();
-                        }
-                    });
-            }
+            loadLyricsForTrack(trackId, artists, track.name, album.name, (track.duration_ms || 0) / 1000);
         } else {
-            // Same track — just sync lyrics highlight
+            if (lyricsPaneVisible() && state.lyricsTrackId !== trackId) {
+                loadLyricsForTrack(trackId, artists, track.name, album.name, (track.duration_ms || 0) / 1000);
+            }
+            // Same track - just sync lyrics highlight
             highlightLyricLine();
         }
     }
@@ -1035,7 +1079,7 @@
 
     function resumePollingAfterWidgetSwitch() {
         syncIcueInlineBridge();
-        if (!localStorage.getItem(LS.CID) || !getRefreshToken()) return;
+        if (!getSessionToken() && !getPairingCode()) return;
         restoreLastTrackSnapshot();
         state.connectionFailures = 0;
         if (!state.pollTimer) startPolling();
@@ -1047,12 +1091,12 @@
     });
     window.addEventListener("focus", resumePollingAfterWidgetSwitch);
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  RESPONSIVE SIZE DETECTION via ResizeObserver on the widget element
-     *  sz-m  : < 700 px  → full-bleed album art
-     *  sz-l  : 700–1399  → row: album + track info + controls
-     *  sz-xl : ≥ 1400 px → left panel + full lyrics column
-     * ────────────────────────────────────────────────────────────────────────*/
+     *  sz-m  : < 700 px  -> full-bleed album art
+     *  sz-l  : 700-1399  -> row: album + track info + controls
+     *  sz-xl : >= 1400 px -> left panel + full lyrics column
+     * ------------------------------------------------------------------------*/
     function applySize(sz) {
         if (state.sizeClass === sz) return;
         if (state.sizeClass) document.documentElement.classList.remove(state.sizeClass);
@@ -1094,21 +1138,17 @@
     }
 
 
-    /* ─────────────────────────────────────────────────────────────────────────
+    /* -------------------------------------------------------------------------
      *  INIT
-     * ────────────────────────────────────────────────────────────────────────*/
+     * ------------------------------------------------------------------------*/
     function init() {
-        loadFromHash();          // restore credentials from URL hash if localStorage is empty
-        migrateRefreshTokenStorage();
+        clearLegacySpotifySecrets();
         syncIcueCredentials({ clearEmpty: true });
         applyTheme(state.theme);
         applyLang();
         updateStaticStrings();
 
-        const cid = localStorage.getItem(LS.CID) || "";
-        const rtkn = getRefreshToken();
-
-        if (!cid || !rtkn) {
+        if (!getSessionToken() && !getPairingCode()) {
             showCredentialSetupOverlay();
         } else {
             restoreLastTrackSnapshot();

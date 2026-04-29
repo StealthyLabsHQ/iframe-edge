@@ -4,9 +4,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="x-icue-property" content="issMapStyle" data-label="tr('Map Style')" data-type="tab-buttons"
+        data-default="'dark'" data-values="[
+            {'key':'dark','value':'Dark'},
+            {'key':'satellite','value':'Satellite'},
+            {'key':'day','value':'Day'},
+            {'key':'auto','value':'Auto'}
+        ]" />
+    <meta name="x-icue-groups" content='[{"label":"tr(\"ISS Horizon\")","properties":["issMapStyle"]}]' />
     <meta name="referrer" content="origin" />
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' https://fonts.googleapis.com https://unpkg.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.wheretheiss.at https://*.akamaized.net; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://video.ibm.com; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests;" />
+        content="default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' https://fonts.googleapis.com https://unpkg.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.wheretheiss.at; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests;" />
 
     <title>ISS Horizon</title>
 
@@ -89,13 +97,6 @@
             flex-shrink: 0;
         }
 
-        /* sz-m: Compact vertical */
-        body.sz-m .video-zone {
-            flex: 0 0 auto;
-            aspect-ratio: 16 / 9;
-            max-height: 30%;
-        }
-
         body.sz-m .data-map-stack {
             flex: 1 1 0;
             display: flex;
@@ -108,21 +109,6 @@
         body.sz-m .map-wrapper {
             flex: 1 1 0;
             min-height: 120px;
-        }
-
-        /* sz-l: Wide landscape */
-        body.sz-l .video-zone {
-            flex: 0 0 auto;
-            aspect-ratio: 16 / 9;
-            max-height: 30%;
-        }
-
-        body.is-theater.sz-m .video-zone {
-            max-height: 35%;
-        }
-
-        body.is-theater.sz-l .video-zone {
-            max-height: 38%;
         }
 
         body.sz-l .data-map-stack {
@@ -141,31 +127,19 @@
 
         /* sz-xl: Side-by-side grid */
         body.sz-xl .widget-container {
-            display: grid;
-            grid-template-columns: 50% 1fr;
-            grid-template-rows: auto 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 8px;
             padding: 8px;
         }
 
-        body.sz-xl .header-zone {
-            grid-column: 1 / -1;
-        }
-
-        body.sz-xl .video-zone {
-            grid-column: 1;
-            grid-row: 2;
-            height: 100%;
-        }
-
         body.sz-xl .data-map-stack {
-            grid-column: 2;
-            grid-row: 2;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            height: 100%;
+            flex: 1 1 0;
             overflow: hidden;
+            min-height: 0;
         }
 
         body.sz-xl .map-wrapper {
@@ -468,12 +442,57 @@
             border-color: var(--text-muted);
         }
 
+        .map-style-controls {
+            pointer-events: auto;
+            display: flex;
+            gap: 4px;
+            padding: 3px;
+            border-radius: 18px;
+            background: var(--bg-overlay);
+            border: 1px solid var(--border-subtle);
+            backdrop-filter: blur(4px);
+        }
+
+        .map-style-btn {
+            border: 0;
+            border-radius: 14px;
+            padding: 4px 9px;
+            background: transparent;
+            color: var(--text-dim);
+            font-family: var(--font-ui);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .map-style-btn.active {
+            background: var(--accent-blue-dim);
+            color: var(--text-main);
+        }
+
         #issMap {
             width: 100%;
             height: 100%;
             flex-grow: 1;
             background: #262626;
             /* matches CartoDB dark tile ocean color */
+        }
+
+        #issMap::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+            background: radial-gradient(circle at 50% 45%, transparent 0 30%, rgba(0, 0, 0, 0.58) 72%);
+            transition: opacity var(--transition);
+        }
+
+        body.map-night #issMap::after {
+            opacity: 1;
         }
 
         /* Leaflet overrides */
@@ -606,39 +625,6 @@
             </div>
         </header>
 
-        <!-- VIDEO ZONE -->
-        <div class="video-zone" id="videoZone">
-            <iframe id="videoIframe" allow="autoplay; encrypted-media" referrerpolicy="origin"
-                allowfullscreen style="width:100%;height:100%;border:none;display:block;"></iframe>
-            <video id="videoPlayer" playsinline autoplay muted
-                style="width:100%;height:100%;object-fit:cover;outline:none;display:none;"></video>
-
-            <div class="video-error">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                <span>Signal Lost. Waiting for NASA...</span>
-            </div>
-
-            <div class="video-controls">
-                <button class="ctrl-btn" id="btnMute" aria-label="Toggle Mute">
-                    <svg id="iconMute" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                        <line x1="23" y1="9" x2="17" y2="15"></line>
-                        <line x1="17" y1="9" x2="23" y2="15"></line>
-                    </svg>
-                </button>
-
-                <div class="stream-info" id="btnSwitchSource" aria-label="Switch Source">
-                    <div class="live-dot"></div>
-                    <span id="lbSource">NASA Public</span>
-                </div>
-            </div>
-        </div>
-
         <!-- TELEMETRY & MAP STACK -->
         <div class="data-map-stack">
             <div class="telemetry-grid">
@@ -715,8 +701,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
 
-    <script src="https://unpkg.com/hls.js@1.5.7/dist/hls.min.js"
-        crossorigin="anonymous"></script>
+    <script src="./icue-iss-bridge.js"></script>
     <script src="./app.js"></script>
 </body>
 

@@ -6,21 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.spotify.com https://accounts.spotify.com https://lrclib.net; object-src 'none'; base-uri 'none'; form-action 'none';" />
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://spotify-auth-worker.code-39c.workers.dev https://api.spotify.com https://accounts.spotify.com https://lrclib.net; object-src 'none'; base-uri 'none'; form-action 'none';" />
     <script src="../productivity/theme-loader.js"></script>
     <script src="../productivity/size-loader.js"></script>
     <title>Spotify Visualizer</title>
     <meta name="x-icue-property" content="spotifyClientId" data-label="tr('Spotify Client ID')" data-type="textfield"
         data-default="''" />
-    <meta name="x-icue-property" content="spotifyRefreshToken" data-label="tr('Refresh Token')" data-type="textfield"
+    <meta name="x-icue-property" content="spotifyResetPairing" data-label="tr('Reset Pairing Code')" data-type="textfield"
         data-default="''" />
-    <meta name="x-icue-property" content="spotifyDeveloperDashboard" data-label="tr('Spotify Developer Dashboard')"
-        data-type="textfield" data-default="'https://developer.spotify.com/dashboard'" />
     <script id="x-icue-groups" type="application/json">
         [
             {
                 "title": "tr('Spotify Connection')",
-                "properties": ["spotifyClientId", "spotifyRefreshToken", "spotifyDeveloperDashboard"]
+                "properties": ["spotifyClientId", "spotifyResetPairing"]
             }
         ]
     </script>
@@ -155,11 +153,11 @@
         <div id="stateOverlay">
             <div class="state-icon" id="stateIcon">⚙️</div>
             <div class="state-title" id="stateTitle">Setup Required</div>
-            <div class="state-sub" id="stateSub">Open settings to add your Spotify Client ID and Refresh Token.</div>
+            <div class="state-sub" id="stateSub">Authorize Spotify to connect this widget.</div>
             <button class="state-btn ui-hidden" id="stateAction"></button>
         </div>
 
-        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌙</button>
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">DARK</button>
     </div>
 
     <!-- Toast notification -->
@@ -169,8 +167,8 @@
     <script>
         function syncSpotifyIcueProperties(options) {
             var clientId = typeof spotifyClientId !== "undefined" ? spotifyClientId : undefined;
-            var refreshToken = typeof spotifyRefreshToken !== "undefined" ? spotifyRefreshToken : undefined;
-            return window.SpotifyVisualizerIcue.setCredentials(clientId, refreshToken, options);
+            var resetPairing = typeof spotifyResetPairing !== "undefined" ? spotifyResetPairing : undefined;
+            return window.SpotifyVisualizerIcue.setPairing(clientId, undefined, undefined, resetPairing, options);
         }
         window.SpotifyVisualizerIcue.syncFromIcue = syncSpotifyIcueProperties;
         icueEvents = {

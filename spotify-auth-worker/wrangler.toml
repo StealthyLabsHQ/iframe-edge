@@ -1,0 +1,12 @@
+name = "spotify-auth-worker"
+main = "src/worker.js"
+compatibility_date = "2026-04-29"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "spotify-auth"
+database_id = "24506cec-0db1-4d91-85f8-9f518bf24e5a"
+
+[vars]
+SPOTIFY_REDIRECT_URI = "https://spotify-auth-worker.code-39c.workers.dev/auth/callback"
+WIDGET_ALLOWED_ORIGIN = "*"
