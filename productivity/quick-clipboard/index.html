@@ -159,7 +159,7 @@
                     return;
                 }
 
-                // Try modern Clipboard API first, fall back to execCommand for iframe restrictions
+                // Try modern Clipboard API first, fall back to execCommand when needed.
                 if (navigator.clipboard && window.isSecureContext) {
                     navigator.clipboard.writeText(text)
                         .then(() => showToast(t("toastCopied")))

@@ -6,7 +6,7 @@
      * ------------------------------------------------------------------------*/
     const LRCLIB_BASE = "https://lrclib.net/api/get";
     const LRCLIB_SEARCH = "https://lrclib.net/api/search";
-    const DEFAULT_AUTH_WORKER_URL = "https://spotify-auth-worker.code-39c.workers.dev";
+    const DEFAULT_LOCAL_HELPER_URL = "http://127.0.0.1:8787";
     const POLL_MS = 1500;
     const CONNECTING_OVERLAY_FAILURES = 4;
     const OFFLINE_OVERLAY_FAILURES = 10;
@@ -20,7 +20,7 @@
         RTOKEN_ICUE: "pa_spotify_refresh_token_icue",
         PAIRING_CODE: "pa_spotify_pairing_code",
         SESSION_TOKEN: "pa_spotify_session_token",
-        AUTH_WORKER_URL: "pa_spotify_auth_worker_url",
+        LOCAL_HELPER_URL: "pa_spotify_local_helper_url",
         LAST_TRACK: "pa_spotify_last_track",
         LYRICS_CACHE: "pa_spotify_lyrics_cache_v1",
     };
@@ -45,7 +45,7 @@
         connectionFailures: 0,
         pairingCode: localStorage.getItem(LS.PAIRING_CODE) || "",
         sessionToken: localStorage.getItem(LS.SESSION_TOKEN) || "",
-        authWorkerUrl: DEFAULT_AUTH_WORKER_URL,
+        localHelperUrl: DEFAULT_LOCAL_HELPER_URL,
         theme: localStorage.getItem(LS.THEME) || "dark", // "dark" | "light" | "blur"
         lang: "en",
         volume: 100,
@@ -68,8 +68,8 @@
         return state.clientId || "";
     }
 
-    function getAuthWorkerUrl() {
-        return DEFAULT_AUTH_WORKER_URL;
+    function getLocalHelperUrl() {
+        return DEFAULT_LOCAL_HELPER_URL;
     }
 
     function setPairingCode(value) {
@@ -105,9 +105,9 @@
         return true;
     }
 
-    function setAuthWorkerUrl(value) {
-        state.authWorkerUrl = DEFAULT_AUTH_WORKER_URL;
-        localStorage.removeItem(LS.AUTH_WORKER_URL);
+    function setLocalHelperUrl(value) {
+        state.localHelperUrl = DEFAULT_LOCAL_HELPER_URL;
+        localStorage.removeItem(LS.LOCAL_HELPER_URL);
     }
 
     function readIcueProperty(name) {
@@ -133,7 +133,7 @@
         const param = token
             ? "session_token=" + encodeURIComponent(token)
             : "pairing_code=" + encodeURIComponent(code);
-        fetch(getAuthWorkerUrl() + "/pairings/reset?" + param, {
+        fetch(getLocalHelperUrl() + "/pairings/reset?" + param, {
             method: "POST",
             cache: "no-store"
         }).catch(() => { });
@@ -161,9 +161,9 @@
         }
         if (!resetPairing) state.resetPairingSeen = false;
         const pairing = pairingValue === undefined || pairingValue === null ? null : String(pairingValue || "").trim();
-        const workerUrl = workerUrlValue === undefined || workerUrlValue === null ? null : String(workerUrlValue || "").trim();
-        if (workerUrl && workerUrl !== getAuthWorkerUrl()) {
-            setAuthWorkerUrl(workerUrl);
+        const helperUrl = workerUrlValue === undefined || workerUrlValue === null ? null : String(workerUrlValue || "").trim();
+        if (helperUrl && helperUrl !== getLocalHelperUrl()) {
+            setLocalHelperUrl(helperUrl);
             changed = true;
         }
         if (pairing !== null) {
@@ -343,7 +343,7 @@
     async function createPairing() {
         const clientId = getClientId();
         if (!clientId) throw new Error("missing_client_id");
-        const resp = await fetch(getAuthWorkerUrl() + "/pairings?_=" + Date.now(), {
+        const resp = await fetch(getLocalHelperUrl() + "/pairings?_=" + Date.now(), {
             method: "POST",
             cache: "no-store",
             headers: { "Content-Type": "application/json" },
@@ -360,7 +360,7 @@
         if (getSessionToken()) return true;
         const code = getPairingCode();
         if (!code) return false;
-        const resp = await fetch(getAuthWorkerUrl() + "/session?pairing_code=" + encodeURIComponent(code) + "&_=" + Date.now(), { cache: "no-store" });
+        const resp = await fetch(getLocalHelperUrl() + "/session?pairing_code=" + encodeURIComponent(code) + "&_=" + Date.now(), { cache: "no-store" });
         if (!resp.ok) return false;
         const data = await resp.json();
         if (data.session_token) {
@@ -374,7 +374,7 @@
         const code = getPairingCode();
         if (!code) return false;
         try {
-            const resp = await fetch(getAuthWorkerUrl() + "/session?pairing_code=" + encodeURIComponent(code) + "&_=" + Date.now(), { cache: "no-store" });
+            const resp = await fetch(getLocalHelperUrl() + "/session?pairing_code=" + encodeURIComponent(code) + "&_=" + Date.now(), { cache: "no-store" });
             return resp.ok;
         } catch (_) {
             return false;
@@ -395,7 +395,7 @@
                 : await createPairing();
             const authUrl = pairing.authorize_url.startsWith("http")
                 ? pairing.authorize_url
-                : getAuthWorkerUrl() + pairing.authorize_url;
+                : getLocalHelperUrl() + pairing.authorize_url;
             const openedExternally = await openExternalLink(authUrl);
             showOverlay("...", t("connectingTitle"), "Waiting for Spotify authorization...");
             if (!openedExternally) showToast("Open Spotify authorization in your browser");
@@ -450,7 +450,7 @@
         if (!sessionToken && await checkPairingSession()) sessionToken = getSessionToken();
         if (sessionToken) {
             try {
-                const url = getAuthWorkerUrl() + "/spotify/player?session_token=" + encodeURIComponent(sessionToken) + "&_=" + Date.now();
+                const url = getLocalHelperUrl() + "/spotify/player?session_token=" + encodeURIComponent(sessionToken) + "&_=" + Date.now();
                 const resp = await fetch(url, { cache: "no-store" });
                 if (resp.status === 204) return { is_playing: false };
                 if (!resp.ok) {
@@ -473,7 +473,7 @@
         if (!sessionToken && await checkPairingSession()) sessionToken = getSessionToken();
         if (sessionToken) {
             try {
-                const url = getAuthWorkerUrl() + "/spotify/action?session_token=" + encodeURIComponent(sessionToken) +
+                const url = getLocalHelperUrl() + "/spotify/action?session_token=" + encodeURIComponent(sessionToken) +
                     "&method=" + encodeURIComponent(method) + "&endpoint=" + encodeURIComponent(endpoint) + "&_=" + Date.now();
                 await fetch(url, { method: "POST", cache: "no-store" });
                 poll();

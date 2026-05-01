@@ -42,10 +42,6 @@ function Copy-Tree($src, $dst) {
 
 function Get-IconSvgFragment($icon, $label) {
   switch ($icon) {
-    "ai" { return @'
-<path d="M32 12l3.7 10.3L46 26l-10.3 3.7L32 40l-3.7-10.3L18 26l10.3-3.7L32 12z" fill="currentColor" stroke="none"/>
-<path d="M45 38l1.8 5.2L52 45l-5.2 1.8L45 52l-1.8-5.2L38 45l5.2-1.8L45 38z" fill="currentColor" stroke="none" opacity=".75"/>
-'@ }
     "spotify" { return @'
 <circle cx="32" cy="32" r="17" fill="currentColor" stroke="none"/>
 <path d="M22 27c7-2 15-1.5 21 2" stroke="#050505" stroke-width="3" stroke-linecap="round" fill="none"/>
@@ -244,7 +240,6 @@ function New-IcueWidgetArchive($source, $output) {
 }
 
 $widgets = @(
-  @{ slug="ai-assistant"; source="ai-assistant"; name="AI Assistant"; id="com.stealthylabshq.aiassistant"; desc="AI assistant widget for iCUE."; accent="#a78bfa"; label="AI"; icon="ai" },
   @{ slug="spotify-visualizer"; source="spotify-visualizer"; name="Spotify Visualizer"; id="com.stealthylabshq.spotifyvisualizer"; desc="Spotify playback visualizer for iCUE."; accent="#1DB954"; label="SP"; icon="spotify"; keys=@("Spotify Connection", "Spotify Client ID", "Reset Pairing Code"); plugins=@("widgetbuilder.linkprovider:Url:1.0") },
   @{ slug="iss-horizon"; source="iss-horizon"; name="ISS Horizon"; id="com.stealthylabshq.isshorizon"; desc="ISS tracking widget for iCUE."; accent="#00c8ff"; label="IS"; icon="iss"; keys=@("ISS Horizon", "Map Style", "Dark", "Satellite", "Day", "Auto") },
   @{ slug="news-radar"; source="news-radar"; name="News Radar"; id="com.stealthylabshq.newsradar"; desc="News feed widget for iCUE."; accent="#0984e3"; label="NR"; icon="news" },

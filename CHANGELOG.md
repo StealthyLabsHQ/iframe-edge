@@ -10,25 +10,18 @@ All notable changes to **icue-edge-widgets** are documented here.
 - `widget-polish.css`: shared Huashu design finish layer for active widgets, with compact icon-only headers, tighter controls, restrained 8px surfaces, improved borders, focus states, and less title-heavy UI.
 - `scripts/package-icuewidgets.ps1`: validates and builds active widgets into `dist/icuewidgets/*.icuewidget`.
 - Generated `.icuewidget` packages now use widget-specific SVG preview icons instead of text initials.
-- `spotify-auth-worker/`: Cloudflare Worker starter for Spotify OAuth, pairing codes, encrypted refresh-token storage, and Spotify player proxying.
-- Spotify Auth Worker deployed to Cloudflare Workers with D1 storage and PKCE OAuth.
-- Spotify Visualizer now supports Worker-backed OAuth pairing instead of requiring Client ID and Refresh Token settings in iCUE.
-- Spotify Auth Worker now allows browser GET requests to `/pairings` for manual pairing tests.
+- `spotify-local-helper/`: local Node OAuth and Spotify API proxy for Spotify Visualizer.
+- Spotify Visualizer now uses local PKCE OAuth through `127.0.0.1:8787`.
 - Spotify Visualizer now reuses an existing Pairing Code when opening authorization instead of generating a mismatched new code.
 - Spotify Visualizer now regenerates expired pairing codes before opening Spotify authorization.
-- Spotify Auth Worker pairing and OAuth state windows now last 30 minutes.
-- Spotify Auth Worker encryption-key setup now documents Node-generated base64 to avoid invalid secret encoding.
 
 ### Fixed - iCUE packages
-- Spotify Visualizer now removes the legacy client-side refresh-token auth flow and relies on Worker-backed pairing only.
-- Spotify Auth Worker now resets pairings server-side, returns generic internal errors, sends stricter security headers, and rate-limits pairing/OAuth setup routes.
-- Spotify Auth Worker now exchanges pairing codes for opaque session tokens so playback APIs no longer accept pairing codes.
+- Spotify Visualizer now keeps Spotify OAuth/API traffic local.
 - Spotify Visualizer now keeps the player visible instead of blocking it with a warning overlay after long Spotify pauses or transient player errors.
 - Spotify Visualizer now supports user-owned Spotify Client IDs, making OAuth independent from the maintainer's Spotify Developer Dashboard for new pairings.
 - Spotify Visualizer now resolves lyrics from the first valid LRCLIB response and times out slow lyric calls to reduce delays after track switches.
 - Spotify Visualizer now allows slower LRCLIB matches to finish so available lyrics are not marked unavailable too early.
 - README now includes a clearer Spotify Visualizer install guide with Client ID setup and common troubleshooting.
-- ISS Horizon now detects native `.icuewidget` runtime via `icueEvents` and defaults to NASA HLS streams instead of iframe-based live embeds.
 - ISS Horizon now removes the live video area in favor of a larger ISS ground track map with Dark, Satellite, Day, and Auto styles.
 - ISS Horizon map style now moves to native iCUE settings, and satellite mode overlays country/place labels.
 - ISS Horizon map style changes now sync through an external iCUE bridge compatible with the widget CSP.
@@ -55,10 +48,9 @@ All notable changes to **icue-edge-widgets** are documented here.
 - Spotify Visualizer now removes the green playing-state frame around the widget.
 - Generated `.icuewidget` preview icons now use transparent widget-specific SVG marks across all widgets instead of black square tiles.
 - Spotify Visualizer package now uses `svg/spotify.svg` as its iCUE preview icon.
-- AI Assistant CSP now restricts proxy connections to StealthyLabs origins instead of any HTTPS endpoint.
 - Spotify Visualizer iCUE property lookup now uses an explicit allowlist instead of dynamic function evaluation.
 - Packaged widgets now inject the default iCUE event bridge as an external script, avoiding automatic CSP `unsafe-inline` relaxation.
-- README now documents both supported iCUE usage modes: GitHub Pages iFrame embeds and native `.icuewidget` imports.
+- README now documents native `.icuewidget` imports.
 - Spotify Visualizer XL layout now uses more horizontal space with larger album art, player metadata, controls, and lyrics.
 - Spotify Visualizer M layout now uses more vertical space with larger album art, metadata, controls, and lower player spacing.
 - Spotify Visualizer iCUE settings now include a Spotify Developer Dashboard URL field for setup.
@@ -96,12 +88,6 @@ All notable changes to **icue-edge-widgets** are documented here.
 - `btn-timer` now uses cyan/teal outline style (not solid fill) — activates solid on running state
 - `m-progress-fill` synchronized with timer tick (elapsed indicator, 0 → 100%)
 
-### Changed - AI Assistant
-- Fonts: Inter replaced by Space Grotesk (UI/labels) + IBM Plex Sans (body), JetBrains Mono retained for code; Inter kept as fallback
-- `xeneon-edge.css` linked: scanline overlay and shared components available
-- `size-loader.js` linked: M/L/XL URL param support
-- Token block expanded: added `--surface-h`, `--overlay-10/15`, `--tr-b`, `--font-h/b/m`, `--accent-d/b/glow`; purple AI accent `#a78bfa` preserved
-
 ### Changed - Spotify Visualizer
 - Fonts: same Inter → Space Grotesk + IBM Plex Sans migration
 - `xeneon-edge.css` + `size-loader.js` linked
@@ -115,7 +101,7 @@ All notable changes to **icue-edge-widgets** are documented here.
 - `--accent-blue` updated to Xeneon cyan `#00c8ff` for map/telemetry highlights; `--accent-nasa` `#fc3d21` retained for live indicators
 
 ### Removed
-- **News Radar**, **Claude Usage**, **Conflict Tracker**: removed from active widget set and documentation
+- Retired widgets removed from active widget set and documentation.
 
 ---
 
@@ -143,7 +129,6 @@ All notable changes to **icue-edge-widgets** are documented here.
 ## [1.0.0] - 2026-02-28
 
 ### Added - Widgets
-- **AI Assistant**: Claude-powered chat widget with streaming support
 - **Claude Usage** (Alpha): Monitor Anthropic API token usage
 - **Conflict Tracker** (Alpha): Track and visualize active conflicts worldwide
 - **ISS Horizon**: Real-time ISS position tracking with horizon map
@@ -164,5 +149,4 @@ All notable changes to **icue-edge-widgets** are documented here.
 ### Added - Infrastructure
 - `theme-loader.js`: Flash-of-unstyled-content prevention (reads `pa_theme` from localStorage before render)
 - Shared design system: CSS tokens, dark/light themes, toast notifications, grid scanline effect
-- SVG assets: Claude, Anthropic, AI Studio logos
 - MIT License

@@ -2,44 +2,37 @@
 
 HTML, CSS, and JavaScript widgets for Corsair XENEON EDGE and iCUE.
 
-This repository supports two usage modes:
-
-- GitHub Pages embeds through the iCUE iFrame widget.
-- Native iCUE imports through `.icuewidget` packages.
+This repository supports native iCUE imports through `.icuewidget` packages.
 
 ## Features
 
-- Pure frontend widgets with no runtime build step for GitHub Pages.
 - Responsive layouts for iCUE widget sizes.
 - Native `.icuewidget` packages generated under `dist/icuewidgets/`.
 - English-only widget UI.
 - Shared styling for compact, headerless XENEON EDGE layouts.
 - Spotify Visualizer with native iCUE settings, Spotify authorization, playback controls, volume, and lyrics layouts.
-- AI Assistant with Gemini, Claude, and OpenAI provider support.
 
 ## Available Widgets
 
-| Widget | GitHub Pages iFrame |
+| Widget | Package |
 | --- | --- |
-| AI Assistant | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/ai-assistant/"></iframe>` |
-| Spotify Visualizer | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/spotify-visualizer/"></iframe>` |
-| ISS Horizon | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/iss-horizon/"></iframe>` |
-| News Radar | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/news-radar/"></iframe>` |
-| Budget | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/productivity/budget/"></iframe>` |
-| Daily Focus | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/productivity/daily-focus/"></iframe>` |
-| Habit Tracker | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/productivity/habit-tracker/"></iframe>` |
-| Hydration | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/productivity/hydration/"></iframe>` |
-| Quick Notes | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/productivity/notes/"></iframe>` |
-| Pomodoro | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/productivity/pomodoro/"></iframe>` |
-| Posture Reminder | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/productivity/posture-reminder/"></iframe>` |
-| Quick Clipboard | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/productivity/quick-clipboard/"></iframe>` |
-| Timer | `<iframe src="https://stealthylabshq.github.io/icue-edge-widgets/productivity/timer/"></iframe>` |
+| Spotify Visualizer | `spotify-visualizer.icuewidget` |
+| ISS Horizon | `iss-horizon.icuewidget` |
+| News Radar | `news-radar.icuewidget` |
+| Budget | `budget.icuewidget` |
+| Daily Focus | `daily-focus.icuewidget` |
+| Habit Tracker | `habit-tracker.icuewidget` |
+| Hydration | `hydration.icuewidget` |
+| Quick Notes | `notes.icuewidget` |
+| Pomodoro | `pomodoro.icuewidget` |
+| Posture Reminder | `posture-reminder.icuewidget` |
+| Quick Clipboard | `quick-clipboard.icuewidget` |
+| Timer | `timer.icuewidget` |
 
 ## Native iCUE Packages
 
 Prebuilt packages are stored in `dist/icuewidgets/`:
 
-- `ai-assistant.icuewidget`
 - `spotify-visualizer.icuewidget`
 - `iss-horizon.icuewidget`
 - `news-radar.icuewidget`
@@ -71,38 +64,27 @@ Package details:
 - Locale files map iCUE translation keys to English fallback text.
 - The default iCUE event bridge is packaged as an external script.
 
-## iFrame Usage
-
-1. Open iCUE.
-2. Select the XENEON EDGE screen.
-3. Add the iFrame widget.
-4. Paste one of the iframe snippets from the table above.
-5. Select the desired iCUE widget size.
-
-Most widgets also support a `?size=` URL parameter:
-
-| Size | Example |
-| --- | --- |
-| M | `https://stealthylabshq.github.io/icue-edge-widgets/productivity/pomodoro/?size=m` |
-| L | `https://stealthylabshq.github.io/icue-edge-widgets/productivity/pomodoro/` |
-| XL | `https://stealthylabshq.github.io/icue-edge-widgets/productivity/pomodoro/?size=xl` |
-
-ISS Horizon and Spotify Visualizer primarily use iCUE size detection instead of the `?size=` parameter.
-
 ## Spotify Visualizer Setup
 
 Spotify Visualizer requires Spotify Premium and a free Spotify Developer app. The app is only used to identify your own Spotify account during login. No client secret is needed.
 
 ### Quick Install
 
-1. Download `dist/icuewidgets/spotify-visualizer.icuewidget`.
-2. Open iCUE and import the widget.
-3. Add Spotify Visualizer to your XENEON EDGE screen.
-4. Open the widget settings.
-5. Paste your Spotify Client ID.
-6. Click `Authorize Spotify` inside the widget.
-7. Accept Spotify authorization.
-8. Return to iCUE and start playback on Spotify.
+1. Start the local helper:
+
+```powershell
+cd spotify-local-helper
+npm start
+```
+
+2. Download `dist/icuewidgets/spotify-visualizer.icuewidget`.
+3. Open iCUE and import the widget.
+4. Add Spotify Visualizer to your XENEON EDGE screen.
+5. Open the widget settings.
+6. Paste your Spotify Client ID.
+7. Click `Authorize Spotify` inside the widget.
+8. Accept Spotify authorization.
+9. Return to iCUE and start playback on Spotify.
 
 ### Get a Spotify Client ID
 
@@ -113,7 +95,7 @@ Spotify Visualizer requires Spotify Premium and a free Spotify Developer app. Th
 5. Add this redirect URI:
 
 ```text
-https://spotify-auth-worker.code-39c.workers.dev/auth/callback
+http://127.0.0.1:8787/auth/callback
 ```
 
 6. Save settings.
@@ -139,43 +121,26 @@ Spotify Visualizer supports:
 - Theme toggle.
 - Last track restore while reconnecting.
 - Synced lyrics cache.
-- Server-side Spotify OAuth through `spotify-auth-worker`.
+- Local Spotify OAuth through `spotify-local-helper`.
 
-### Spotify Server-Side OAuth
+### Spotify Local Helper
 
-`spotify-auth-worker/` contains the first server-side OAuth backend for Spotify Visualizer.
+`spotify-local-helper/` contains the local OAuth and Spotify API proxy for Spotify Visualizer.
 
-GitHub Pages remains the widget domain:
+The helper listens on:
 
 ```text
-https://stealthylabshq.github.io/icue-edge-widgets/
+http://127.0.0.1:8787
 ```
 
-The Worker is only used for OAuth, encrypted refresh-token storage, and Spotify API proxying.
-
-## AI Assistant Setup
-
-AI Assistant supports Gemini, Claude, and OpenAI.
-
-1. Add the AI Assistant widget through iFrame or import `ai-assistant.icuewidget`.
-2. Open the widget settings.
-3. Select a provider.
-4. Paste the provider API key.
-5. Save settings.
-
-Provider key pages:
-
-- Gemini: `https://aistudio.google.com/app/apikey`
-- Claude: `https://console.anthropic.com/settings/keys`
-- OpenAI: `https://platform.openai.com/api-keys`
+It keeps OAuth refresh tokens on the local machine under `%APPDATA%\icue-edge-widgets\spotify-local-helper.json`.
 
 ## Repository Layout
 
 | Path | Purpose |
 | --- | --- |
-| `ai-assistant/` | AI Assistant widget |
-| `spotify-visualizer/` | Spotify Visualizer widget and Spotify auth pages |
-| `spotify-auth-worker/` | Cloudflare Worker for Spotify OAuth and encrypted refresh-token storage |
+| `spotify-visualizer/` | Spotify Visualizer widget |
+| `spotify-local-helper/` | Local Spotify OAuth and API proxy |
 | `iss-horizon/` | ISS Horizon widget |
 | `news-radar/` | News widget |
 | `productivity/` | Productivity widgets |
