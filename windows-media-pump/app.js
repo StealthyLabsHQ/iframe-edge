@@ -75,7 +75,7 @@
         $("albumImg").hidden = true;
         $("fallbackOrb").hidden = false;
         if (hasMedia) hideOverlay();
-        else showOverlay("Ready", "Start playback in Spotify, YouTube, browser, or another media app.");
+        else showOverlay("Ready", "Start playback in YouTube, browser, or another media app.");
     }
 
     async function poll() {

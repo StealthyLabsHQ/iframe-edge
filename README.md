@@ -33,10 +33,6 @@ This repository supports native iCUE imports through `.icuewidget` packages.
 | Windows Media Pump | `windows-media-pump.icuewidget` |
 | Cooling Sensor Pump | `cooling-sensor-pump.icuewidget` |
 
-## Discontinued
-
-- Spotify Visualizer is discontinued. Native iCUE media data does not expose album art or reliable Spotify metadata, and the local-helper approach was removed to keep widgets simple to install and run.
-
 ## Native iCUE Packages
 
 Prebuilt packages are split by device:

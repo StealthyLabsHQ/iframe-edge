@@ -16,51 +16,15 @@ All notable changes to **icue-edge-widgets** are documented here.
 - `cooling-sensor-pump/`: pump LCD cooling sensor widget with automatic pump/temperature sensor selection.
 - `windows-media-pump/`: pump LCD widget that reads the current Windows media session through the local helper.
 - Generated `.icuewidget` packages now use widget-specific SVG preview icons instead of text initials.
-- `spotify-local-helper/`: local Node OAuth and Spotify API proxy for Spotify Visualizer.
-- Spotify Visualizer now uses local PKCE OAuth through `127.0.0.1:8787`.
-- Spotify Visualizer now reuses an existing Pairing Code when opening authorization instead of generating a mismatched new code.
-- Spotify Visualizer now regenerates expired pairing codes before opening Spotify authorization.
 
 ### Fixed - iCUE packages
 - Removed legacy productivity iframe widgets from source and package output.
-- Spotify Visualizer now keeps Spotify OAuth/API traffic local.
-- Spotify Visualizer now keeps the player visible instead of blocking it with a warning overlay after long Spotify pauses or transient player errors.
-- Spotify Visualizer now supports user-owned Spotify Client IDs, making OAuth independent from the maintainer's Spotify Developer Dashboard for new pairings.
-- Spotify Visualizer now resolves lyrics from the first valid LRCLIB response and times out slow lyric calls to reduce delays after track switches.
-- Spotify Visualizer now allows slower LRCLIB matches to finish so available lyrics are not marked unavailable too early.
-- README now includes a clearer Spotify Visualizer install guide with Client ID setup and common troubleshooting.
 - ISS Horizon now removes the live video area in favor of a larger ISS ground track map with Dark, Satellite, Day, and Auto styles.
 - ISS Horizon map style now moves to native iCUE settings, and satellite mode overlays country/place labels.
 - ISS Horizon map style changes now sync through an external iCUE bridge compatible with the widget CSP.
-- Spotify Visualizer packages now expose native iCUE settings for Spotify Client ID and Refresh Token, matching the importable settings-panel pattern used by RSS widgets.
-- Spotify Visualizer now removes its in-widget settings panel and opens Spotify authorization through the iCUE LinkProvider flow.
-- Spotify Visualizer now syncs iCUE textfield values through an inline bridge before opening Spotify authorization.
-- Spotify Visualizer now tolerates transient Spotify API misses while switching iCUE widgets before showing an offline state.
-- Spotify Visualizer now preserves rotated Spotify refresh tokens across iCUE widget switches and restores the last track while reconnecting.
-- Spotify Visualizer now keeps credentials instance-scoped so adding a second empty Spotify widget does not clear the active widget refresh token.
-- Spotify Visualizer now suppresses transient Session expired overlays during widget switches when the current track is still visible.
-- Spotify Visualizer now reloads lyrics after restored track snapshots so widget switches do not leave the lyrics panel empty.
-- Spotify Visualizer now polls faster after skips and caches synced lyrics to reduce transition/loading delay.
-- Spotify Visualizer now maps S/M slots to player-only layouts, L/XL to lyrics layouts, and removes the top Spotify badge/playing stripe.
-- Spotify Visualizer compact S/M layouts now use larger album art and include volume controls.
-- Spotify Visualizer theme toggle is now a subtle floating control in the lower corner.
-- Spotify Visualizer theme toggle now anchors to the widget viewport instead of the header.
-- Spotify Visualizer theme toggle now sits in the lower-left corner to avoid the lyrics scroll controls.
-- Spotify Visualizer compact S/M layout now uses the available upper space more tightly.
-- Spotify Visualizer compact S/M layout now uses larger track metadata text.
-- Spotify Visualizer now removes the empty top header strip from the widget.
-- Spotify Visualizer now clears stale local credentials when a newly added iCUE widget has empty native settings.
-- Spotify Visualizer now blocks stale local refresh tokens when only Spotify Client ID is set in iCUE settings.
-- Spotify Visualizer now retries the native iCUE Refresh Token after an iCUE restart if the cached local token is rejected.
-- Spotify Visualizer now removes the green playing-state frame around the widget.
 - Generated `.icuewidget` preview icons now use transparent widget-specific SVG marks across all widgets instead of black square tiles.
-- Spotify Visualizer package now uses `svg/spotify.svg` as its iCUE preview icon.
-- Spotify Visualizer iCUE property lookup now uses an explicit allowlist instead of dynamic function evaluation.
 - Packaged widgets now inject the default iCUE event bridge as an external script, avoiding automatic CSP `unsafe-inline` relaxation.
 - README now documents native `.icuewidget` imports.
-- Spotify Visualizer XL layout now uses more horizontal space with larger album art, player metadata, controls, and lyrics.
-- Spotify Visualizer M layout now uses more vertical space with larger album art, metadata, controls, and lower player spacing.
-- Spotify Visualizer iCUE settings now include a Spotify Developer Dashboard URL field for setup.
 - Final `.icuewidget` archives now write `index.html` as the first ZIP entry, matching importable Marketplace packages and avoiding iCUE's title parser reading another file.
 - Generated `.icuewidget` archives now split into `xeneon-edge` and `corsair-watercooling` output folders.
 - Packaged archives now exclude secondary HTML pages so iCUE only validates the widget `index.html`.
@@ -94,12 +58,6 @@ All notable changes to **icue-edge-widgets** are documented here.
 - Added `is-break` class on `.widget` for teal break-mode visual state (border, accent line, icon, digits, controls)
 - `btn-timer` now uses cyan/teal outline style (not solid fill) — activates solid on running state
 - `m-progress-fill` synchronized with timer tick (elapsed indicator, 0 → 100%)
-
-### Changed - Spotify Visualizer
-- Fonts: same Inter → Space Grotesk + IBM Plex Sans migration
-- `xeneon-edge.css` + `size-loader.js` linked
-- Token block expanded: added `--surface-h`, `--overlay-10/15`, `--tr-b`, `--font-h/b/m`, `--accent-d/b/glow`; Spotify green `#1DB954` preserved across dark/light/blur themes
-- Blur theme tokens refined: `--text-2/3` use rgba for better legibility over album art
 
 ### Changed - ISS Horizon
 - Fonts: Inter → Space Grotesk (UI) + JetBrains Mono; added IBM Plex Sans to Google Fonts import
@@ -139,7 +97,6 @@ All notable changes to **icue-edge-widgets** are documented here.
 - **Claude Usage** (Alpha): Monitor Anthropic API token usage
 - **Conflict Tracker** (Alpha): Track and visualize active conflicts worldwide
 - **ISS Horizon**: Real-time ISS position tracking with horizon map
-- **Spotify Visualizer**: Live playback visualizer via Spotify OAuth
 
 ### Added - Productivity suite
 - **Pomodoro**: Focus/break timer with SVG ring display

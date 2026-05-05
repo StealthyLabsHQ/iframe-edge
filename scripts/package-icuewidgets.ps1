@@ -45,12 +45,6 @@ function Copy-Tree($src, $dst) {
 
 function Get-IconSvgFragment($icon, $label) {
   switch ($icon) {
-    "spotify" { return @'
-<circle cx="32" cy="32" r="17" fill="currentColor" stroke="none"/>
-<path d="M22 27c7-2 15-1.5 21 2" stroke="#050505" stroke-width="3" stroke-linecap="round" fill="none"/>
-<path d="M24 33c5.5-1.4 12-.9 17 1.7" stroke="#050505" stroke-width="2.4" stroke-linecap="round" fill="none"/>
-<path d="M26 38c4-1 9-.6 13 1.3" stroke="#050505" stroke-width="2" stroke-linecap="round" fill="none"/>
-'@ }
     "media" { return @'
 <circle cx="32" cy="32" r="17"/>
 <path d="M25 38V26l13 6-13 6z" fill="currentColor" stroke="none"/>
