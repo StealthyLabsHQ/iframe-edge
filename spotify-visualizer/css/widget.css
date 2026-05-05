@@ -31,8 +31,8 @@ button {
 :root,
 :root[data-theme="dark"] {
     --bg:           #000000;
-    --surface:      rgba(255, 255, 255, 0.04);
-    --surface-h:    rgba(255, 255, 255, 0.07);
+    --surface:      #000000;
+    --surface-h:    rgba(255, 255, 255, 0.05);
     --border:       rgba(255, 255, 255, 0.08);
     --border-h:     rgba(255, 255, 255, 0.18);
     --text-1:       #ffffff;
@@ -44,7 +44,7 @@ button {
     --accent-dim:   rgba(29, 185, 84, 0.20);
     --accent-b:     rgba(29, 185, 84, 0.28);
     --accent-glow:  rgba(29, 185, 84, 0.22);
-    --glass-bg:     rgba(0, 0, 0, 0.85);
+    --glass-bg:     #000000;
     --glass-b:      rgba(255, 255, 255, 0.09);
     --toast-bg:     #141414;
     --overlay-5:    rgba(255, 255, 255, 0.05);
@@ -133,6 +133,11 @@ body {
     inset: 0;
     z-index: 0;
     overflow: hidden;
+    display: none;
+}
+
+:root[data-theme="blur"] #bgBlur {
+    display: block;
 }
 
 #bgBlur img {

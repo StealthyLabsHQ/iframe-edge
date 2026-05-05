@@ -9,6 +9,12 @@ All notable changes to **icue-edge-widgets** are documented here.
 ### Added - Widget polish layer
 - `widget-polish.css`: shared Huashu design finish layer for active widgets, with compact icon-only headers, tighter controls, restrained 8px surfaces, improved borders, focus states, and less title-heavy UI.
 - `scripts/package-icuewidgets.ps1`: validates and builds active widgets into `dist/icuewidgets/*.icuewidget`.
+- `windows-media-dashboard/`: XENEON EDGE dashboard using the local Windows media bridge.
+- `system-status-local/`: XENEON EDGE dashboard using the local helper for CPU, RAM, disk, network, and uptime.
+- `weather-now/`: XENEON EDGE weather dashboard using Open-Meteo without API keys.
+- `github-repo-monitor/`: XENEON EDGE GitHub repository dashboard with optional token setting.
+- `cooling-sensor-pump/`: pump LCD cooling sensor widget with automatic pump/temperature sensor selection.
+- `windows-media-pump/`: pump LCD widget that reads the current Windows media session through the local helper.
 - Generated `.icuewidget` packages now use widget-specific SVG preview icons instead of text initials.
 - `spotify-local-helper/`: local Node OAuth and Spotify API proxy for Spotify Visualizer.
 - Spotify Visualizer now uses local PKCE OAuth through `127.0.0.1:8787`.
@@ -16,6 +22,7 @@ All notable changes to **icue-edge-widgets** are documented here.
 - Spotify Visualizer now regenerates expired pairing codes before opening Spotify authorization.
 
 ### Fixed - iCUE packages
+- Removed legacy productivity iframe widgets from source and package output.
 - Spotify Visualizer now keeps Spotify OAuth/API traffic local.
 - Spotify Visualizer now keeps the player visible instead of blocking it with a warning overlay after long Spotify pauses or transient player errors.
 - Spotify Visualizer now supports user-owned Spotify Client IDs, making OAuth independent from the maintainer's Spotify Developer Dashboard for new pairings.
@@ -55,6 +62,7 @@ All notable changes to **icue-edge-widgets** are documented here.
 - Spotify Visualizer M layout now uses more vertical space with larger album art, metadata, controls, and lower player spacing.
 - Spotify Visualizer iCUE settings now include a Spotify Developer Dashboard URL field for setup.
 - Final `.icuewidget` archives now write `index.html` as the first ZIP entry, matching importable Marketplace packages and avoiding iCUE's title parser reading another file.
+- Generated `.icuewidget` archives now split into `xeneon-edge` and `corsair-watercooling` output folders.
 - Packaged archives now exclude secondary HTML pages so iCUE only validates the widget `index.html`.
 - Translation files now include Corsair's expected locale keys with English fallback values, preventing `tr('...')` titles from resolving empty in iCUE.
 - Packaged HTML now adds a viewport meta tag before the iCUE title when source widgets omit one.
@@ -68,7 +76,6 @@ All notable changes to **icue-edge-widgets** are documented here.
 ### Changed - Active widgets
 - Removed visible header titles across active widgets while preserving DOM ids for runtime copy updates.
 - Standardized active widget UI to English-only copy and removed French language toggles/dictionaries.
-- News Radar defaults to English sources and no longer lists French feeds.
 
 ### Changed - Documentation
 - README now documents English-only widgets and the shared `widget-polish.css` layer.
@@ -132,7 +139,6 @@ All notable changes to **icue-edge-widgets** are documented here.
 - **Claude Usage** (Alpha): Monitor Anthropic API token usage
 - **Conflict Tracker** (Alpha): Track and visualize active conflicts worldwide
 - **ISS Horizon**: Real-time ISS position tracking with horizon map
-- **News Radar**: Aggregated news feed with category filters
 - **Spotify Visualizer**: Live playback visualizer via Spotify OAuth
 
 ### Added - Productivity suite

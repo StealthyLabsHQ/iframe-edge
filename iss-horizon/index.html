@@ -23,8 +23,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&display=swap"
         rel="stylesheet" />
-    <!-- Xeneon Edge Design System — shared tokens & base styles -->
-    <link rel="stylesheet" href="../productivity/xeneon-edge.css" />
+    <!-- Xeneon Widget shared tokens & base styles -->
+    <link rel="stylesheet" href="../xeneon-widget.css" />
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -35,31 +35,28 @@
         /* Widget-specific tokens bridge to xeneon-edge.css base.
            Size is injected by iCUE as body class: sz-m / sz-l / sz-xl */
         :root {
-            /* Bridge — map ISS local names to xeneon-edge tokens */
-            --bg-base:        var(--bg);             /* #000000 */
-            --bg-panel:       rgba(255,255,255,0.04); /* xeneon surface */
+            --bg-base:        #000000;
+            --bg-panel:       transparent;
             --bg-overlay:     rgba(0, 0, 0, 0.72);
 
-            --text-main:      var(--text-1);          /* #ffffff */
-            --text-dim:       var(--text-2);          /* rgba(255,255,255,0.60) */
-            --text-muted:     var(--text-3);          /* rgba(255,255,255,0.35) */
+            --text-main:      #f7f8fb;
+            --text-dim:       rgba(247, 248, 251, 0.74);
+            --text-muted:     rgba(247, 248, 251, 0.50);
 
-            /* ISS-specific accents (not overriding xeneon --accent) */
-            --accent-blue:    #00c8ff;                /* Xeneon cyan for data/map */
+            --accent-blue:    #00c8ff;
             --accent-blue-dim: rgba(0, 200, 255, 0.14);
-            --accent-nasa:    #fc3d21;                /* NASA red — live / alerts */
+            --accent-nasa:    #fc3d21;
 
-            --border-subtle:  var(--border);          /* rgba(255,255,255,0.08) */
-            --border-focus:   var(--border-h);        /* rgba(255,255,255,0.18) */
+            --border-subtle:  rgba(255, 255, 255, 0.12);
+            --border-focus:   rgba(255, 255, 255, 0.22);
 
-            /* Fonts — now using xeneon-edge Space Grotesk + JetBrains Mono */
-            --font-ui:        var(--font-h);          /* 'Space Grotesk' */
-            --font-mono:      var(--font-m);          /* 'JetBrains Mono' */
+            --font-ui:        "IBM Plex Sans", "Inter", "Segoe UI", system-ui, sans-serif;
+            --font-mono:      "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-            --radius-md:      10px;
+            --radius-md:      8px;
             --radius-sm:      6px;
 
-            --transition:     var(--tr);              /* 0.18s cubic-bezier */
+            --transition:     0.18s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -73,6 +70,10 @@
             background-color: var(--bg-base);
             color: var(--text-main);
             font-family: var(--font-ui);
+            font-weight: 500;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
             overflow: hidden;
             width: 100vw;
             height: 100vh;
@@ -163,9 +164,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            color: var(--text-main);
             font-weight: 600;
             font-size: 0.95rem;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
         }
 
         .brand svg {
@@ -240,23 +243,25 @@
             align-items: center;
             gap: 6px;
             color: var(--text-dim);
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.08em;
         }
 
         .tel-header svg {
-            color: var(--text-muted);
+            color: var(--accent-blue);
+            opacity: 0.85;
         }
 
         /* Value styling */
         .tel-val {
             font-family: var(--font-mono);
-            font-size: 1.15rem;
-            font-weight: 700;
+            font-size: 1.2rem;
+            font-weight: 600;
             color: var(--text-main);
-            letter-spacing: -0.5px;
+            letter-spacing: -0.01em;
+            font-variant-numeric: tabular-nums;
         }
 
         /* ── Map Zone ─────────────────────────────────────────── */
@@ -288,10 +293,11 @@
             backdrop-filter: blur(4px);
             padding: 4px 10px;
             border-radius: var(--radius-sm);
+            color: var(--text-main);
             font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.1em;
             border: 1px solid var(--border-subtle);
         }
 
@@ -356,8 +362,7 @@
             width: 100%;
             height: 100%;
             flex-grow: 1;
-            background: #262626;
-            /* matches CartoDB dark tile ocean color */
+            background: #000;
         }
 
         #issMap::after {

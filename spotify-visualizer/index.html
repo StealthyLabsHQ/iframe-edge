@@ -6,22 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://127.0.0.1:8787 https://lrclib.net; object-src 'none'; base-uri 'none'; form-action 'none';" />
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none';" />
     <script src="../productivity/theme-loader.js"></script>
     <script src="../productivity/size-loader.js"></script>
     <title>Spotify Visualizer</title>
-    <meta name="x-icue-property" content="spotifyClientId" data-label="tr('Spotify Client ID')" data-type="textfield"
-        data-default="''" />
-    <meta name="x-icue-property" content="spotifyResetPairing" data-label="tr('Reset Pairing Code')" data-type="textfield"
-        data-default="''" />
-    <script id="x-icue-groups" type="application/json">
-        [
-            {
-                "title": "tr('Spotify Connection')",
-                "properties": ["spotifyClientId", "spotifyResetPairing"]
-            }
-        ]
-    </script>
     <link rel="icon" href="https://stealthylabs.eu/logos/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -151,9 +139,9 @@
 
         <!-- State overlay (no config / not playing) -->
         <div id="stateOverlay">
-            <div class="state-icon" id="stateIcon">⚙️</div>
-            <div class="state-title" id="stateTitle">Setup Required</div>
-            <div class="state-sub" id="stateSub">Authorize Spotify to connect this widget.</div>
+            <div class="state-icon" id="stateIcon">MEDIA</div>
+            <div class="state-title" id="stateTitle">Ready</div>
+            <div class="state-sub" id="stateSub">Start playback in Spotify, YouTube, browser, or another media app.</div>
             <button class="state-btn ui-hidden" id="stateAction"></button>
         </div>
 
@@ -164,28 +152,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./app.js"></script>
-    <script>
-        function syncSpotifyIcueProperties(options) {
-            var clientId = typeof spotifyClientId !== "undefined" ? spotifyClientId : undefined;
-            var resetPairing = typeof spotifyResetPairing !== "undefined" ? spotifyResetPairing : undefined;
-            return window.SpotifyVisualizerIcue.setPairing(clientId, undefined, undefined, resetPairing, options);
-        }
-        window.SpotifyVisualizerIcue.syncFromIcue = syncSpotifyIcueProperties;
-        icueEvents = {
-            onICUEInitialized: function () {
-                syncSpotifyIcueProperties({ clearEmpty: true });
-                window.SpotifyVisualizerIcue.onInitialized();
-            },
-            onDataUpdated: function () {
-                syncSpotifyIcueProperties({ clearEmpty: false });
-                window.SpotifyVisualizerIcue.onDataUpdated();
-            }
-        };
-        if (typeof iCUE_initialized !== "undefined" && iCUE_initialized) {
-            syncSpotifyIcueProperties({ clearEmpty: true });
-            window.SpotifyVisualizerIcue.onInitialized();
-        }
-    </script>
 </body>
 
 </html>

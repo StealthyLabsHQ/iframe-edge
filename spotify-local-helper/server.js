@@ -3,6 +3,7 @@
 
 const http = require("http");
 const crypto = require("crypto");
+const { execFile } = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -25,8 +26,53 @@ const SCOPES = [
 const dataDir = process.env.ICUE_SPOTIFY_LOCAL_DATA_DIR ||
   path.join(process.env.APPDATA || os.homedir(), "icue-edge-widgets");
 const dataFile = path.join(dataDir, "spotify-local-helper.json");
+const WINDOWS_MEDIA_CACHE_MS = 1500;
+const SYSTEM_STATUS_CACHE_MS = 2000;
+const WINDOWS_MEDIA_READER_PROJECT = path.join(__dirname, "windows-media-reader", "windows-media-reader.csproj");
+const SYSTEM_STATUS_SCRIPT = `
+$ErrorActionPreference = 'SilentlyContinue'
+$drive = Get-PSDrive -Name C
+$net = Get-NetAdapterStatistics | Measure-Object -Property ReceivedBytes,SentBytes -Sum
+$ip = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '169.*' -and $_.IPAddress -ne '127.0.0.1' } | Select-Object -First 1 -ExpandProperty IPAddress)
+[pscustomobject]@{
+  diskFree = [math]::Round($drive.Free / 1GB, 1)
+  diskUsed = [math]::Round(($drive.Used) / 1GB, 1)
+  diskTotal = [math]::Round(($drive.Free + $drive.Used) / 1GB, 1)
+  netReceived = [math]::Round(($net[0].Sum) / 1GB, 2)
+  netSent = [math]::Round(($net[1].Sum) / 1GB, 2)
+  ip = $ip
+} | ConvertTo-Json -Compress
+`;
+const WINDOWS_MEDIA_SCRIPT = `
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Runtime.WindowsRuntime
+$asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.IsGenericMethod -and $_.GetParameters().Count -eq 1 })[0]
+function Await($op, $type) {
+  $asTask = $asTaskGeneric.MakeGenericMethod($type)
+  $task = $asTask.Invoke($null, @($op))
+  $task.Wait() | Out-Null
+  $task.Result
+}
+[Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows.Media.Control, ContentType=WindowsRuntime] | Out-Null
+$manager = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager])
+$session = $manager.GetCurrentSession()
+if ($null -eq $session) { [pscustomobject]@{ ok = $false; error = 'no_session' } | ConvertTo-Json -Compress; exit }
+$props = Await ($session.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties])
+$info = $session.GetPlaybackInfo()
+[pscustomobject]@{
+  ok = $true
+  title = $props.Title
+  artist = $props.Artist
+  album = $props.AlbumTitle
+  status = $info.PlaybackStatus.ToString()
+  source = $session.SourceAppUserModelId
+} | ConvertTo-Json -Compress
+`;
 
-let state = loadState();
+let state = normalizeState(loadState());
+let windowsMediaCache = { at: 0, data: null };
+let systemStatusCache = { at: 0, data: null };
+let cpuSample = sampleCpu();
 
 const server = http.createServer((req, res) => {
   route(req, res).catch((error) => {
@@ -61,11 +107,15 @@ async function route(req, res) {
   }
 
   if (req.method === "POST" && url.pathname === "/pairings/reset") {
-    return resetPairing(res);
+    return resetPairing(res, url);
   }
 
   if (req.method === "GET" && url.pathname === "/auth/start") {
     return startAuth(res, url);
+  }
+
+  if (req.method === "GET" && url.pathname === "/auth/url") {
+    return getAuthUrl(res, url);
   }
 
   if (req.method === "GET" && url.pathname === "/auth/callback") {
@@ -78,6 +128,14 @@ async function route(req, res) {
 
   if (req.method === "GET" && url.pathname === "/spotify/player") {
     return getPlayer(res, url);
+  }
+
+  if (req.method === "GET" && url.pathname === "/windows/media") {
+    return getWindowsMedia(res);
+  }
+
+  if (req.method === "GET" && url.pathname === "/system/status") {
+    return getSystemStatus(res);
   }
 
   if (req.method === "POST" && url.pathname === "/spotify/action") {
@@ -93,7 +151,8 @@ async function createPairing(req, res, url) {
   if (!clientId) return sendJson(res, 400, { error: "missing_client_id" });
 
   const pairingCode = randomCode(8);
-  state = {
+  prunePairings();
+  state.pairings[pairingCode] = {
     clientId,
     pairingCode,
     status: "pending",
@@ -110,7 +169,7 @@ async function createPairing(req, res, url) {
   const pairing = {
     pairing_code: pairingCode,
     authorize_url: `/auth/start?pairing_code=${encodeURIComponent(pairingCode)}`,
-    expires_at: state.expiresAt
+    expires_at: state.pairings[pairingCode].expiresAt
   };
 
   if (req.method === "GET") {
@@ -119,24 +178,41 @@ async function createPairing(req, res, url) {
   return sendJson(res, 201, pairing);
 }
 
-function resetPairing(res) {
-  state.refreshToken = "";
-  state.sessionToken = "";
-  state.accessToken = "";
-  state.accessTokenExpiresAt = 0;
-  state.status = "expired";
-  state.expiresAt = Date.now();
-  state.oauthStates = {};
+function resetPairing(res, url) {
+  const pairingCode = normalizeCode(url.searchParams.get("pairing_code"));
+  const sessionToken = String(url.searchParams.get("session_token") || "");
+  if (pairingCode && state.pairings[pairingCode]) {
+    delete state.pairings[pairingCode];
+  } else if (sessionToken) {
+    const entry = findPairingBySession(sessionToken);
+    if (entry) delete state.pairings[entry.pairingCode];
+  } else {
+    state.pairings = {};
+  }
   saveState();
   return sendJson(res, 200, { ok: true });
 }
 
 async function startAuth(res, url) {
+  const authUrl = prepareAuthUrl(url);
+  if (!authUrl.ok) return sendAuthUrlError(res, authUrl);
+  res.writeHead(302, corsHeaders({ Location: authUrl.url }));
+  res.end();
+}
+
+function getAuthUrl(res, url) {
+  const authUrl = prepareAuthUrl(url);
+  if (!authUrl.ok) return sendJson(res, authUrl.status, { error: authUrl.error });
+  return sendJson(res, 200, { authorize_url: authUrl.url });
+}
+
+function prepareAuthUrl(url) {
   const pairingCode = normalizeCode(url.searchParams.get("pairing_code"));
-  if (!pairingCode || pairingCode !== state.pairingCode || state.expiresAt < Date.now()) {
-    return sendJson(res, 410, { error: "pairing_expired" });
+  const pairing = state.pairings[pairingCode || ""];
+  if (!pairing || pairing.expiresAt < Date.now()) {
+    return { ok: false, status: 410, error: "pairing_expired" };
   }
-  if (!state.clientId) return sendJson(res, 400, { error: "missing_client_id" });
+  if (!pairing.clientId) return { ok: false, status: 400, error: "missing_client_id" };
 
   const oauthState = randomVerifier();
   const codeVerifier = randomVerifier();
@@ -149,7 +225,7 @@ async function startAuth(res, url) {
   saveState();
 
   const authUrl = new URL(SPOTIFY_AUTH_URL);
-  authUrl.searchParams.set("client_id", state.clientId);
+  authUrl.searchParams.set("client_id", pairing.clientId);
   authUrl.searchParams.set("response_type", "code");
   authUrl.searchParams.set("redirect_uri", REDIRECT_URI);
   authUrl.searchParams.set("scope", SCOPES);
@@ -157,20 +233,40 @@ async function startAuth(res, url) {
   authUrl.searchParams.set("code_challenge_method", "S256");
   authUrl.searchParams.set("code_challenge", codeChallenge);
   authUrl.searchParams.set("show_dialog", "true");
-  res.writeHead(302, corsHeaders({ Location: authUrl.toString() }));
-  res.end();
+  return { ok: true, url: authUrl.toString() };
+}
+
+function sendAuthUrlError(res, authUrl) {
+  if (authUrl.error === "pairing_expired") {
+    return sendHtml(res, 410, messageView({
+      tone: "warn",
+      title: "Authorization expired",
+      body: "Return to iCUE, clear the AUTHORIZE field, then type AUTHORIZE again.",
+      detail: "The local pairing code expired or was replaced by a newer authorization request."
+    }));
+  }
+  return sendJson(res, authUrl.status || 400, { error: authUrl.error || "auth_error" });
 }
 
 async function finishAuth(res, url) {
   const code = url.searchParams.get("code");
   const oauthState = url.searchParams.get("state");
   const row = state.oauthStates[oauthState || ""];
+  const pairing = row ? state.pairings[row.pairingCode] : null;
   if (!code || !row || row.expiresAt < Date.now()) {
     return sendHtml(res, 400, messageView({
       tone: "warn",
       title: "Authorization expired",
       body: "Start again from Spotify Visualizer in iCUE.",
       detail: "OAuth state was missing or expired before Spotify returned."
+    }));
+  }
+  if (!pairing) {
+    return sendHtml(res, 410, messageView({
+      tone: "warn",
+      title: "Authorization expired",
+      body: "Return to iCUE, clear the AUTHORIZE field, then type AUTHORIZE again.",
+      detail: "The local pairing was removed before Spotify returned."
     }));
   }
 
@@ -181,7 +277,7 @@ async function finishAuth(res, url) {
       grant_type: "authorization_code",
       code,
       redirect_uri: REDIRECT_URI,
-      client_id: state.clientId,
+      client_id: pairing.clientId,
       code_verifier: row.codeVerifier
     })
   });
@@ -201,49 +297,51 @@ async function finishAuth(res, url) {
   const me = await meResp.json().catch(() => ({}));
 
   delete state.oauthStates[oauthState];
-  state.status = "connected";
-  state.refreshToken = tokenData.refresh_token;
-  state.accessToken = tokenData.access_token;
-  state.accessTokenExpiresAt = Date.now() + (Number(tokenData.expires_in) || 3600) * 1000;
-  state.sessionToken = "";
-  state.spotifyUserId = me.id || "";
-  state.expiresAt = Date.now() + 365 * 24 * 60 * 60 * 1000;
+  pairing.status = "connected";
+  pairing.refreshToken = tokenData.refresh_token;
+  pairing.accessToken = tokenData.access_token;
+  pairing.accessTokenExpiresAt = Date.now() + (Number(tokenData.expires_in) || 3600) * 1000;
+  pairing.sessionToken = "";
+  pairing.spotifyUserId = me.id || "";
+  pairing.expiresAt = Date.now() + 365 * 24 * 60 * 60 * 1000;
   saveState();
 
   return sendHtml(res, 200, messageView({
     tone: "ok",
     title: "Spotify connected",
     body: "Return to iCUE. Spotify Visualizer will pick up this local session automatically.",
-    detail: state.spotifyUserId ? `Spotify user: ${state.spotifyUserId}` : "Local session ready."
+    detail: pairing.spotifyUserId ? `Spotify user: ${pairing.spotifyUserId}` : "Local session ready."
   }));
 }
 
 function getSession(res, url) {
   const pairingCode = normalizeCode(url.searchParams.get("pairing_code"));
-  if (!pairingCode || pairingCode !== state.pairingCode) {
+  const pairing = state.pairings[pairingCode || ""];
+  if (!pairing) {
     return sendJson(res, 404, { error: "pairing_not_found" });
   }
 
-  const connected = state.status === "connected" && !!state.refreshToken;
+  const connected = pairing.status === "connected" && !!pairing.refreshToken;
   const body = {
     connected,
-    status: state.status || "pending",
-    spotify_user_id: state.spotifyUserId || null,
-    expires_at: state.expiresAt || 0
+    status: pairing.status || "pending",
+    spotify_user_id: pairing.spotifyUserId || null,
+    expires_at: pairing.expiresAt || 0
   };
   if (connected) {
-    if (!state.sessionToken) {
-      state.sessionToken = randomVerifier();
+    if (!pairing.sessionToken) {
+      pairing.sessionToken = randomVerifier();
       saveState();
     }
-    body.session_token = state.sessionToken;
+    body.session_token = pairing.sessionToken;
   }
   return sendJson(res, 200, body);
 }
 
 async function getPlayer(res, url) {
-  if (!requireSession(url)) return sendJson(res, 401, { error: "session_not_found" });
-  const accessToken = await getAccessToken();
+  const pairing = requireSession(url);
+  if (!pairing) return sendJson(res, 401, { error: "session_not_found" });
+  const accessToken = await getAccessToken(pairing);
   if (!accessToken) return sendJson(res, 401, { error: "session_expired" });
 
   const authHeaders = { Authorization: `Bearer ${accessToken}` };
@@ -270,14 +368,15 @@ async function getPlayer(res, url) {
 }
 
 async function spotifyAction(res, url) {
-  if (!requireSession(url)) return sendJson(res, 401, { error: "session_not_found" });
+  const pairing = requireSession(url);
+  if (!pairing) return sendJson(res, 401, { error: "session_not_found" });
   const endpoint = normalizeSpotifyEndpoint(url.searchParams.get("endpoint"));
   const method = String(url.searchParams.get("method") || "POST").toUpperCase();
   if (!endpoint || !isAllowedSpotifyAction(method, endpoint)) {
     return sendJson(res, 400, { error: "action_not_allowed" });
   }
 
-  const accessToken = await getAccessToken();
+  const accessToken = await getAccessToken(pairing);
   if (!accessToken) return sendJson(res, 401, { error: "session_expired" });
   const resp = await fetch(`${SPOTIFY_API_BASE}${endpoint}`, {
     method,
@@ -286,43 +385,152 @@ async function spotifyAction(res, url) {
   return sendJson(res, resp.ok ? 200 : resp.status, { ok: resp.ok, status: resp.status });
 }
 
-function requireSession(url) {
-  const sessionToken = String(url.searchParams.get("session_token") || "");
-  return !!sessionToken && sessionToken === state.sessionToken && state.status === "connected";
+function getWindowsMedia(res) {
+  if (windowsMediaCache.data && Date.now() - windowsMediaCache.at < WINDOWS_MEDIA_CACHE_MS) {
+    return sendJson(res, 200, windowsMediaCache.data);
+  }
+  execFile("dotnet", ["run", "--project", WINDOWS_MEDIA_READER_PROJECT, "--no-launch-profile"], {
+    windowsHide: true,
+    timeout: 8000,
+    maxBuffer: 1024 * 1024
+  }, (error, stdout) => {
+      if (!error && stdout) {
+        try {
+          const data = filterWindowsMedia(JSON.parse(stdout));
+          windowsMediaCache = { at: Date.now(), data };
+          sendJson(res, 200, data);
+          return;
+      } catch (_) {
+        // Fall back to the lighter PowerShell metadata reader below.
+      }
+    }
+    getWindowsMediaFallback(res);
+  });
 }
 
-async function getAccessToken() {
-  if (state.accessToken && state.accessTokenExpiresAt > Date.now() + 60_000) return state.accessToken;
-  if (!state.refreshToken || !state.clientId) return "";
+function getWindowsMediaFallback(res) {
+  execFile("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", WINDOWS_MEDIA_SCRIPT], {
+    windowsHide: true,
+    timeout: 3000,
+    maxBuffer: 1024 * 64
+  }, (error, stdout) => {
+    let data = { ok: false, error: "media_unavailable" };
+    if (!error && stdout) {
+      try { data = filterWindowsMedia(JSON.parse(stdout)); }
+      catch (_) { data = { ok: false, error: "media_parse_failed" }; }
+    }
+    windowsMediaCache = { at: Date.now(), data };
+    sendJson(res, 200, data);
+  });
+}
+
+function getSystemStatus(res) {
+  if (systemStatusCache.data && Date.now() - systemStatusCache.at < SYSTEM_STATUS_CACHE_MS) {
+    return sendJson(res, 200, systemStatusCache.data);
+  }
+
+  execFile("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", SYSTEM_STATUS_SCRIPT], {
+    windowsHide: true,
+    timeout: 3000,
+    maxBuffer: 1024 * 64
+  }, (error, stdout) => {
+    const cpu = cpuPercent();
+    let extra = {};
+    if (!error && stdout) {
+      try { extra = JSON.parse(stdout); }
+      catch (_) { extra = {}; }
+    }
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const data = {
+      ok: true,
+      cpu,
+      ramUsed: Math.round((totalMem - freeMem) / totalMem * 100),
+      ramUsedGb: roundGb(totalMem - freeMem),
+      ramTotalGb: roundGb(totalMem),
+      uptime: os.uptime(),
+      host: os.hostname(),
+      platform: os.platform(),
+      ...extra
+    };
+    systemStatusCache = { at: Date.now(), data };
+    sendJson(res, 200, data);
+  });
+}
+
+function sampleCpu() {
+  return os.cpus().reduce((acc, cpu) => {
+    acc.idle += cpu.times.idle;
+    acc.total += Object.values(cpu.times).reduce((sum, value) => sum + value, 0);
+    return acc;
+  }, { idle: 0, total: 0 });
+}
+
+function cpuPercent() {
+  const next = sampleCpu();
+  const idle = next.idle - cpuSample.idle;
+  const total = next.total - cpuSample.total;
+  cpuSample = next;
+  if (!total) return 0;
+  return Math.max(0, Math.min(100, Math.round((1 - idle / total) * 100)));
+}
+
+function roundGb(bytes) {
+  return Math.round(bytes / 1024 / 1024 / 1024 * 10) / 10;
+}
+
+function filterWindowsMedia(data) {
+  if (!data || !data.ok || !isBrowserMedia(data.source)) return data;
+  const haystack = [data.title, data.artist, data.album, data.source, data.sourceLabel].filter(Boolean).join(" ");
+  if (/twitch|twitch\.tv|twitter|x\.com/i.test(haystack)) {
+    return { ok: false, error: "browser_media_filtered" };
+  }
+  if (/youtube|youtu\.be|youtube music/i.test(haystack)) return data;
+  return data.title && data.artist ? data : { ok: false, error: "browser_media_filtered" };
+}
+
+function isBrowserMedia(source) {
+  return /chrome|firefox|msedge|edge/i.test(String(source || ""));
+}
+
+function requireSession(url) {
+  const sessionToken = String(url.searchParams.get("session_token") || "");
+  const entry = findPairingBySession(sessionToken);
+  return entry && entry.status === "connected" ? entry : null;
+}
+
+async function getAccessToken(pairing) {
+  if (pairing.accessToken && pairing.accessTokenExpiresAt > Date.now() + 60_000) return pairing.accessToken;
+  if (!pairing.refreshToken || !pairing.clientId) return "";
 
   const resp = await fetch(SPOTIFY_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "refresh_token",
-      refresh_token: state.refreshToken,
-      client_id: state.clientId
+      refresh_token: pairing.refreshToken,
+      client_id: pairing.clientId
     })
   });
   const data = await resp.json().catch(() => ({}));
   if (!resp.ok || !data.access_token) {
-    if (data.error === "invalid_grant" || resp.status === 400 || resp.status === 401) resetInMemoryAuth();
+    if (data.error === "invalid_grant" || resp.status === 400 || resp.status === 401) resetInMemoryAuth(pairing);
     saveState();
     return "";
   }
-  state.accessToken = data.access_token;
-  state.accessTokenExpiresAt = Date.now() + (Number(data.expires_in) || 3600) * 1000;
-  if (data.refresh_token) state.refreshToken = data.refresh_token;
+  pairing.accessToken = data.access_token;
+  pairing.accessTokenExpiresAt = Date.now() + (Number(data.expires_in) || 3600) * 1000;
+  if (data.refresh_token) pairing.refreshToken = data.refresh_token;
   saveState();
-  return state.accessToken;
+  return pairing.accessToken;
 }
 
-function resetInMemoryAuth() {
-  state.status = "expired";
-  state.refreshToken = "";
-  state.sessionToken = "";
-  state.accessToken = "";
-  state.accessTokenExpiresAt = 0;
+function resetInMemoryAuth(pairing) {
+  pairing.status = "expired";
+  pairing.refreshToken = "";
+  pairing.sessionToken = "";
+  pairing.accessToken = "";
+  pairing.accessTokenExpiresAt = 0;
 }
 
 function normalizeSpotifyEndpoint(value) {
@@ -348,11 +556,46 @@ function loadState() {
   try {
     return JSON.parse(fs.readFileSync(dataFile, "utf8"));
   } catch (_) {
-    return { oauthStates: {} };
+    return { oauthStates: {}, pairings: {} };
+  }
+}
+
+function normalizeState(value) {
+  const next = value && typeof value === "object" ? value : {};
+  next.oauthStates = next.oauthStates && typeof next.oauthStates === "object" ? next.oauthStates : {};
+  next.pairings = next.pairings && typeof next.pairings === "object" ? next.pairings : {};
+  if (next.pairingCode && !next.pairings[next.pairingCode]) {
+    next.pairings[next.pairingCode] = {
+      clientId: next.clientId || "",
+      pairingCode: next.pairingCode,
+      status: next.status || "pending",
+      expiresAt: next.expiresAt || 0,
+      refreshToken: next.refreshToken || "",
+      sessionToken: next.sessionToken || "",
+      accessToken: next.accessToken || "",
+      accessTokenExpiresAt: next.accessTokenExpiresAt || 0,
+      spotifyUserId: next.spotifyUserId || ""
+    };
+  }
+  return { oauthStates: next.oauthStates, pairings: next.pairings };
+}
+
+function findPairingBySession(sessionToken) {
+  if (!sessionToken) return null;
+  return Object.values(state.pairings).find(pairing => pairing.sessionToken === sessionToken) || null;
+}
+
+function prunePairings() {
+  const now = Date.now();
+  for (const [code, pairing] of Object.entries(state.pairings)) {
+    if (pairing.status !== "connected" && pairing.expiresAt < now) {
+      delete state.pairings[code];
+    }
   }
 }
 
 function saveState() {
+  prunePairings();
   fs.mkdirSync(dataDir, { recursive: true });
   fs.writeFileSync(dataFile, JSON.stringify(state, null, 2));
 }
@@ -393,9 +636,11 @@ function sendSpotifyIcon(res) {
 }
 
 function dashboardView() {
-  const connected = state.status === "connected" && !!state.refreshToken;
-  const status = connected ? "Connected" : state.status === "pending" ? "Pairing pending" : "Waiting for iCUE";
-  const expires = state.expiresAt ? new Date(state.expiresAt).toLocaleString() : "No active session";
+  const pairings = Object.values(state.pairings);
+  const connectedCount = pairings.filter(pairing => pairing.status === "connected" && pairing.refreshToken).length;
+  const pending = pairings.find(pairing => pairing.status === "pending" && pairing.expiresAt > Date.now());
+  const status = connectedCount ? `${connectedCount} session${connectedCount > 1 ? "s" : ""} connected` : pending ? "Pairing pending" : "Waiting for iCUE";
+  const expires = pending ? new Date(pending.expiresAt).toLocaleString() : connectedCount ? "Connected sessions active" : "No active session";
   return `
     <section class="hero">
       <div class="mark-wrap"><img src="/assets/spotify.svg" alt="" /></div>
@@ -404,7 +649,7 @@ function dashboardView() {
       <p class="lead">OAuth and player controls stay on this machine at <code>${escapeHtml(BASE_URL)}</code>.</p>
       <div class="actions">
         <a class="button primary" href="/health">Health JSON</a>
-        ${state.pairingCode ? `<a class="button" href="/auth/start?pairing_code=${encodeURIComponent(state.pairingCode)}">Authorize current pairing</a>` : ""}
+        ${pending ? `<a class="button" href="/auth/start?pairing_code=${encodeURIComponent(pending.pairingCode)}">Authorize current pairing</a>` : ""}
       </div>
     </section>
     <section class="rail">

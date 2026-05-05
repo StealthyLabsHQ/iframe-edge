@@ -3,11 +3,10 @@
 
     const POLL_MS = 1500;
     const $ = id => document.getElementById(id);
-    let timer = null;
+    let pollTimer = null;
     let requestId = 1;
     let responseConnected = false;
     const pending = new Map();
-    const state = { title: "", artist: "", theme: localStorage.getItem("pa_theme") || "dark" };
 
     function mediaPlugin() {
         return window.plugins && window.plugins.Mediadataprovider;
@@ -58,43 +57,30 @@
 
     window.pluginMediadataproviderEvents = { onInitialized: function () { connectMediaEvents(); poll(); } };
 
-    function showOverlay(icon, title, sub) {
-        $("stateIcon").textContent = icon;
+    function showOverlay(title, sub) {
         $("stateTitle").textContent = title;
         $("stateSub").textContent = sub;
-        $("stateAction").classList.add("ui-hidden");
-        $("stateOverlay").classList.remove("hidden");
+        $("stateOverlay").classList.add("visible");
     }
 
     function hideOverlay() {
-        $("stateOverlay").classList.add("hidden");
-    }
-
-    function setPlayIcon() {
-        $("playIcon").innerHTML = `<polygon points="5 3 19 12 5 21 5 3"/>`;
+        $("stateOverlay").classList.remove("visible");
     }
 
     function render(title, artist) {
         const hasMedia = !!(title || artist);
-        state.title = title || "";
-        state.artist = artist || "";
         $("trackName").textContent = title || "Windows Media";
         $("trackArtist").textContent = artist || "Play media on Windows";
-        $("trackAlbum").textContent = "Native iCUE media";
-        $("albumImg").classList.add("ui-hidden");
-        $("noArt").classList.remove("ui-hidden");
-        $("bgImg").style.opacity = "0";
-        $("timeElapsed").textContent = "--";
-        $("timeTotal").textContent = "--";
-        $("progressFill").style.width = hasMedia ? "42%" : "0%";
-        setPlayIcon();
+        $("source").textContent = "iCUE";
+        $("albumImg").hidden = true;
+        $("fallbackOrb").hidden = false;
         if (hasMedia) hideOverlay();
-        else showOverlay("MEDIA", "Ready", "Start playback in Spotify, YouTube, browser, or another media app.");
+        else showOverlay("Ready", "Start playback in Spotify, YouTube, browser, or another media app.");
     }
 
     async function poll() {
         if (!mediaReady()) {
-            showOverlay("MEDIA", "Media Provider", "Waiting for iCUE media provider.");
+            showOverlay("Media", "Waiting for native iCUE media provider.");
             return;
         }
         connectMediaEvents();
@@ -107,43 +93,14 @@
         render(title.trim(), artist.trim());
     }
 
-    function trigger(method) {
-        if (!mediaReady() || typeof mediaPlugin()[method] !== "function") return;
-        connectMediaEvents();
-        try { mediaPlugin()[method](); } catch (_) { }
-        setTimeout(poll, 250);
-    }
-
-    function applyTheme(theme) {
-        const valid = ["dark", "light", "blur"];
-        state.theme = valid.includes(theme) ? theme : "dark";
-        document.documentElement.setAttribute("data-theme", state.theme);
-        $("themeToggle").textContent = state.theme.toUpperCase();
-        localStorage.setItem("pa_theme", state.theme);
-    }
-
-    $("prevBtn").addEventListener("click", () => trigger("triggerPreviousTrack"));
-    $("playBtn").addEventListener("click", () => trigger("triggerPlayPause"));
-    $("nextBtn").addEventListener("click", () => trigger("triggerNextTrack"));
-    $("shuffleBtn").classList.add("ui-hidden");
-    $("repeatBtn").classList.add("ui-hidden");
-    $("volumeRow").classList.add("ui-hidden");
-    $("lyricsCtrlBar").classList.add("ui-hidden");
-    $("lyricsScroll").innerHTML = `<div class="no-lyrics"><div class="icon">MEDIA</div><div>Native iCUE media provider</div></div>`;
-    $("themeToggle").addEventListener("click", () => {
-        const cycle = { dark: "light", light: "blur", blur: "dark" };
-        applyTheme(cycle[state.theme] || "dark");
-    });
-
     function start() {
-        applyTheme(state.theme);
+        if (pollTimer) return;
         connectMediaEvents();
-        if (timer) return;
         poll();
-        timer = setInterval(poll, POLL_MS);
+        pollTimer = setInterval(poll, POLL_MS);
     }
 
-    window.MediaVisualizer = { start, poll };
+    window.WindowsMediaPump = { start, poll };
     window.icueEvents = { onICUEInitialized: start, onDataUpdated: poll };
     start();
 })();
