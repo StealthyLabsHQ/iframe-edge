@@ -84,7 +84,7 @@
     }
 
     async function update() {
-        const repo = normalizeRepo(setting("githubRepo", "StealthyLabsHQ/icue-edge-widgets"));
+        const repo = normalizeRepo(setting("githubRepo", "imnotStealthy/icue-edge-widgets"));
         const repoChanged = repo !== activeRepo;
         if (repoChanged) {
             activeRepo = repo;
