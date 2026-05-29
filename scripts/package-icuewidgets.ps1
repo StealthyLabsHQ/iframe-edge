@@ -218,16 +218,16 @@ function New-IcueWidgetArchive($source, $output) {
 }
 
 $widgets = @(
-  @{ slug="iss-horizon"; source="iss-horizon"; name="ISS Horizon"; id="com.stealthylabshq.isshorizon"; desc="ISS tracking widget for iCUE."; accent="#00c8ff"; label="IS"; icon="iss"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("ISS Horizon", "Map Style", "Dark", "Satellite", "Day", "Auto") },
-  @{ slug="weather-now"; source="weather-now"; name="Weather Now"; id="com.stealthylabshq.weathernow"; desc="Current weather dashboard for XENEON EDGE."; accent="#ffb84d"; label="WX"; icon="weather"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("Weather Now", "Weather", "City", "Units", "Celsius", "Fahrenheit") },
-  @{ slug="github-repo-monitor"; source="github-repo-monitor"; name="GitHub Repo Monitor"; id="com.stealthylabshq.githubrepomonitor"; desc="GitHub repository status dashboard for XENEON EDGE."; accent="#a678ff"; label="GH"; icon="github"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("GitHub Repo Monitor", "GitHub", "Repository", "GitHub Token") },
-  @{ slug="windows-media-pump"; source="windows-media-pump"; name="Windows Media Pump"; id="com.stealthylabshq.windowsmediapump"; desc="Native iCUE media display for Corsair pump LCD."; accent="#1DB954"; label="WM"; icon="media"; device="pump_lcd"; out="corsair-watercooling"; interactive=$false; plugins=@("widgetbuilder.mediadataprovider:Media:1.0") },
-  @{ slug="cooling-sensor-pump"; source="cooling-sensor-pump"; name="Cooling Sensor Pump"; id="com.stealthylabshq.coolingsensorpump"; desc="Automatic cooling sensor display for Corsair pump LCD."; accent="#00c8ff"; label="CS"; icon="cooling"; device="pump_lcd"; out="corsair-watercooling"; interactive=$false; plugins=@("widgetbuilder.sensorsdataprovider:Sensors:1.0") },
-  @{ slug="world-clock"; source="world-clock"; name="World Clock"; id="com.stealthylabshq.worldclock"; desc="Multi-timezone clock for XENEON EDGE."; accent="#f7f8fb"; label="WC"; icon="system"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("World Clock","Time Zone 1","Time Zone 2","Time Zone 3","Time Zone 4","Format","24h","12h") },
-  @{ slug="focus-timer"; source="focus-timer"; name="Focus Timer"; id="com.stealthylabshq.focustimer"; desc="Pomodoro focus timer for XENEON EDGE."; accent="#ff6b6b"; label="FT"; icon="system"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("Focus Timer","Work","Break","Long Break","Cycles") },
-  @{ slug="daily-brief"; source="daily-brief"; name="Daily Brief"; id="com.stealthylabshq.dailybrief"; desc="Daily brief dashboard for XENEON EDGE."; accent="#00c8ff"; label="DB"; icon="weather"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("Daily Brief","City","Units","Celsius","Fahrenheit","Format","24h","12h") },
-  @{ slug="countdowns"; source="countdowns"; name="Countdowns"; id="com.stealthylabshq.countdowns"; desc="Countdown tracker for XENEON EDGE."; accent="#ffb84d"; label="CD"; icon="system"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("Countdowns","Event 1 Label","Event 1 Date","Event 1 Color","Event 2 Label","Event 2 Date","Event 2 Color","Event 3 Label","Event 3 Date","Event 3 Color") },
-  @{ slug="habit-rings"; source="habit-rings"; name="Habit Rings"; id="com.stealthylabshq.habitrings"; desc="Daily habit rings for XENEON EDGE."; accent="#1db954"; label="HR"; icon="system"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("Habit Rings","Habit 1 Label","Habit 1 Goal","Habit 2 Label","Habit 2 Goal","Habit 3 Label","Habit 3 Goal") }
+  @{ slug="iss-horizon"; source="iss-horizon"; name="ISS Horizon"; id="com.imnotstealthy.isshorizon"; desc="ISS tracking widget for iCUE."; accent="#00c8ff"; label="IS"; icon="iss"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("ISS Horizon", "Map Style", "Dark", "Satellite", "Day", "Auto") },
+  @{ slug="weather-now"; source="weather-now"; name="Weather Now"; id="com.imnotstealthy.weathernow"; desc="Current weather dashboard for XENEON EDGE."; accent="#ffb84d"; label="WX"; icon="weather"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("Weather Now", "Weather", "City", "Units", "Celsius", "Fahrenheit") },
+  @{ slug="github-repo-monitor"; source="github-repo-monitor"; name="GitHub Repo Monitor"; id="com.imnotstealthy.githubrepomonitor"; desc="GitHub repository status dashboard for XENEON EDGE."; accent="#a678ff"; label="GH"; icon="github"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("GitHub Repo Monitor", "GitHub", "Repository", "GitHub Token") },
+  @{ slug="windows-media-pump"; source="windows-media-pump"; name="Windows Media Pump"; id="com.imnotstealthy.windowsmediapump"; desc="Native iCUE media display for Corsair pump LCD."; accent="#1DB954"; label="WM"; icon="media"; device="pump_lcd"; out="corsair-watercooling"; interactive=$false; plugins=@("widgetbuilder.mediadataprovider:Media:1.0") },
+  @{ slug="cooling-sensor-pump"; source="cooling-sensor-pump"; name="Cooling Sensor Pump"; id="com.imnotstealthy.coolingsensorpump"; desc="Automatic cooling sensor display for Corsair pump LCD."; accent="#00c8ff"; label="CS"; icon="cooling"; device="pump_lcd"; out="corsair-watercooling"; interactive=$false; plugins=@("widgetbuilder.sensorsdataprovider:Sensors:1.0") },
+  @{ slug="world-clock"; source="world-clock"; name="World Clock"; id="com.imnotstealthy.worldclock"; desc="Multi-timezone clock for XENEON EDGE."; accent="#f7f8fb"; label="WC"; icon="system"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("World Clock","Time Zone 1","Time Zone 2","Time Zone 3","Time Zone 4","Format","24h","12h") },
+  @{ slug="focus-timer"; source="focus-timer"; name="Focus Timer"; id="com.imnotstealthy.focustimer"; desc="Pomodoro focus timer for XENEON EDGE."; accent="#ff6b6b"; label="FT"; icon="system"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("Focus Timer","Work","Break","Long Break","Cycles") },
+  @{ slug="daily-brief"; source="daily-brief"; name="Daily Brief"; id="com.imnotstealthy.dailybrief"; desc="Daily brief dashboard for XENEON EDGE."; accent="#00c8ff"; label="DB"; icon="weather"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("Daily Brief","City","Units","Celsius","Fahrenheit","Format","24h","12h") },
+  @{ slug="countdowns"; source="countdowns"; name="Countdowns"; id="com.imnotstealthy.countdowns"; desc="Countdown tracker for XENEON EDGE."; accent="#ffb84d"; label="CD"; icon="system"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("Countdowns","Event 1 Label","Event 1 Date","Event 1 Color","Event 2 Label","Event 2 Date","Event 2 Color","Event 3 Label","Event 3 Date","Event 3 Color") },
+  @{ slug="habit-rings"; source="habit-rings"; name="Habit Rings"; id="com.imnotstealthy.habitrings"; desc="Daily habit rings for XENEON EDGE."; accent="#1db954"; label="HR"; icon="system"; device="dashboard_lcd"; out="xeneon-edge"; keys=@("Habit Rings","Habit 1 Label","Habit 1 Goal","Habit 2 Label","Habit 2 Goal","Habit 3 Label","Habit 3 Goal") }
 )
 
 Reset-Directory $buildRoot
@@ -268,7 +268,7 @@ foreach ($widget in $widgets) {
   }
 
   $manifest = [ordered]@{
-    author = "StealthyLabsHQ"
+    author = "imnotStealthy"
     id = $widget.id
     name = $widget.name
     description = $widget.desc
